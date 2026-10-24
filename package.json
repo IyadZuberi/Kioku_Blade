@@ -1,0 +1,6 @@
+﻿{
+  "name": "the-general-remembers",
+  "private": true,
+  "type": "module",
+  "scripts": { "test": "pnpm -r --if-present test" }
+}
