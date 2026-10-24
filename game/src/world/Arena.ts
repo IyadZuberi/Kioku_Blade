@@ -6,6 +6,7 @@
  */
 import * as THREE from "three";
 import { type QualitySettings, settingsFor } from "../render/quality";
+import { type Sky, settled, setAnisotropy, sky as loadSky } from "./assets";
 import { makeSky, setSky } from "./kit";
 import { buildTheme, type ThemeId, type ThemeSpec } from "./themes";
 
@@ -58,6 +59,7 @@ export class Arena {
   private readonly cache = new Map<ThemeId, ThemeSpec>();
   private renderer: THREE.WebGLRenderer | null = null;
   private envScene = new THREE.Scene();
+  private readonly skies = new Map<string, { sky: Sky; env: THREE.Texture }>();
   private t = 0;
   private rimScan = 0;
 
@@ -100,13 +102,49 @@ export class Arena {
     this.setTheme(1);
   }
 
-  /** Nothing to download any more; kept so the start-up code reads the same. */
+  /** Fetch every arena's sky photo, textures and scans (behind the loading screen), then light the current one with its sky. */
   async load(renderer: THREE.WebGLRenderer): Promise<void> {
     this.renderer = renderer;
-    this.bakeEnvironment();
+    setAnisotropy(Math.min(this.q.shadowMap >= 4096 ? 8 : 4, renderer.capabilities.getMaxAnisotropy()));
+    this.prebuild([1, 2, 3]);
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    await Promise.all(
+      [...this.cache.values()].map(async (s) => {
+        try {
+          const k = await loadSky(s.hdri);
+          this.skies.set(s.hdri, { sky: k, env: pmrem.fromEquirectangular(k.texture).texture });
+        } catch (e) {
+          console.warn("[arena] sky missing", s.hdri, e);
+        }
+      }),
+    );
+    pmrem.dispose();
+    await settled();
+    if (this.spec) this.setTheme(this.spec.id);
   }
 
-  /** Reflections for steel and lacquer come from the current sky only. */
+  /** Aim the photographed sky so its sun sits where the theme wants it, and light the scene from there. */
+  private applySky(s: ThemeSpec): void {
+    const k = this.skies.get(s.hdri);
+    if (!k) return;
+    const S = k.sky.sun;
+    const phiS = Math.atan2(S.z, S.x);
+    const phiT = Math.atan2(s.sunFrom.z, s.sunFrom.x);
+    const alpha = phiS - phiT; // three samples the picture at R(alpha) * dir, so the sun shows at azimuth phiS - alpha
+    const elev = Math.max(Math.asin(THREE.MathUtils.clamp(S.y, -1, 1)), s.sunMinElev);
+    const dir = new THREE.Vector3(Math.cos(phiT) * Math.cos(elev), Math.sin(elev), Math.sin(phiT) * Math.cos(elev));
+    this.scene.background = k.sky.texture;
+    this.scene.backgroundRotation.set(0, alpha, 0);
+    this.scene.environment = k.env;
+    this.scene.environmentRotation.set(0, alpha, 0);
+    this.scene.environmentIntensity = s.env;
+    this.sky.visible = false;
+    this.sun.position.copy(dir).multiplyScalar(40);
+    this.sunMesh.position.copy(dir).multiplyScalar(1100);
+    this.fog.color.setHex(s.fog.color).lerp(k.sky.horizon, s.fog.fromSky);
+  }
+
+  /** Stand-in reflections (the shader sky) until the photographed sky has loaded. */
   private bakeEnvironment(): void {
     if (!this.renderer) return;
     const pmrem = new THREE.PMREMGenerator(this.renderer);
@@ -127,7 +165,7 @@ export class Arena {
     this.fog.density = s.fog.density;
     this.sun.color.setHex(s.key.color);
     this.sun.intensity = s.key.intensity;
-    this.sun.position.copy(s.key.dir).multiplyScalar(40);
+    this.sun.position.copy(s.sunFrom).multiplyScalar(40);
     this.fill.color.setHex(s.fill.color);
     this.fill.intensity = s.fill.intensity;
     this.fill.position.copy(s.fill.dir).multiplyScalar(30);
@@ -135,9 +173,16 @@ export class Arena {
     this.hemi.groundColor.setHex(s.hemi.ground);
     this.hemi.intensity = s.hemi.intensity;
     setSky(this.sky, s.sky);
-    (this.sunMesh.material as THREE.MeshBasicMaterial).color.setHex(s.sunMesh.color);
-    this.sunMesh.position.copy(s.sunMesh.at);
-    this.bakeEnvironment();
+    this.sky.visible = true;
+    (this.sunMesh.material as THREE.MeshBasicMaterial).color.setHex(s.sunColor);
+    this.sunMesh.position.copy(s.sunFrom).multiplyScalar(1100);
+    if (this.skies.has(s.hdri)) this.applySky(s);
+    else {
+      this.scene.background = new THREE.Color(0x000000);
+      this.scene.backgroundRotation.set(0, 0, 0);
+      this.scene.environmentRotation.set(0, 0, 0);
+      this.bakeEnvironment();
+    }
     return s;
   }
 

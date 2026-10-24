@@ -51,22 +51,6 @@ function straw(): THREE.Mesh {
   return hat;
 }
 
-function halo(): THREE.Group {
-  const grp = new THREE.Group();
-  const mat = new THREE.MeshBasicMaterial({ color: new THREE.Color(3.0, 2.0, 0.7), fog: false });
-  grp.add(new THREE.Mesh(new THREE.TorusGeometry(0.62, 0.025, 8, 56), mat));
-  grp.add(new THREE.Mesh(new THREE.TorusGeometry(0.46, 0.012, 6, 48), mat));
-  for (let i = 0; i < 12; i++) {
-    const a = (i / 12) * Math.PI * 2;
-    const spoke = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.16, 0.012), mat);
-    spoke.position.set(Math.cos(a) * 0.74, Math.sin(a) * 0.74, 0);
-    spoke.rotation.z = a - Math.PI / 2;
-    grp.add(spoke);
-  }
-  grp.position.set(0, 0.18, -0.34);
-  return grp;
-}
-
 /** Tint + gear for a boss's look. Idempotent: applying the same look twice does nothing. */
 export function applyBossLook(body: BodyLike, look: BossLook): void {
   const root = body.rig.root;
@@ -74,14 +58,13 @@ export function applyBossLook(body: BodyLike, look: BossLook): void {
   restore(root);
   if (look === "ronin") return;
   const mats = new Map<Standardish, { color: THREE.Color; emissive: THREE.Color; ei: number }>();
-  const mul = look === "reed" ? new THREE.Color(0.62, 0.95, 0.9) : new THREE.Color(0.42, 0.46, 0.66);
+  const mul = look === "reed" ? new THREE.Color(0.62, 0.95, 0.9) : new THREE.Color(0.5, 0.36, 0.38);
   for (const m of materials(root)) {
     mats.set(m, { color: m.color.clone(), emissive: m.emissive.clone(), ei: m.emissiveIntensity });
     m.color.multiply(mul);
   }
   const extras: THREE.Object3D[] = [];
   const head = body.bones?.get("Head");
-  const back = body.bones?.get("Spine2") ?? head;
   const attach = (bone: THREE.Bone | undefined, o: THREE.Object3D) => {
     if (!bone) return;
     const s = bone.getWorldScale(new THREE.Vector3());
@@ -91,7 +74,6 @@ export function applyBossLook(body: BodyLike, look: BossLook): void {
     extras.push(o);
   };
   if (look === "reed") attach(head, straw());
-  if (look === "hollow") attach(back, halo());
   saved.set(root, { look, mats, extras });
 }
 

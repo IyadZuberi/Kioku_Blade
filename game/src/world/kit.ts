@@ -412,7 +412,7 @@ export function grassField(o: GrassOpts, uniforms: { uTime: { value: number }; u
     } else {
       const t = (r - o.rMin) / (o.rMax - o.rMin);
       const h = (o.hMin + (o.hMax - o.hMin) * Math.min(1, t * 1.4)) * (0.6 + R() * 0.8);
-      mtx.compose(_p.set(Math.cos(a) * r, 0, Math.sin(a) * r), _q.setFromEuler(_e.set(0, R() * Math.PI * 2, (R() - 0.5) * 0.25)), _s.set(0.75 + R() * 0.6, h, 1));
+      mtx.compose(_p.set(Math.cos(a) * r, 0, Math.sin(a) * r), _q.setFromEuler(_e.set(0, R() * Math.PI * 2, (R() - 0.5) * 0.25)), _s.set(0.42 + R() * 0.38, h, 1));
     }
     mesh.setMatrixAt(i, mtx);
     c.copy(lo).lerp(hi, R()).lerp(tip, R() < 0.35 ? 0.5 + R() * 0.5 : 0);
@@ -440,3 +440,51 @@ export const glowSprite = (color: string, scale: number, opacity = 1): THREE.Spr
   s.scale.setScalar(scale);
   return s;
 };
+
+// ----------------------------------------------------------------------------- textured pieces
+
+/** A transformed copy of `geo` with box-projected UVs (1 unit of uv = `tile` metres), for photo-textured props. */
+export function tpiece(geo: THREE.BufferGeometry, m: THREE.Matrix4, tile = 2): THREE.BufferGeometry {
+  const g = geo.index ? geo.toNonIndexed() : geo.clone();
+  g.applyMatrix4(m);
+  g.deleteAttribute("uv");
+  g.deleteAttribute("color");
+  g.computeVertexNormals();
+  const p = g.attributes.position, n = g.attributes.normal;
+  const uv = new Float32Array(p.count * 2);
+  for (let i = 0; i < p.count; i++) {
+    const ax = Math.abs(n.getX(i)), ay = Math.abs(n.getY(i)), az = Math.abs(n.getZ(i));
+    const [u, v] = ay >= ax && ay >= az ? [p.getX(i), p.getZ(i)] : ax >= az ? [p.getZ(i), p.getY(i)] : [p.getX(i), p.getY(i)];
+    uv[i * 2] = u / tile;
+    uv[i * 2 + 1] = v / tile;
+  }
+  g.setAttribute("uv", new THREE.BufferAttribute(uv, 2));
+  return g;
+}
+
+/** Merge tpieces (same attribute set) into one mesh geometry. */
+export function tmerge(parts: THREE.BufferGeometry[]): THREE.BufferGeometry {
+  const g = mergeGeometries(parts, false);
+  if (!g) throw new Error("merge failed");
+  return g;
+}
+
+/** Ground that rolls: a flat XY geometry (rotate it -90deg about X afterwards) gets planar uv and a height from smooth noise outside `flatR`. */
+export function terrainGeo(geo: THREE.BufferGeometry, tile: number, flatR: number, amp: number, seed: number): THREE.BufferGeometry {
+  const p = geo.attributes.position;
+  const uv = new Float32Array(p.count * 2);
+  const R = rng(seed);
+  const a = R() * 9, b = R() * 9, c = R() * 9;
+  for (let i = 0; i < p.count; i++) {
+    const x = p.getX(i), y = p.getY(i);
+    uv[i * 2] = x / tile;
+    uv[i * 2 + 1] = y / tile;
+    const r = Math.hypot(x, y);
+    const t = THREE.MathUtils.smoothstep(r, flatR, flatR + 26);
+    const h = Math.sin(x * 0.045 + a) * Math.cos(y * 0.05 + b) + Math.sin((x + y) * 0.11 + c) * 0.45 + Math.sin(x * 0.2 + y * 0.17) * 0.12;
+    p.setZ(i, h * amp * t);
+  }
+  geo.setAttribute("uv", new THREE.BufferAttribute(uv, 2));
+  geo.computeVertexNormals();
+  return geo;
+}
