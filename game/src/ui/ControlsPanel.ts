@@ -33,6 +33,8 @@ const CSS = `
 #ctl nav button[aria-selected="true"] { color: #fff3e4; border-bottom-color: #c4372a; }
 #ctl nav button:hover { color: #efe7da; }
 #ctl .blurb { padding: 14px 28px 4px; color: #a99d89; font-size: 14px; line-height: 1.5; }
+#ctl .practice { margin: 10px 0 4px; padding: 9px 16px; border: 1px solid #c4372a; background: rgba(120,28,20,0.45); color: #fff3e4; font: 14px ${LATIN_FONT}; cursor: pointer; }
+#ctl .practice:hover { background: rgba(150,36,26,0.6); }
 #ctl .rows { overflow: auto; padding: 6px 28px 24px; }
 #ctl .row { display: grid; grid-template-columns: 54px minmax(150px, 1fr) minmax(0, 1.25fr); gap: 4px 18px; padding: 13px 0; border-bottom: 1px solid rgba(239,231,218,0.08); align-items: start; }
 #ctl .row:last-child { border-bottom: 0; }
@@ -78,6 +80,8 @@ export class ControlsPanel {
   private readonly tabs = new Map<Tab, HTMLButtonElement>();
   private tab: Tab = "keyboard";
   private opened = false;
+  /** Set by main: opens the hand-training window. */
+  onPractice: () => void = () => {};
   private onKey = (e: KeyboardEvent): void => {
     // While open, nothing reaches the game; Esc and F1 close, Tab / arrows move between tabs.
     if (e.code === "Escape" || e.code === "F1") this.close();
@@ -110,7 +114,7 @@ export class ControlsPanel {
     this.root.setAttribute("role", "dialog");
     this.root.setAttribute("aria-modal", "true");
     this.root.setAttribute("aria-label", "Controls");
-    this.root.innerHTML = `<div class="win"><header><h2 lang="ja">操作</h2><span>Controls</span><button type="button" data-close>Close <kbd>Esc</kbd></button></header><nav role="tablist"></nav><div class="blurb"></div><div class="rows"></div></div>`;
+    this.root.innerHTML = `<div class="win"><header><h2>Controls</h2><span>Keyboard and mouse, controller, hands</span><button type="button" data-close>Close <kbd>Esc</kbd></button></header><nav role="tablist"></nav><div class="blurb"></div><div class="rows"></div></div>`;
     host.appendChild(this.root);
     const nav = this.root.querySelector("nav") as HTMLElement;
     this.blurb = this.root.querySelector(".blurb") as HTMLElement;
@@ -178,6 +182,17 @@ export class ControlsPanel {
     for (const [id, b] of this.tabs) b.setAttribute("aria-selected", String(id === this.tab));
     this.blurb.textContent = TABS.find((t) => t.id === this.tab)!.blurb;
     this.rows.replaceChildren();
+    if (this.tab === "hands") {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "practice";
+      b.textContent = "Practice with your camera";
+      b.addEventListener("click", () => {
+        this.close();
+        this.onPractice();
+      });
+      this.rows.appendChild(b);
+    }
     for (const r of CONTROLS[this.tab]) {
       const row = document.createElement("div");
       row.className = "row";
