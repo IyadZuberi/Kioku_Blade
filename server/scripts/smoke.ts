@@ -17,6 +17,6 @@ const hash = taskHash(generalPlanTask);
 console.log("task hash", hash, "model", generalPlanTask.model);
 const r = await callTask(generalPlanTask, input, { sessionId: "gr-smoke-1", store: true });
 logCall({ ts: new Date().toISOString(), task: "general_plan", task_hash: hash, session_id: "gr-smoke-1", store: true, ok: r.ok, latency_ms: Math.round(r.latencyMs), prompt_tokens: r.usage?.prompt_tokens, completion_tokens: r.usage?.completion_tokens, request_id: r.requestId, served_by: "unknown", error: r.error });
-console.log({ ok: r.ok, requestId: r.requestId, latencyMs: Math.round(r.latencyMs), usage: r.usage, error: r.error });
+console.log({ ok: r.ok, requestId: r.requestId, latencyMs: Math.round(r.latencyMs), usage: r.usage, limits: r.limits, error: r.error });
 console.log(validatePlan(r.out, limitsForLevel(3), rulesPlan(habits, 3)));
 

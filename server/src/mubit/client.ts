@@ -9,6 +9,8 @@ export interface TaskDef<I, O> {
   schema: object; // FROZEN
   /** "json_schema" (strict) is the default; "json_object" only if the starter credit refuses it (decide once, before seeding). */
   format?: "json_schema" | "json_object";
+  /** Reasoning models (gpt-oss): how hard to think. "low" keeps answers fast and the token bill small. */
+  reasoning?: "low" | "medium" | "high";
   validate: (o: unknown) => boolean;
   fallback: (input: I) => O;
 }
@@ -19,6 +21,8 @@ export interface CallResult<O> {
   latencyMs: number;
   requestId?: string;
   usage?: { prompt_tokens: number; completion_tokens: number };
+  /** The provider's rate-limit headers (x-ratelimit-*), when it sends them. */
+  limits?: Record<string, string>;
   raw?: string;
   error?: string;
 }
@@ -79,6 +83,7 @@ export async function callTask<I, O>(
             { role: "user", content: JSON.stringify(input) }, // EVERYTHING variable goes here
           ],
           response_format,
+          ...(t.reasoning ? { reasoning_effort: t.reasoning } : {}),
           // No `metadata`: on this route the provider refuses it ("only allowed when 'store' is enabled",
           // even with store: true). Mubit then gives each call the session of its conversation start
           // (instructions + first user message), and every fight report is a different user message,
@@ -94,6 +99,11 @@ export async function callTask<I, O>(
     const { data, response } = await Promise.race([call, timeout]);
     const raw: string = data?.choices?.[0]?.message?.content ?? "";
     const requestId = response?.headers?.get("x-middleware-request-id") ?? undefined;
+    const limits: Record<string, string> = {};
+    for (const k of ["limit-requests", "limit-tokens", "remaining-requests", "remaining-tokens", "reset-requests", "reset-tokens"]) {
+      const v = response?.headers?.get(`x-ratelimit-${k}`);
+      if (v) limits[k] = v;
+    }
     const usage = data?.usage;
     let parsed: unknown;
     try {
@@ -102,7 +112,7 @@ export async function callTask<I, O>(
       return fail("reply was not JSON", { requestId, usage, raw });
     }
     if (!t.validate(parsed)) return fail("reply failed validation", { requestId, usage, raw });
-    return { out: parsed as O, ok: true, latencyMs: performance.now() - t0, requestId, usage, raw };
+    return { out: parsed as O, ok: true, latencyMs: performance.now() - t0, requestId, usage, limits, raw };
   } catch (e) {
     return fail(e instanceof Error ? e.message : String(e));
   } finally {

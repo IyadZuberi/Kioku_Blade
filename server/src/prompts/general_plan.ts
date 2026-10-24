@@ -60,6 +60,7 @@ export const generalPlanTask: TaskDef<PlanInput, Plan> = {
   model: process.env.MUBIT_MODEL ?? "openai/gpt-oss-120b",
   system: SYSTEM,
   schema: PLAN_SCHEMA,
+  reasoning: "low",
   // Shape check only; the route runs validatePlan with the real per-level limits.
   validate: (o) => !!o && typeof o === "object" && !Array.isArray(o) && KEYS.every((k) => k in (o as object)),
   fallback: (i) => rulesPlan(i.habits, i.bossLevel, i.unlocked),
