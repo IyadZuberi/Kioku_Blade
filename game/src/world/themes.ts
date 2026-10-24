@@ -263,9 +263,9 @@ function buildPampas(q: QualitySettings): ThemeSpec {
   const group = new THREE.Group();
   const uniforms = { uTime: { value: 0 }, uWind: { value: 0.4 } };
   groundPlates(group, pbr("withered_grass", { color: 0xb9a878, normal: 1.0 }), pbr("withered_grass", { color: 0xa89a68, normal: 0.8 }), 3.4, 6, 4.2, 21);
-  const n = q.shadowMap >= 4096 ? 12000 : 7000;
+  const n = q.shadowMap >= 4096 ? 5000 : 3200;
   group.add(grassField({ count: n, rMin: 13.0, rMax: 62, hMin: 0.7, hMax: 1.9, low: 0x8a8438, high: 0xd0b45a, tip: 0xf6e8b4, seed: 3, hole: 13.8 }, uniforms));
-  group.add(grassField({ count: 15000, rMin: 1.0, rMax: 24, hMin: 0.25, hMax: 0.7, low: 0x8a8a3c, high: 0xc4b468, tip: 0xe8d8a0, seed: 8 }, uniforms));
+  group.add(grassField({ count: 8000, rMin: 1.0, rMax: 24, hMin: 0.25, hMax: 0.75, low: 0x8a8a3c, high: 0xc4b468, tip: 0xe8d8a0, seed: 8 }, uniforms));
   group.add(forest("pine", [[16, -17, 1.5], [-24, -20, 1.2], [25, -8, 1.0]], 29));
   for (let i = 0; i < 3; i++) {
     const j = jizo(R);

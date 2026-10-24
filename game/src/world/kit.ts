@@ -373,13 +373,50 @@ export interface GrassOpts {
   hole?: number;
 }
 
+/**
+ * A tuft of five thin blades, 1 unit tall: each tapers to a point, curves outward as it rises, and
+ * leans its own way. Normals point mostly up so a tuft lights like the field, never as flat cards.
+ */
+function grassTuft(R: Rand): THREE.BufferGeometry {
+  const pos: number[] = [];
+  const nor: number[] = [];
+  const idx: number[] = [];
+  const SEG = 3;
+  for (let b = 0; b < 5; b++) {
+    const yaw = (b / 5) * Math.PI * 2 + R() * 0.9;
+    const lean = 0.1 + R() * 0.45;
+    const len = 0.65 + R() * 0.35;
+    const w = 0.022 + R() * 0.014;
+    const dx = Math.cos(yaw), dz = Math.sin(yaw);
+    const ox = (R() - 0.5) * 0.22, oz = (R() - 0.5) * 0.22;
+    const base = pos.length / 3;
+    for (let i = 0; i <= SEG; i++) {
+      const t = i / SEG;
+      const y = t * len;
+      const out = lean * t * t;
+      const hw = i === SEG ? 0 : w * (1 - t * 0.85);
+      // the blade's width runs across its lean direction
+      const px = ox + dx * out, pz = oz + dz * out;
+      pos.push(px - dz * hw, y, pz + dx * hw, px + dz * hw, y, pz - dx * hw);
+      const n = new THREE.Vector3(dx * 0.35, 1, dz * 0.35).normalize();
+      nor.push(n.x, n.y, n.z, n.x, n.y, n.z);
+    }
+    for (let i = 0; i < SEG; i++) {
+      const a = base + i * 2;
+      if (i < SEG - 1) idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
+      else idx.push(a, a + 1, a + 2);
+    }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute("normal", new THREE.Float32BufferAttribute(nor, 3));
+  g.setIndex(idx);
+  return g;
+}
+
 /** Wind-blown blades, one draw call. Time and wind are shared uniforms the arena updates. */
 export function grassField(o: GrassOpts, uniforms: { uTime: { value: number }; uWind: { value: number } }): THREE.InstancedMesh {
-  const blade = new THREE.BufferGeometry();
-  // tapered 3-triangle blade, 1 unit tall (scaled per instance)
-  blade.setAttribute("position", new THREE.Float32BufferAttribute([-0.05, 0, 0, 0.05, 0, 0, -0.035, 0.5, 0, 0.035, 0.5, 0, 0, 1, 0], 3));
-  blade.setIndex([0, 1, 2, 1, 3, 2, 2, 3, 4]);
-  blade.setAttribute("normal", new THREE.Float32BufferAttribute([0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1], 3));
+  const blade = grassTuft(rng(o.seed + 99));
   const mat = new THREE.MeshStandardMaterial({ roughness: 0.95, side: THREE.DoubleSide });
   mat.onBeforeCompile = (sh) => {
     sh.uniforms.uTime = uniforms.uTime;
@@ -396,7 +433,7 @@ export function grassField(o: GrassOpts, uniforms: { uTime: { value: number }; u
         transformed.x += (sw * 0.35 + gust * 0.55 * uWind) * position.y * position.y * 0.6;
         transformed.z += sw * 0.12 * position.y * position.y;`,
       );
-    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying float vH;").replace("#include <color_fragment>", "#include <color_fragment>\ndiffuseColor.rgb *= 0.55 + 0.75 * vH;");
+    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying float vH;").replace("#include <color_fragment>", "#include <color_fragment>\ndiffuseColor.rgb *= mix(0.62, 1.1, smoothstep(0.0, 0.8, vH));");
   };
   mat.customProgramCacheKey = () => "grass-wind";
   const mesh = new THREE.InstancedMesh(blade, mat, o.count);
@@ -412,7 +449,8 @@ export function grassField(o: GrassOpts, uniforms: { uTime: { value: number }; u
     } else {
       const t = (r - o.rMin) / (o.rMax - o.rMin);
       const h = (o.hMin + (o.hMax - o.hMin) * Math.min(1, t * 1.4)) * (0.6 + R() * 0.8);
-      mtx.compose(_p.set(Math.cos(a) * r, 0, Math.sin(a) * r), _q.setFromEuler(_e.set(0, R() * Math.PI * 2, (R() - 0.5) * 0.25)), _s.set(0.42 + R() * 0.38, h, 1));
+      const w = 0.9 + R() * 0.9;
+      mtx.compose(_p.set(Math.cos(a) * r, 0, Math.sin(a) * r), _q.setFromEuler(_e.set(0, R() * Math.PI * 2, (R() - 0.5) * 0.2)), _s.set(w, h, w));
     }
     mesh.setMatrixAt(i, mtx);
     c.copy(lo).lerp(hi, R()).lerp(tip, R() < 0.35 ? 0.5 + R() * 0.5 : 0);
