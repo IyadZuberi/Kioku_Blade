@@ -1,5 +1,6 @@
 import { appendFileSync, existsSync, mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
+import { cell } from "../csv";
 
 export interface CallRow {
   ts: string;
@@ -19,10 +20,6 @@ export interface CallRow {
 const COLS = ["ts", "task", "task_hash", "session_id", "store", "ok", "latency_ms", "prompt_tokens", "completion_tokens", "request_id", "served_by", "error"] as const;
 export const CALLS_CSV = resolve(process.cwd(), "..", "data", "calls.csv");
 
-const cell = (v: unknown) => {
-  const s = v === undefined || v === null ? "" : String(v);
-  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-};
 
 /** Append one row to data/calls.csv (header written once). Never throws: logging must not break a fight. */
 export function logCall(row: CallRow, file: string = CALLS_CSV): void {

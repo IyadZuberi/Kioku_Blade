@@ -4,6 +4,11 @@ import { MOVES, computeHabits, limitsForLevel, rulesPlan, validatePlan, type Hab
 import { bossLevel } from "./bossLevel";
 import { designerRules, getPlayer, getTotalFights, globalMemory, recordGlobal, updatePlayer } from "./memory";
 import type { PlanInput } from "./prompts/general_plan";
+import { existsSync, readFileSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { parseCsv } from "./csv";
+import { percentile, readSummary } from "./evalRun";
 import { cleanNickname, parseStats, sessionSlug } from "./sanitize";
 
 export interface PlanCall {
@@ -17,6 +22,8 @@ export interface Deps {
   db: DatabaseSync;
   /** The only path to an LLM. Must never throw for the caller's sake, but we guard anyway. */
   callPlan: (input: PlanInput, sessionId: string) => Promise<PlanCall>;
+  /** Where data/calls.csv and data/eval/summary.csv live (default ../data). */
+  dataDir?: string;
 }
 
 export interface FightEndResponse {
@@ -114,7 +121,33 @@ export function createApp(deps: Deps) {
     return res;
   }
 
+  app.get("/favicon.ico", (_req, res) => res.status(204).end());
   app.get("/api/health", (_req, res) => res.json({ ok: true }));
+
+  const dataDir = deps.dataDir ?? resolve(process.cwd(), "..", "data");
+  app.get("/api/stats", (_req: Request, res: Response) => {
+    const rows = readSummary(join(dataDir, "eval", "summary.csv"));
+    const callsFile = join(dataDir, "calls.csv");
+    const by: Record<string, number[]> = {};
+    let total = 0, ok = 0;
+    let lastRequestId: string | undefined;
+    if (existsSync(callsFile)) {
+      const [head, ...recs] = parseCsv(readFileSync(callsFile, "utf8"));
+      const col = (n: string) => head.indexOf(n);
+      for (const r of recs) {
+        total++;
+        const good = r[col("ok")] === "true";
+        if (good) ok++;
+        (by[r[col("served_by")] || "unknown"] ??= []).push(Number(r[col("latency_ms")]) || 0);
+        if (r[col("request_id")]) lastRequestId = r[col("request_id")];
+      }
+    }
+    const byServedBy = Object.fromEntries(Object.entries(by).map(([k, v]) => [k, { n: v.length, p50: percentile(v, 50), p95: percentile(v, 95) }]));
+    res.json({ rows, calls: { total, ok, byServedBy, lastRequestId } });
+  });
+
+  const dashboard = join(dirname(fileURLToPath(import.meta.url)), "..", "dashboard", "index.html");
+  app.get("/dashboard", (_req: Request, res: Response) => res.sendFile(dashboard));
 
   app.get("/api/global", (_req: Request, res: Response) => {
     const g = globalMemory(db);

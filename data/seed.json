@@ -1,0 +1,6730 @@
+[
+ {
+  "fight": 1,
+  "bossLevel": 1,
+  "stats": {
+   "fightSeconds": 75,
+   "deflects": 3,
+   "lateDeflects": 1,
+   "blocks": 16,
+   "hitsTaken": 5,
+   "dodged": 0,
+   "playerHits": 22,
+   "sweepsJumped": 1,
+   "grabbed": 1,
+   "grabsEvaded": 2,
+   "heals": 0,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": false,
+   "deaths": 0,
+   "hitsByMove": {
+    "thrust": 1,
+    "flurry": 2,
+    "comboDelay": 2
+   }
+  },
+  "habits": [
+   {
+    "habit": "block_holder",
+    "strength": 0.6052631578947367,
+    "evidence": "blocked 16 times, deflected 3"
+   }
+  ],
+  "playerMemory": {
+   "fights": 0,
+   "wins": 0,
+   "losses": 1,
+   "consecutive_losses": 1,
+   "habit_avgs": {
+    "block_holder": 0.58
+   }
+  },
+  "globalMemory": {
+   "totalFights": 57,
+   "habitPrevalence": {
+    "block_holder": 0.12,
+    "deflect_expert": 0.24,
+    "dodge_spammer": 0.07,
+    "jump_dependent": 0,
+    "heal_greedy": 0.08,
+    "passive": 0.38,
+    "aggressive": 0.06
+   },
+   "moveHits": {
+    "leap": 14,
+    "combo": 28,
+    "comboDelay": 21,
+    "overhead": 8,
+    "thrust": 25,
+    "sweep": 52,
+    "grab": 5,
+    "flurry": 23
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "If the player won easily, raise tempo_step by one within the limits."
+  ],
+  "limits": {
+   "maxStrings": 1,
+   "maxStringLen": 2,
+   "maxTempoStep": 0,
+   "maxGapStep": 0
+  }
+ },
+ {
+  "fight": 3,
+  "bossLevel": 10,
+  "stats": {
+   "fightSeconds": 54,
+   "deflects": 1,
+   "lateDeflects": 0,
+   "blocks": 13,
+   "hitsTaken": 2,
+   "dodged": 2,
+   "playerHits": 18,
+   "sweepsJumped": 1,
+   "grabbed": 1,
+   "grabsEvaded": 2,
+   "heals": 1,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": false,
+   "deaths": 0,
+   "hitsByMove": {
+    "thrust": 1,
+    "sweep": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "block_holder",
+    "strength": 0.8214285714285715,
+    "evidence": "blocked 13 times, deflected 1"
+   }
+  ],
+  "playerMemory": {
+   "fights": 2,
+   "wins": 0,
+   "losses": 2,
+   "consecutive_losses": 2,
+   "habit_avgs": {
+    "block_holder": 0.62
+   }
+  },
+  "globalMemory": {
+   "totalFights": 53,
+   "habitPrevalence": {
+    "block_holder": 0.03,
+    "deflect_expert": 0.33,
+    "dodge_spammer": 0.22,
+    "jump_dependent": 0.01,
+    "heal_greedy": 0.16,
+    "passive": 0.22,
+    "aggressive": 0.38
+   },
+   "moveHits": {
+    "leap": 58,
+    "combo": 39,
+    "comboDelay": 55,
+    "overhead": 8,
+    "thrust": 27,
+    "sweep": 25,
+    "grab": 37,
+    "flurry": 24
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "Do not repeat the same opening string twice in a row."
+  ],
+  "limits": {
+   "maxStrings": 3,
+   "maxStringLen": 4,
+   "maxTempoStep": 4,
+   "maxGapStep": 3
+  }
+ },
+ {
+  "fight": 1,
+  "bossLevel": 4,
+  "stats": {
+   "fightSeconds": 56,
+   "deflects": 0,
+   "lateDeflects": 1,
+   "blocks": 15,
+   "hitsTaken": 2,
+   "dodged": 1,
+   "playerHits": 19,
+   "sweepsJumped": 1,
+   "grabbed": 1,
+   "grabsEvaded": 0,
+   "heals": 1,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": false,
+   "deaths": 0,
+   "hitsByMove": {
+    "grab": 1,
+    "combo": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "block_holder",
+    "strength": 1,
+    "evidence": "blocked 15 times, deflected 0"
+   }
+  ],
+  "playerMemory": {
+   "fights": 0,
+   "wins": 0,
+   "losses": 0,
+   "consecutive_losses": 0,
+   "habit_avgs": {
+    "block_holder": 0.85
+   }
+  },
+  "globalMemory": {
+   "totalFights": 80,
+   "habitPrevalence": {
+    "block_holder": 0.18,
+    "deflect_expert": 0.37,
+    "dodge_spammer": 0.11,
+    "jump_dependent": 0.16,
+    "heal_greedy": 0.03,
+    "passive": 0.35,
+    "aggressive": 0.22
+   },
+   "moveHits": {
+    "leap": 20,
+    "combo": 25,
+    "comboDelay": 9,
+    "overhead": 15,
+    "thrust": 24,
+    "sweep": 50,
+    "grab": 6,
+    "flurry": 57
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "Do not repeat the same opening string twice in a row."
+  ],
+  "limits": {
+   "maxStrings": 1,
+   "maxStringLen": 2,
+   "maxTempoStep": 1,
+   "maxGapStep": 1
+  }
+ },
+ {
+  "fight": 1,
+  "bossLevel": 7,
+  "stats": {
+   "fightSeconds": 118,
+   "deflects": 0,
+   "lateDeflects": 1,
+   "blocks": 24,
+   "hitsTaken": 1,
+   "dodged": 0,
+   "playerHits": 36,
+   "sweepsJumped": 1,
+   "grabbed": 0,
+   "grabsEvaded": 0,
+   "heals": 0,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": false,
+   "deaths": 1,
+   "hitsByMove": {
+    "overhead": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "block_holder",
+    "strength": 1,
+    "evidence": "blocked 24 times, deflected 0"
+   }
+  ],
+  "playerMemory": {
+   "fights": 0,
+   "wins": 0,
+   "losses": 1,
+   "consecutive_losses": 1,
+   "habit_avgs": {
+    "block_holder": 0.81
+   }
+  },
+  "globalMemory": {
+   "totalFights": 55,
+   "habitPrevalence": {
+    "block_holder": 0.28,
+    "deflect_expert": 0.35,
+    "dodge_spammer": 0.37,
+    "jump_dependent": 0.24,
+    "heal_greedy": 0.19,
+    "passive": 0.03,
+    "aggressive": 0.25
+   },
+   "moveHits": {
+    "leap": 39,
+    "combo": 21,
+    "comboDelay": 9,
+    "overhead": 43,
+    "thrust": 34,
+    "sweep": 20,
+    "grab": 56,
+    "flurry": 38
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [],
+  "limits": {
+   "maxStrings": 2,
+   "maxStringLen": 3,
+   "maxTempoStep": 2,
+   "maxGapStep": 2
+  }
+ },
+ {
+  "fight": 1,
+  "bossLevel": 8,
+  "stats": {
+   "fightSeconds": 39,
+   "deflects": 3,
+   "lateDeflects": 1,
+   "blocks": 10,
+   "hitsTaken": 4,
+   "dodged": 2,
+   "playerHits": 10,
+   "sweepsJumped": 0,
+   "grabbed": 0,
+   "grabsEvaded": 0,
+   "heals": 0,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": false,
+   "deaths": 0,
+   "hitsByMove": {
+    "flurry": 2,
+    "overhead": 1,
+    "grab": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "block_holder",
+    "strength": 0.42307692307692324,
+    "evidence": "blocked 10 times, deflected 3"
+   }
+  ],
+  "playerMemory": {
+   "fights": 0,
+   "wins": 0,
+   "losses": 0,
+   "consecutive_losses": 0,
+   "habit_avgs": {
+    "block_holder": 0.32
+   }
+  },
+  "globalMemory": {
+   "totalFights": 11,
+   "habitPrevalence": {
+    "block_holder": 0,
+    "deflect_expert": 0.38,
+    "dodge_spammer": 0.19,
+    "jump_dependent": 0.26,
+    "heal_greedy": 0.28,
+    "passive": 0.22,
+    "aggressive": 0.21
+   },
+   "moveHits": {
+    "leap": 57,
+    "combo": 8,
+    "comboDelay": 60,
+    "overhead": 14,
+    "thrust": 31,
+    "sweep": 22,
+    "grab": 12,
+    "flurry": 49
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "Do not repeat the same opening string twice in a row."
+  ],
+  "limits": {
+   "maxStrings": 2,
+   "maxStringLen": 3,
+   "maxTempoStep": 3,
+   "maxGapStep": 2
+  }
+ },
+ {
+  "fight": 1,
+  "bossLevel": 6,
+  "stats": {
+   "fightSeconds": 111,
+   "deflects": 2,
+   "lateDeflects": 1,
+   "blocks": 23,
+   "hitsTaken": 3,
+   "dodged": 0,
+   "playerHits": 34,
+   "sweepsJumped": 0,
+   "grabbed": 2,
+   "grabsEvaded": 1,
+   "heals": 1,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": true,
+   "deaths": 1,
+   "hitsByMove": {
+    "thrust": 1,
+    "flurry": 1,
+    "combo": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "block_holder",
+    "strength": 0.8000000000000002,
+    "evidence": "blocked 23 times, deflected 2"
+   }
+  ],
+  "playerMemory": {
+   "fights": 0,
+   "wins": 0,
+   "losses": 0,
+   "consecutive_losses": 0,
+   "habit_avgs": {
+    "block_holder": 0.69
+   }
+  },
+  "globalMemory": {
+   "totalFights": 38,
+   "habitPrevalence": {
+    "block_holder": 0.26,
+    "deflect_expert": 0.38,
+    "dodge_spammer": 0.36,
+    "jump_dependent": 0.27,
+    "heal_greedy": 0.13,
+    "passive": 0.26,
+    "aggressive": 0.1
+   },
+   "moveHits": {
+    "leap": 26,
+    "combo": 11,
+    "comboDelay": 14,
+    "overhead": 5,
+    "thrust": 54,
+    "sweep": 43,
+    "grab": 37,
+    "flurry": 47
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "Never exceed the string limits in limits."
+  ],
+  "limits": {
+   "maxStrings": 2,
+   "maxStringLen": 3,
+   "maxTempoStep": 2,
+   "maxGapStep": 1
+  }
+ },
+ {
+  "fight": 2,
+  "bossLevel": 1,
+  "stats": {
+   "fightSeconds": 42,
+   "deflects": 2,
+   "lateDeflects": 0,
+   "blocks": 20,
+   "hitsTaken": 6,
+   "dodged": 0,
+   "playerHits": 8,
+   "sweepsJumped": 0,
+   "grabbed": 1,
+   "grabsEvaded": 1,
+   "heals": 0,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": false,
+   "deaths": 0,
+   "hitsByMove": {
+    "sweep": 1,
+    "combo": 1,
+    "overhead": 2,
+    "flurry": 1,
+    "comboDelay": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "block_holder",
+    "strength": 0.7727272727272727,
+    "evidence": "blocked 20 times, deflected 2"
+   }
+  ],
+  "playerMemory": {
+   "fights": 1,
+   "wins": 0,
+   "losses": 1,
+   "consecutive_losses": 1,
+   "habit_avgs": {
+    "block_holder": 0.62
+   }
+  },
+  "globalMemory": {
+   "totalFights": 38,
+   "habitPrevalence": {
+    "block_holder": 0.25,
+    "deflect_expert": 0.02,
+    "dodge_spammer": 0.34,
+    "jump_dependent": 0.07,
+    "heal_greedy": 0.29,
+    "passive": 0.1,
+    "aggressive": 0.28
+   },
+   "moveHits": {
+    "leap": 37,
+    "combo": 44,
+    "comboDelay": 18,
+    "overhead": 12,
+    "thrust": 2,
+    "sweep": 5,
+    "grab": 13,
+    "flurry": 42
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "If the player won easily, raise tempo_step by one within the limits."
+  ],
+  "limits": {
+   "maxStrings": 1,
+   "maxStringLen": 2,
+   "maxTempoStep": 0,
+   "maxGapStep": 0
+  }
+ },
+ {
+  "fight": 4,
+  "bossLevel": 5,
+  "stats": {
+   "fightSeconds": 44,
+   "deflects": 2,
+   "lateDeflects": 1,
+   "blocks": 18,
+   "hitsTaken": 6,
+   "dodged": 2,
+   "playerHits": 10,
+   "sweepsJumped": 1,
+   "grabbed": 0,
+   "grabsEvaded": 0,
+   "heals": 1,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": false,
+   "deaths": 0,
+   "hitsByMove": {
+    "flurry": 1,
+    "leap": 1,
+    "overhead": 2,
+    "comboDelay": 1,
+    "grab": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "block_holder",
+    "strength": 0.7500000000000001,
+    "evidence": "blocked 18 times, deflected 2"
+   }
+  ],
+  "playerMemory": {
+   "fights": 3,
+   "wins": 0,
+   "losses": 4,
+   "consecutive_losses": 1,
+   "habit_avgs": {
+    "block_holder": 0.65
+   }
+  },
+  "globalMemory": {
+   "totalFights": 59,
+   "habitPrevalence": {
+    "block_holder": 0.1,
+    "deflect_expert": 0.1,
+    "dodge_spammer": 0.2,
+    "jump_dependent": 0.29,
+    "heal_greedy": 0.19,
+    "passive": 0.13,
+    "aggressive": 0.34
+   },
+   "moveHits": {
+    "leap": 26,
+    "combo": 26,
+    "comboDelay": 38,
+    "overhead": 38,
+    "thrust": 8,
+    "sweep": 4,
+    "grab": 39,
+    "flurry": 34
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "Never exceed the string limits in limits."
+  ],
+  "limits": {
+   "maxStrings": 1,
+   "maxStringLen": 2,
+   "maxTempoStep": 1,
+   "maxGapStep": 1
+  }
+ },
+ {
+  "fight": 6,
+  "bossLevel": 10,
+  "stats": {
+   "fightSeconds": 35,
+   "deflects": 3,
+   "lateDeflects": 0,
+   "blocks": 15,
+   "hitsTaken": 1,
+   "dodged": 2,
+   "playerHits": 10,
+   "sweepsJumped": 0,
+   "grabbed": 1,
+   "grabsEvaded": 2,
+   "heals": 1,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": false,
+   "deaths": 1,
+   "hitsByMove": {
+    "leap": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "block_holder",
+    "strength": 0.5833333333333335,
+    "evidence": "blocked 15 times, deflected 3"
+   }
+  ],
+  "playerMemory": {
+   "fights": 5,
+   "wins": 5,
+   "losses": 0,
+   "consecutive_losses": 0,
+   "habit_avgs": {
+    "block_holder": 0.39
+   }
+  },
+  "globalMemory": {
+   "totalFights": 16,
+   "habitPrevalence": {
+    "block_holder": 0.27,
+    "deflect_expert": 0.11,
+    "dodge_spammer": 0.07,
+    "jump_dependent": 0.32,
+    "heal_greedy": 0.29,
+    "passive": 0.39,
+    "aggressive": 0.01
+   },
+   "moveHits": {
+    "leap": 41,
+    "combo": 57,
+    "comboDelay": 6,
+    "overhead": 2,
+    "thrust": 54,
+    "sweep": 20,
+    "grab": 27,
+    "flurry": 56
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "Never exceed the string limits in limits.",
+   "When the player blocks often, favour thrust or grab."
+  ],
+  "limits": {
+   "maxStrings": 3,
+   "maxStringLen": 4,
+   "maxTempoStep": 4,
+   "maxGapStep": 3
+  }
+ },
+ {
+  "fight": 4,
+  "bossLevel": 7,
+  "stats": {
+   "fightSeconds": 102,
+   "deflects": 10,
+   "lateDeflects": 1,
+   "blocks": 0,
+   "hitsTaken": 2,
+   "dodged": 2,
+   "playerHits": 36,
+   "sweepsJumped": 1,
+   "grabbed": 2,
+   "grabsEvaded": 2,
+   "heals": 0,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": 0.12,
+   "victory": false,
+   "deaths": 0,
+   "hitsByMove": {
+    "flurry": 2,
+    "thrust": 1,
+    "leap": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "deflect_expert",
+    "strength": 0.7222222222222223,
+    "evidence": "deflected 10 blows, blocked 0"
+   }
+  ],
+  "playerMemory": {
+   "fights": 3,
+   "wins": 3,
+   "losses": 0,
+   "consecutive_losses": 0,
+   "habit_avgs": {
+    "deflect_expert": 0.47
+   }
+  },
+  "globalMemory": {
+   "totalFights": 62,
+   "habitPrevalence": {
+    "block_holder": 0.18,
+    "deflect_expert": 0.01,
+    "dodge_spammer": 0.35,
+    "jump_dependent": 0.12,
+    "heal_greedy": 0.06,
+    "passive": 0.36,
+    "aggressive": 0.19
+   },
+   "moveHits": {
+    "leap": 6,
+    "combo": 11,
+    "comboDelay": 4,
+    "overhead": 34,
+    "thrust": 40,
+    "sweep": 55,
+    "grab": 60,
+    "flurry": 21
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "Do not repeat the same opening string twice in a row."
+  ],
+  "limits": {
+   "maxStrings": 2,
+   "maxStringLen": 3,
+   "maxTempoStep": 2,
+   "maxGapStep": 2
+  }
+ },
+ {
+  "fight": 4,
+  "bossLevel": 8,
+  "stats": {
+   "fightSeconds": 55,
+   "deflects": 20,
+   "lateDeflects": 1,
+   "blocks": 1,
+   "hitsTaken": 2,
+   "dodged": 2,
+   "playerHits": 18,
+   "sweepsJumped": 0,
+   "grabbed": 2,
+   "grabsEvaded": 1,
+   "heals": 1,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": 0.1,
+   "victory": true,
+   "deaths": 0,
+   "hitsByMove": {
+    "grab": 1,
+    "comboDelay": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "deflect_expert",
+    "strength": 0.7826086956521738,
+    "evidence": "deflected 20 blows, blocked 1"
+   }
+  ],
+  "playerMemory": {
+   "fights": 3,
+   "wins": 0,
+   "losses": 3,
+   "consecutive_losses": 2,
+   "habit_avgs": {
+    "deflect_expert": 0.63
+   }
+  },
+  "globalMemory": {
+   "totalFights": 24,
+   "habitPrevalence": {
+    "block_holder": 0.02,
+    "deflect_expert": 0.19,
+    "dodge_spammer": 0.15,
+    "jump_dependent": 0.23,
+    "heal_greedy": 0.38,
+    "passive": 0.07,
+    "aggressive": 0.38
+   },
+   "moveHits": {
+    "leap": 16,
+    "combo": 5,
+    "comboDelay": 54,
+    "overhead": 58,
+    "thrust": 9,
+    "sweep": 9,
+    "grab": 1,
+    "flurry": 13
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "When the player blocks often, favour thrust or grab."
+  ],
+  "limits": {
+   "maxStrings": 2,
+   "maxStringLen": 3,
+   "maxTempoStep": 3,
+   "maxGapStep": 2
+  }
+ },
+ {
+  "fight": 5,
+  "bossLevel": 6,
+  "stats": {
+   "fightSeconds": 40,
+   "deflects": 20,
+   "lateDeflects": 0,
+   "blocks": 2,
+   "hitsTaken": 2,
+   "dodged": 2,
+   "playerHits": 9,
+   "sweepsJumped": 0,
+   "grabbed": 2,
+   "grabsEvaded": 1,
+   "heals": 1,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": 0.11,
+   "victory": false,
+   "deaths": 1,
+   "hitsByMove": {
+    "flurry": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "deflect_expert",
+    "strength": 0.7222222222222223,
+    "evidence": "deflected 20 blows, blocked 2"
+   }
+  ],
+  "playerMemory": {
+   "fights": 4,
+   "wins": 0,
+   "losses": 4,
+   "consecutive_losses": 1,
+   "habit_avgs": {
+    "deflect_expert": 0.46
+   }
+  },
+  "globalMemory": {
+   "totalFights": 39,
+   "habitPrevalence": {
+    "block_holder": 0.13,
+    "deflect_expert": 0.23,
+    "dodge_spammer": 0.15,
+    "jump_dependent": 0.13,
+    "heal_greedy": 0.18,
+    "passive": 0.18,
+    "aggressive": 0.01
+   },
+   "moveHits": {
+    "leap": 36,
+    "combo": 11,
+    "comboDelay": 43,
+    "overhead": 2,
+    "thrust": 2,
+    "sweep": 14,
+    "grab": 55,
+    "flurry": 42
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "If the player won easily, raise tempo_step by one within the limits."
+  ],
+  "limits": {
+   "maxStrings": 2,
+   "maxStringLen": 3,
+   "maxTempoStep": 2,
+   "maxGapStep": 1
+  }
+ },
+ {
+  "fight": 6,
+  "bossLevel": 8,
+  "stats": {
+   "fightSeconds": 115,
+   "deflects": 19,
+   "lateDeflects": 0,
+   "blocks": 1,
+   "hitsTaken": 3,
+   "dodged": 0,
+   "playerHits": 29,
+   "sweepsJumped": 1,
+   "grabbed": 1,
+   "grabsEvaded": 1,
+   "heals": 0,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": 0.12,
+   "victory": true,
+   "deaths": 0,
+   "hitsByMove": {
+    "overhead": 1,
+    "leap": 1,
+    "comboDelay": 1,
+    "combo": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "deflect_expert",
+    "strength": 0.7101449275362319,
+    "evidence": "deflected 19 blows, blocked 1"
+   }
+  ],
+  "playerMemory": {
+   "fights": 5,
+   "wins": 5,
+   "losses": 0,
+   "consecutive_losses": 0,
+   "habit_avgs": {
+    "deflect_expert": 0.52
+   }
+  },
+  "globalMemory": {
+   "totalFights": 16,
+   "habitPrevalence": {
+    "block_holder": 0.4,
+    "deflect_expert": 0.01,
+    "dodge_spammer": 0.14,
+    "jump_dependent": 0.12,
+    "heal_greedy": 0.15,
+    "passive": 0.4,
+    "aggressive": 0.16
+   },
+   "moveHits": {
+    "leap": 55,
+    "combo": 25,
+    "comboDelay": 11,
+    "overhead": 38,
+    "thrust": 15,
+    "sweep": 8,
+    "grab": 25,
+    "flurry": 2
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "Do not repeat the same opening string twice in a row."
+  ],
+  "limits": {
+   "maxStrings": 2,
+   "maxStringLen": 3,
+   "maxTempoStep": 3,
+   "maxGapStep": 2
+  }
+ },
+ {
+  "fight": 1,
+  "bossLevel": 10,
+  "stats": {
+   "fightSeconds": 112,
+   "deflects": 12,
+   "lateDeflects": 1,
+   "blocks": 0,
+   "hitsTaken": 0,
+   "dodged": 3,
+   "playerHits": 22,
+   "sweepsJumped": 0,
+   "grabbed": 1,
+   "grabsEvaded": 0,
+   "heals": 1,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": 0.05,
+   "victory": true,
+   "deaths": 1,
+   "hitsByMove": {
+    "overhead": 1,
+    "grab": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "deflect_expert",
+    "strength": 1,
+    "evidence": "deflected 12 blows, blocked 0"
+   }
+  ],
+  "playerMemory": {
+   "fights": 0,
+   "wins": 0,
+   "losses": 1,
+   "consecutive_losses": 0,
+   "habit_avgs": {
+    "deflect_expert": 0.65
+   }
+  },
+  "globalMemory": {
+   "totalFights": 73,
+   "habitPrevalence": {
+    "block_holder": 0.21,
+    "deflect_expert": 0.03,
+    "dodge_spammer": 0.03,
+    "jump_dependent": 0.39,
+    "heal_greedy": 0.22,
+    "passive": 0.15,
+    "aggressive": 0.38
+   },
+   "moveHits": {
+    "leap": 58,
+    "combo": 3,
+    "comboDelay": 38,
+    "overhead": 38,
+    "thrust": 56,
+    "sweep": 51,
+    "grab": 25,
+    "flurry": 11
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "Do not repeat the same opening string twice in a row."
+  ],
+  "limits": {
+   "maxStrings": 3,
+   "maxStringLen": 4,
+   "maxTempoStep": 4,
+   "maxGapStep": 3
+  }
+ },
+ {
+  "fight": 3,
+  "bossLevel": 4,
+  "stats": {
+   "fightSeconds": 100,
+   "deflects": 8,
+   "lateDeflects": 1,
+   "blocks": 0,
+   "hitsTaken": 1,
+   "dodged": 0,
+   "playerHits": 30,
+   "sweepsJumped": 1,
+   "grabbed": 0,
+   "grabsEvaded": 1,
+   "heals": 0,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": 0.05,
+   "victory": true,
+   "deaths": 1,
+   "hitsByMove": {
+    "leap": 1,
+    "combo": 2,
+    "grab": 1,
+    "overhead": 1,
+    "thrust": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "deflect_expert",
+    "strength": 0.8148148148148148,
+    "evidence": "deflected 8 blows, blocked 0"
+   }
+  ],
+  "playerMemory": {
+   "fights": 2,
+   "wins": 0,
+   "losses": 2,
+   "consecutive_losses": 1,
+   "habit_avgs": {
+    "deflect_expert": 0.68
+   }
+  },
+  "globalMemory": {
+   "totalFights": 60,
+   "habitPrevalence": {
+    "block_holder": 0.36,
+    "deflect_expert": 0.4,
+    "dodge_spammer": 0.26,
+    "jump_dependent": 0.36,
+    "heal_greedy": 0.1,
+    "passive": 0.34,
+    "aggressive": 0.12
+   },
+   "moveHits": {
+    "leap": 9,
+    "combo": 50,
+    "comboDelay": 0,
+    "overhead": 50,
+    "thrust": 17,
+    "sweep": 9,
+    "grab": 29,
+    "flurry": 18
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "If the player won easily, raise tempo_step by one within the limits."
+  ],
+  "limits": {
+   "maxStrings": 1,
+   "maxStringLen": 2,
+   "maxTempoStep": 1,
+   "maxGapStep": 1
+  }
+ },
+ {
+  "fight": 6,
+  "bossLevel": 1,
+  "stats": {
+   "fightSeconds": 75,
+   "deflects": 9,
+   "lateDeflects": 0,
+   "blocks": 0,
+   "hitsTaken": 1,
+   "dodged": 1,
+   "playerHits": 18,
+   "sweepsJumped": 1,
+   "grabbed": 2,
+   "grabsEvaded": 0,
+   "heals": 1,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": 0.1,
+   "victory": false,
+   "deaths": 1,
+   "hitsByMove": {
+    "flurry": 2,
+    "sweep": 1,
+    "overhead": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "deflect_expert",
+    "strength": 0.8333333333333334,
+    "evidence": "deflected 9 blows, blocked 0"
+   }
+  ],
+  "playerMemory": {
+   "fights": 5,
+   "wins": 2,
+   "losses": 3,
+   "consecutive_losses": 1,
+   "habit_avgs": {
+    "deflect_expert": 0.79
+   }
+  },
+  "globalMemory": {
+   "totalFights": 24,
+   "habitPrevalence": {
+    "block_holder": 0.35,
+    "deflect_expert": 0.15,
+    "dodge_spammer": 0.08,
+    "jump_dependent": 0.19,
+    "heal_greedy": 0.34,
+    "passive": 0.4,
+    "aggressive": 0.04
+   },
+   "moveHits": {
+    "leap": 18,
+    "combo": 50,
+    "comboDelay": 38,
+    "overhead": 3,
+    "thrust": 11,
+    "sweep": 50,
+    "grab": 16,
+    "flurry": 33
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "When the player blocks often, favour thrust or grab.",
+   "If the player won easily, raise tempo_step by one within the limits."
+  ],
+  "limits": {
+   "maxStrings": 1,
+   "maxStringLen": 2,
+   "maxTempoStep": 0,
+   "maxGapStep": 0
+  }
+ },
+ {
+  "fight": 2,
+  "bossLevel": 8,
+  "stats": {
+   "fightSeconds": 81,
+   "deflects": 17,
+   "lateDeflects": 0,
+   "blocks": 1,
+   "hitsTaken": 2,
+   "dodged": 1,
+   "playerHits": 23,
+   "sweepsJumped": 0,
+   "grabbed": 0,
+   "grabsEvaded": 0,
+   "heals": 1,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": 0.08,
+   "victory": false,
+   "deaths": 1,
+   "hitsByMove": {
+    "flurry": 1,
+    "combo": 1,
+    "comboDelay": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "deflect_expert",
+    "strength": 0.75,
+    "evidence": "deflected 17 blows, blocked 1"
+   }
+  ],
+  "playerMemory": {
+   "fights": 1,
+   "wins": 0,
+   "losses": 2,
+   "consecutive_losses": 1,
+   "habit_avgs": {
+    "deflect_expert": 0.45
+   }
+  },
+  "globalMemory": {
+   "totalFights": 3,
+   "habitPrevalence": {
+    "block_holder": 0.11,
+    "deflect_expert": 0.05,
+    "dodge_spammer": 0.18,
+    "jump_dependent": 0.05,
+    "heal_greedy": 0.14,
+    "passive": 0.24,
+    "aggressive": 0.07
+   },
+   "moveHits": {
+    "leap": 2,
+    "combo": 25,
+    "comboDelay": 27,
+    "overhead": 15,
+    "thrust": 47,
+    "sweep": 49,
+    "grab": 48,
+    "flurry": 32
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "When the player blocks often, favour thrust or grab."
+  ],
+  "limits": {
+   "maxStrings": 2,
+   "maxStringLen": 3,
+   "maxTempoStep": 3,
+   "maxGapStep": 2
+  }
+ },
+ {
+  "fight": 4,
+  "bossLevel": 10,
+  "stats": {
+   "fightSeconds": 74,
+   "deflects": 15,
+   "lateDeflects": 0,
+   "blocks": 1,
+   "hitsTaken": 0,
+   "dodged": 1,
+   "playerHits": 17,
+   "sweepsJumped": 0,
+   "grabbed": 2,
+   "grabsEvaded": 2,
+   "heals": 0,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": 0.07,
+   "victory": false,
+   "deaths": 1,
+   "hitsByMove": {
+    "grab": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "deflect_expert",
+    "strength": 0.8958333333333334,
+    "evidence": "deflected 15 blows, blocked 1"
+   }
+  ],
+  "playerMemory": {
+   "fights": 3,
+   "wins": 0,
+   "losses": 3,
+   "consecutive_losses": 1,
+   "habit_avgs": {
+    "deflect_expert": 0.66
+   }
+  },
+  "globalMemory": {
+   "totalFights": 56,
+   "habitPrevalence": {
+    "block_holder": 0.07,
+    "deflect_expert": 0.1,
+    "dodge_spammer": 0.01,
+    "jump_dependent": 0.22,
+    "heal_greedy": 0.1,
+    "passive": 0.37,
+    "aggressive": 0.3
+   },
+   "moveHits": {
+    "leap": 2,
+    "combo": 10,
+    "comboDelay": 28,
+    "overhead": 55,
+    "thrust": 56,
+    "sweep": 33,
+    "grab": 52,
+    "flurry": 5
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [],
+  "limits": {
+   "maxStrings": 3,
+   "maxStringLen": 4,
+   "maxTempoStep": 4,
+   "maxGapStep": 3
+  }
+ },
+ {
+  "fight": 2,
+  "bossLevel": 2,
+  "stats": {
+   "fightSeconds": 56,
+   "deflects": 1,
+   "lateDeflects": 0,
+   "blocks": 1,
+   "hitsTaken": 5,
+   "dodged": 12,
+   "playerHits": 12,
+   "sweepsJumped": 0,
+   "grabbed": 0,
+   "grabsEvaded": 0,
+   "heals": 0,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": false,
+   "deaths": 1,
+   "hitsByMove": {
+    "overhead": 1,
+    "sweep": 1,
+    "thrust": 1,
+    "grab": 1,
+    "combo": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "dodge_spammer",
+    "strength": 1,
+    "evidence": "dodged 12 times"
+   },
+   {
+    "habit": "aggressive",
+    "strength": 0.6428571428571428,
+    "evidence": "landed 12 cuts but took 5 hits"
+   }
+  ],
+  "playerMemory": {
+   "fights": 1,
+   "wins": 1,
+   "losses": 0,
+   "consecutive_losses": 0,
+   "habit_avgs": {
+    "dodge_spammer": 0.63,
+    "aggressive": 0.56
+   }
+  },
+  "globalMemory": {
+   "totalFights": 16,
+   "habitPrevalence": {
+    "block_holder": 0.28,
+    "deflect_expert": 0.25,
+    "dodge_spammer": 0.19,
+    "jump_dependent": 0.37,
+    "heal_greedy": 0.36,
+    "passive": 0.03,
+    "aggressive": 0.09
+   },
+   "moveHits": {
+    "leap": 18,
+    "combo": 13,
+    "comboDelay": 31,
+    "overhead": 44,
+    "thrust": 15,
+    "sweep": 55,
+    "grab": 27,
+    "flurry": 56
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "When the player blocks often, favour thrust or grab.",
+   "Do not repeat the same opening string twice in a row."
+  ],
+  "limits": {
+   "maxStrings": 1,
+   "maxStringLen": 2,
+   "maxTempoStep": 0,
+   "maxGapStep": 0
+  }
+ },
+ {
+  "fight": 1,
+  "bossLevel": 5,
+  "stats": {
+   "fightSeconds": 80,
+   "deflects": 3,
+   "lateDeflects": 1,
+   "blocks": 1,
+   "hitsTaken": 3,
+   "dodged": 14,
+   "playerHits": 28,
+   "sweepsJumped": 1,
+   "grabbed": 1,
+   "grabsEvaded": 1,
+   "heals": 0,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": true,
+   "deaths": 0,
+   "hitsByMove": {
+    "overhead": 2,
+    "combo": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "dodge_spammer",
+    "strength": 1,
+    "evidence": "dodged 14 times"
+   },
+   {
+    "habit": "aggressive",
+    "strength": 0.6875,
+    "evidence": "landed 28 cuts but took 3 hits"
+   }
+  ],
+  "playerMemory": {
+   "fights": 0,
+   "wins": 0,
+   "losses": 1,
+   "consecutive_losses": 1,
+   "habit_avgs": {
+    "dodge_spammer": 0.8,
+    "aggressive": 0.65
+   }
+  },
+  "globalMemory": {
+   "totalFights": 66,
+   "habitPrevalence": {
+    "block_holder": 0.22,
+    "deflect_expert": 0.38,
+    "dodge_spammer": 0.18,
+    "jump_dependent": 0.35,
+    "heal_greedy": 0.14,
+    "passive": 0.24,
+    "aggressive": 0.34
+   },
+   "moveHits": {
+    "leap": 49,
+    "combo": 55,
+    "comboDelay": 38,
+    "overhead": 49,
+    "thrust": 51,
+    "sweep": 46,
+    "grab": 23,
+    "flurry": 38
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [],
+  "limits": {
+   "maxStrings": 1,
+   "maxStringLen": 2,
+   "maxTempoStep": 1,
+   "maxGapStep": 1
+  }
+ },
+ {
+  "fight": 3,
+  "bossLevel": 7,
+  "stats": {
+   "fightSeconds": 113,
+   "deflects": 2,
+   "lateDeflects": 0,
+   "blocks": 0,
+   "hitsTaken": 3,
+   "dodged": 18,
+   "playerHits": 28,
+   "sweepsJumped": 1,
+   "grabbed": 2,
+   "grabsEvaded": 2,
+   "heals": 1,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": true,
+   "deaths": 0,
+   "hitsByMove": {
+    "sweep": 1,
+    "comboDelay": 1,
+    "leap": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "dodge_spammer",
+    "strength": 1,
+    "evidence": "dodged 18 times"
+   },
+   {
+    "habit": "aggressive",
+    "strength": 0.8333333333333334,
+    "evidence": "landed 28 cuts but took 3 hits"
+   }
+  ],
+  "playerMemory": {
+   "fights": 2,
+   "wins": 1,
+   "losses": 1,
+   "consecutive_losses": 1,
+   "habit_avgs": {
+    "dodge_spammer": 0.96,
+    "aggressive": 0.63
+   }
+  },
+  "globalMemory": {
+   "totalFights": 27,
+   "habitPrevalence": {
+    "block_holder": 0.22,
+    "deflect_expert": 0.08,
+    "dodge_spammer": 0.22,
+    "jump_dependent": 0.02,
+    "heal_greedy": 0.04,
+    "passive": 0.03,
+    "aggressive": 0.27
+   },
+   "moveHits": {
+    "leap": 8,
+    "combo": 26,
+    "comboDelay": 6,
+    "overhead": 8,
+    "thrust": 13,
+    "sweep": 35,
+    "grab": 29,
+    "flurry": 17
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "If the player won easily, raise tempo_step by one within the limits."
+  ],
+  "limits": {
+   "maxStrings": 2,
+   "maxStringLen": 3,
+   "maxTempoStep": 2,
+   "maxGapStep": 2
+  }
+ },
+ {
+  "fight": 4,
+  "bossLevel": 8,
+  "stats": {
+   "fightSeconds": 59,
+   "deflects": 1,
+   "lateDeflects": 1,
+   "blocks": 2,
+   "hitsTaken": 5,
+   "dodged": 10,
+   "playerHits": 16,
+   "sweepsJumped": 0,
+   "grabbed": 0,
+   "grabsEvaded": 0,
+   "heals": 0,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": false,
+   "deaths": 1,
+   "hitsByMove": {
+    "comboDelay": 2,
+    "thrust": 1,
+    "grab": 1,
+    "sweep": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "dodge_spammer",
+    "strength": 0.75,
+    "evidence": "dodged 10 times"
+   },
+   {
+    "habit": "aggressive",
+    "strength": 0.6052631578947367,
+    "evidence": "landed 16 cuts but took 5 hits"
+   }
+  ],
+  "playerMemory": {
+   "fights": 3,
+   "wins": 1,
+   "losses": 2,
+   "consecutive_losses": 2,
+   "habit_avgs": {
+    "dodge_spammer": 0.63,
+    "aggressive": 0.37
+   }
+  },
+  "globalMemory": {
+   "totalFights": 43,
+   "habitPrevalence": {
+    "block_holder": 0.08,
+    "deflect_expert": 0.28,
+    "dodge_spammer": 0.4,
+    "jump_dependent": 0.13,
+    "heal_greedy": 0.02,
+    "passive": 0.14,
+    "aggressive": 0.27
+   },
+   "moveHits": {
+    "leap": 17,
+    "combo": 31,
+    "comboDelay": 60,
+    "overhead": 15,
+    "thrust": 15,
+    "sweep": 1,
+    "grab": 9,
+    "flurry": 26
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [],
+  "limits": {
+   "maxStrings": 2,
+   "maxStringLen": 3,
+   "maxTempoStep": 3,
+   "maxGapStep": 2
+  }
+ },
+ {
+  "fight": 1,
+  "bossLevel": 8,
+  "stats": {
+   "fightSeconds": 117,
+   "deflects": 1,
+   "lateDeflects": 0,
+   "blocks": 2,
+   "hitsTaken": 4,
+   "dodged": 11,
+   "playerHits": 31,
+   "sweepsJumped": 1,
+   "grabbed": 0,
+   "grabsEvaded": 0,
+   "heals": 1,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": true,
+   "deaths": 0,
+   "hitsByMove": {
+    "flurry": 1,
+    "sweep": 1,
+    "combo": 1,
+    "overhead": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "dodge_spammer",
+    "strength": 0.875,
+    "evidence": "dodged 11 times"
+   },
+   {
+    "habit": "aggressive",
+    "strength": 0.7794117647058824,
+    "evidence": "landed 31 cuts but took 4 hits"
+   }
+  ],
+  "playerMemory": {
+   "fights": 0,
+   "wins": 0,
+   "losses": 0,
+   "consecutive_losses": 0,
+   "habit_avgs": {
+    "dodge_spammer": 0.61,
+    "aggressive": 0.76
+   }
+  },
+  "globalMemory": {
+   "totalFights": 20,
+   "habitPrevalence": {
+    "block_holder": 0.15,
+    "deflect_expert": 0.07,
+    "dodge_spammer": 0.26,
+    "jump_dependent": 0.28,
+    "heal_greedy": 0.23,
+    "passive": 0.1,
+    "aggressive": 0.26
+   },
+   "moveHits": {
+    "leap": 49,
+    "combo": 50,
+    "comboDelay": 10,
+    "overhead": 49,
+    "thrust": 58,
+    "sweep": 43,
+    "grab": 47,
+    "flurry": 35
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "Never exceed the string limits in limits."
+  ],
+  "limits": {
+   "maxStrings": 2,
+   "maxStringLen": 3,
+   "maxTempoStep": 3,
+   "maxGapStep": 2
+  }
+ },
+ {
+  "fight": 1,
+  "bossLevel": 1,
+  "stats": {
+   "fightSeconds": 85,
+   "deflects": 1,
+   "lateDeflects": 0,
+   "blocks": 3,
+   "hitsTaken": 1,
+   "dodged": 11,
+   "playerHits": 21,
+   "sweepsJumped": 0,
+   "grabbed": 2,
+   "grabsEvaded": 2,
+   "heals": 1,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": false,
+   "deaths": 0,
+   "hitsByMove": {
+    "combo": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "dodge_spammer",
+    "strength": 0.875,
+    "evidence": "dodged 11 times"
+   }
+  ],
+  "playerMemory": {
+   "fights": 0,
+   "wins": 0,
+   "losses": 0,
+   "consecutive_losses": 0,
+   "habit_avgs": {
+    "dodge_spammer": 0.73
+   }
+  },
+  "globalMemory": {
+   "totalFights": 66,
+   "habitPrevalence": {
+    "block_holder": 0.11,
+    "deflect_expert": 0.33,
+    "dodge_spammer": 0.07,
+    "jump_dependent": 0.04,
+    "heal_greedy": 0.26,
+    "passive": 0.08,
+    "aggressive": 0.27
+   },
+   "moveHits": {
+    "leap": 2,
+    "combo": 51,
+    "comboDelay": 36,
+    "overhead": 5,
+    "thrust": 52,
+    "sweep": 60,
+    "grab": 0,
+    "flurry": 53
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "If the player won easily, raise tempo_step by one within the limits."
+  ],
+  "limits": {
+   "maxStrings": 1,
+   "maxStringLen": 2,
+   "maxTempoStep": 0,
+   "maxGapStep": 0
+  }
+ },
+ {
+  "fight": 1,
+  "bossLevel": 10,
+  "stats": {
+   "fightSeconds": 72,
+   "deflects": 1,
+   "lateDeflects": 1,
+   "blocks": 1,
+   "hitsTaken": 3,
+   "dodged": 12,
+   "playerHits": 14,
+   "sweepsJumped": 0,
+   "grabbed": 0,
+   "grabsEvaded": 0,
+   "heals": 1,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": false,
+   "deaths": 0,
+   "hitsByMove": {
+    "sweep": 1,
+    "grab": 1,
+    "flurry": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "dodge_spammer",
+    "strength": 1,
+    "evidence": "dodged 12 times"
+   },
+   {
+    "habit": "aggressive",
+    "strength": 0.6875,
+    "evidence": "landed 14 cuts but took 3 hits"
+   }
+  ],
+  "playerMemory": {
+   "fights": 0,
+   "wins": 0,
+   "losses": 0,
+   "consecutive_losses": 0,
+   "habit_avgs": {
+    "dodge_spammer": 0.88,
+    "aggressive": 0.59
+   }
+  },
+  "globalMemory": {
+   "totalFights": 29,
+   "habitPrevalence": {
+    "block_holder": 0.2,
+    "deflect_expert": 0.38,
+    "dodge_spammer": 0.13,
+    "jump_dependent": 0.08,
+    "heal_greedy": 0.15,
+    "passive": 0.07,
+    "aggressive": 0.37
+   },
+   "moveHits": {
+    "leap": 20,
+    "combo": 36,
+    "comboDelay": 59,
+    "overhead": 33,
+    "thrust": 32,
+    "sweep": 34,
+    "grab": 3,
+    "flurry": 48
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "When the player blocks often, favour thrust or grab."
+  ],
+  "limits": {
+   "maxStrings": 3,
+   "maxStringLen": 4,
+   "maxTempoStep": 4,
+   "maxGapStep": 3
+  }
+ },
+ {
+  "fight": 1,
+  "bossLevel": 1,
+  "stats": {
+   "fightSeconds": 34,
+   "deflects": 0,
+   "lateDeflects": 0,
+   "blocks": 2,
+   "hitsTaken": 5,
+   "dodged": 12,
+   "playerHits": 11,
+   "sweepsJumped": 1,
+   "grabbed": 2,
+   "grabsEvaded": 2,
+   "heals": 1,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": false,
+   "deaths": 0,
+   "hitsByMove": {
+    "thrust": 2,
+    "overhead": 1,
+    "comboDelay": 1,
+    "flurry": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "dodge_spammer",
+    "strength": 1,
+    "evidence": "dodged 12 times"
+   },
+   {
+    "habit": "aggressive",
+    "strength": 0.6153846153846154,
+    "evidence": "landed 11 cuts but took 5 hits"
+   }
+  ],
+  "playerMemory": {
+   "fights": 0,
+   "wins": 0,
+   "losses": 1,
+   "consecutive_losses": 1,
+   "habit_avgs": {
+    "dodge_spammer": 0.65,
+    "aggressive": 0.57
+   }
+  },
+  "globalMemory": {
+   "totalFights": 14,
+   "habitPrevalence": {
+    "block_holder": 0.13,
+    "deflect_expert": 0.19,
+    "dodge_spammer": 0.15,
+    "jump_dependent": 0.15,
+    "heal_greedy": 0.22,
+    "passive": 0.23,
+    "aggressive": 0.08
+   },
+   "moveHits": {
+    "leap": 23,
+    "combo": 16,
+    "comboDelay": 54,
+    "overhead": 28,
+    "thrust": 27,
+    "sweep": 14,
+    "grab": 1,
+    "flurry": 42
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "When the player blocks often, favour thrust or grab.",
+   "If the player won easily, raise tempo_step by one within the limits."
+  ],
+  "limits": {
+   "maxStrings": 1,
+   "maxStringLen": 2,
+   "maxTempoStep": 0,
+   "maxGapStep": 0
+  }
+ },
+ {
+  "fight": 4,
+  "bossLevel": 7,
+  "stats": {
+   "fightSeconds": 53,
+   "deflects": 3,
+   "lateDeflects": 0,
+   "blocks": 2,
+   "hitsTaken": 6,
+   "dodged": 11,
+   "playerHits": 16,
+   "sweepsJumped": 1,
+   "grabbed": 2,
+   "grabsEvaded": 2,
+   "heals": 1,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": false,
+   "deaths": 1,
+   "hitsByMove": {
+    "combo": 3,
+    "overhead": 2,
+    "grab": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "dodge_spammer",
+    "strength": 0.875,
+    "evidence": "dodged 11 times"
+   },
+   {
+    "habit": "aggressive",
+    "strength": 0.4047619047619047,
+    "evidence": "landed 16 cuts but took 6 hits"
+   }
+  ],
+  "playerMemory": {
+   "fights": 3,
+   "wins": 2,
+   "losses": 1,
+   "consecutive_losses": 0,
+   "habit_avgs": {
+    "dodge_spammer": 0.8,
+    "aggressive": 0.4
+   }
+  },
+  "globalMemory": {
+   "totalFights": 64,
+   "habitPrevalence": {
+    "block_holder": 0.06,
+    "deflect_expert": 0.1,
+    "dodge_spammer": 0.19,
+    "jump_dependent": 0.3,
+    "heal_greedy": 0.01,
+    "passive": 0.21,
+    "aggressive": 0.21
+   },
+   "moveHits": {
+    "leap": 10,
+    "combo": 22,
+    "comboDelay": 31,
+    "overhead": 27,
+    "thrust": 47,
+    "sweep": 59,
+    "grab": 30,
+    "flurry": 10
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "Never exceed the string limits in limits.",
+   "When the player blocks often, favour thrust or grab."
+  ],
+  "limits": {
+   "maxStrings": 2,
+   "maxStringLen": 3,
+   "maxTempoStep": 2,
+   "maxGapStep": 2
+  }
+ },
+ {
+  "fight": 3,
+  "bossLevel": 6,
+  "stats": {
+   "fightSeconds": 118,
+   "deflects": 3,
+   "lateDeflects": 1,
+   "blocks": 2,
+   "hitsTaken": 6,
+   "dodged": 1,
+   "playerHits": 31,
+   "sweepsJumped": 7,
+   "grabbed": 0,
+   "grabsEvaded": 2,
+   "heals": 1,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": true,
+   "deaths": 1,
+   "hitsByMove": {
+    "sweep": 1,
+    "combo": 1,
+    "flurry": 3,
+    "leap": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "jump_dependent",
+    "strength": 1,
+    "evidence": "jumped 7 sweeps"
+   },
+   {
+    "habit": "aggressive",
+    "strength": 0.6527777777777779,
+    "evidence": "landed 31 cuts but took 6 hits"
+   }
+  ],
+  "playerMemory": {
+   "fights": 2,
+   "wins": 1,
+   "losses": 1,
+   "consecutive_losses": 1,
+   "habit_avgs": {
+    "jump_dependent": 0.71,
+    "aggressive": 0.44
+   }
+  },
+  "globalMemory": {
+   "totalFights": 55,
+   "habitPrevalence": {
+    "block_holder": 0.36,
+    "deflect_expert": 0.36,
+    "dodge_spammer": 0.4,
+    "jump_dependent": 0.34,
+    "heal_greedy": 0.14,
+    "passive": 0.17,
+    "aggressive": 0.36
+   },
+   "moveHits": {
+    "leap": 56,
+    "combo": 33,
+    "comboDelay": 7,
+    "overhead": 20,
+    "thrust": 60,
+    "sweep": 22,
+    "grab": 20,
+    "flurry": 35
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "Never exceed the string limits in limits.",
+   "When the player blocks often, favour thrust or grab.",
+   "Do not repeat the same opening string twice in a row."
+  ],
+  "limits": {
+   "maxStrings": 2,
+   "maxStringLen": 3,
+   "maxTempoStep": 2,
+   "maxGapStep": 1
+  }
+ },
+ {
+  "fight": 5,
+  "bossLevel": 5,
+  "stats": {
+   "fightSeconds": 118,
+   "deflects": 3,
+   "lateDeflects": 0,
+   "blocks": 0,
+   "hitsTaken": 1,
+   "dodged": 1,
+   "playerHits": 26,
+   "sweepsJumped": 8,
+   "grabbed": 2,
+   "grabsEvaded": 1,
+   "heals": 1,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": true,
+   "deaths": 0,
+   "hitsByMove": {
+    "grab": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "jump_dependent",
+    "strength": 1,
+    "evidence": "jumped 8 sweeps"
+   }
+  ],
+  "playerMemory": {
+   "fights": 4,
+   "wins": 2,
+   "losses": 2,
+   "consecutive_losses": 2,
+   "habit_avgs": {
+    "jump_dependent": 0.74
+   }
+  },
+  "globalMemory": {
+   "totalFights": 58,
+   "habitPrevalence": {
+    "block_holder": 0.25,
+    "deflect_expert": 0.32,
+    "dodge_spammer": 0.22,
+    "jump_dependent": 0.05,
+    "heal_greedy": 0.03,
+    "passive": 0.02,
+    "aggressive": 0.07
+   },
+   "moveHits": {
+    "leap": 19,
+    "combo": 3,
+    "comboDelay": 0,
+    "overhead": 35,
+    "thrust": 60,
+    "sweep": 18,
+    "grab": 60,
+    "flurry": 22
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "Never exceed the string limits in limits.",
+   "When the player blocks often, favour thrust or grab."
+  ],
+  "limits": {
+   "maxStrings": 1,
+   "maxStringLen": 2,
+   "maxTempoStep": 1,
+   "maxGapStep": 1
+  }
+ },
+ {
+  "fight": 3,
+  "bossLevel": 9,
+  "stats": {
+   "fightSeconds": 54,
+   "deflects": 0,
+   "lateDeflects": 1,
+   "blocks": 2,
+   "hitsTaken": 1,
+   "dodged": 0,
+   "playerHits": 12,
+   "sweepsJumped": 7,
+   "grabbed": 0,
+   "grabsEvaded": 1,
+   "heals": 1,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": false,
+   "deaths": 1,
+   "hitsByMove": {
+    "sweep": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "jump_dependent",
+    "strength": 1,
+    "evidence": "jumped 7 sweeps"
+   }
+  ],
+  "playerMemory": {
+   "fights": 2,
+   "wins": 0,
+   "losses": 2,
+   "consecutive_losses": 0,
+   "habit_avgs": {
+    "jump_dependent": 0.98
+   }
+  },
+  "globalMemory": {
+   "totalFights": 0,
+   "habitPrevalence": {
+    "block_holder": 0.31,
+    "deflect_expert": 0.07,
+    "dodge_spammer": 0.01,
+    "jump_dependent": 0.06,
+    "heal_greedy": 0.07,
+    "passive": 0.2,
+    "aggressive": 0.22
+   },
+   "moveHits": {
+    "leap": 47,
+    "combo": 12,
+    "comboDelay": 12,
+    "overhead": 24,
+    "thrust": 36,
+    "sweep": 16,
+    "grab": 10,
+    "flurry": 38
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [],
+  "limits": {
+   "maxStrings": 2,
+   "maxStringLen": 3,
+   "maxTempoStep": 3,
+   "maxGapStep": 2
+  }
+ },
+ {
+  "fight": 1,
+  "bossLevel": 7,
+  "stats": {
+   "fightSeconds": 27,
+   "deflects": 2,
+   "lateDeflects": 1,
+   "blocks": 0,
+   "hitsTaken": 3,
+   "dodged": 1,
+   "playerHits": 5,
+   "sweepsJumped": 4,
+   "grabbed": 0,
+   "grabsEvaded": 0,
+   "heals": 1,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": false,
+   "deaths": 0,
+   "hitsByMove": {
+    "sweep": 1,
+    "leap": 1,
+    "thrust": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "jump_dependent",
+    "strength": 0.75,
+    "evidence": "jumped 4 sweeps"
+   }
+  ],
+  "playerMemory": {
+   "fights": 0,
+   "wins": 0,
+   "losses": 0,
+   "consecutive_losses": 0,
+   "habit_avgs": {
+    "jump_dependent": 0.56
+   }
+  },
+  "globalMemory": {
+   "totalFights": 39,
+   "habitPrevalence": {
+    "block_holder": 0.17,
+    "deflect_expert": 0.07,
+    "dodge_spammer": 0.32,
+    "jump_dependent": 0.13,
+    "heal_greedy": 0.4,
+    "passive": 0.17,
+    "aggressive": 0.17
+   },
+   "moveHits": {
+    "leap": 21,
+    "combo": 40,
+    "comboDelay": 8,
+    "overhead": 36,
+    "thrust": 50,
+    "sweep": 6,
+    "grab": 49,
+    "flurry": 47
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "Never exceed the string limits in limits.",
+   "When the player blocks often, favour thrust or grab."
+  ],
+  "limits": {
+   "maxStrings": 2,
+   "maxStringLen": 3,
+   "maxTempoStep": 2,
+   "maxGapStep": 2
+  }
+ },
+ {
+  "fight": 5,
+  "bossLevel": 1,
+  "stats": {
+   "fightSeconds": 83,
+   "deflects": 1,
+   "lateDeflects": 0,
+   "blocks": 2,
+   "hitsTaken": 2,
+   "dodged": 0,
+   "playerHits": 25,
+   "sweepsJumped": 4,
+   "grabbed": 2,
+   "grabsEvaded": 1,
+   "heals": 0,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": true,
+   "deaths": 1,
+   "hitsByMove": {
+    "comboDelay": 1,
+    "leap": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "jump_dependent",
+    "strength": 0.75,
+    "evidence": "jumped 4 sweeps"
+   }
+  ],
+  "playerMemory": {
+   "fights": 4,
+   "wins": 2,
+   "losses": 2,
+   "consecutive_losses": 2,
+   "habit_avgs": {
+    "jump_dependent": 0.5
+   }
+  },
+  "globalMemory": {
+   "totalFights": 3,
+   "habitPrevalence": {
+    "block_holder": 0.2,
+    "deflect_expert": 0.16,
+    "dodge_spammer": 0.29,
+    "jump_dependent": 0.32,
+    "heal_greedy": 0.14,
+    "passive": 0.35,
+    "aggressive": 0.33
+   },
+   "moveHits": {
+    "leap": 4,
+    "combo": 60,
+    "comboDelay": 17,
+    "overhead": 54,
+    "thrust": 52,
+    "sweep": 36,
+    "grab": 53,
+    "flurry": 26
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "Never exceed the string limits in limits."
+  ],
+  "limits": {
+   "maxStrings": 1,
+   "maxStringLen": 2,
+   "maxTempoStep": 0,
+   "maxGapStep": 0
+  }
+ },
+ {
+  "fight": 3,
+  "bossLevel": 5,
+  "stats": {
+   "fightSeconds": 91,
+   "deflects": 0,
+   "lateDeflects": 1,
+   "blocks": 3,
+   "hitsTaken": 4,
+   "dodged": 0,
+   "playerHits": 27,
+   "sweepsJumped": 5,
+   "grabbed": 2,
+   "grabsEvaded": 2,
+   "heals": 0,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": false,
+   "deaths": 0,
+   "hitsByMove": {
+    "grab": 2,
+    "thrust": 1,
+    "sweep": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "jump_dependent",
+    "strength": 1,
+    "evidence": "jumped 5 sweeps"
+   },
+   {
+    "habit": "aggressive",
+    "strength": 0.7500000000000001,
+    "evidence": "landed 27 cuts but took 4 hits"
+   }
+  ],
+  "playerMemory": {
+   "fights": 2,
+   "wins": 2,
+   "losses": 0,
+   "consecutive_losses": 0,
+   "habit_avgs": {
+    "jump_dependent": 0.73,
+    "aggressive": 0.69
+   }
+  },
+  "globalMemory": {
+   "totalFights": 24,
+   "habitPrevalence": {
+    "block_holder": 0.38,
+    "deflect_expert": 0.33,
+    "dodge_spammer": 0.14,
+    "jump_dependent": 0.04,
+    "heal_greedy": 0.38,
+    "passive": 0.03,
+    "aggressive": 0.03
+   },
+   "moveHits": {
+    "leap": 31,
+    "combo": 28,
+    "comboDelay": 9,
+    "overhead": 58,
+    "thrust": 2,
+    "sweep": 53,
+    "grab": 15,
+    "flurry": 25
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "Never exceed the string limits in limits."
+  ],
+  "limits": {
+   "maxStrings": 1,
+   "maxStringLen": 2,
+   "maxTempoStep": 1,
+   "maxGapStep": 1
+  }
+ },
+ {
+  "fight": 5,
+  "bossLevel": 4,
+  "stats": {
+   "fightSeconds": 27,
+   "deflects": 3,
+   "lateDeflects": 1,
+   "blocks": 2,
+   "hitsTaken": 6,
+   "dodged": 0,
+   "playerHits": 7,
+   "sweepsJumped": 5,
+   "grabbed": 2,
+   "grabsEvaded": 2,
+   "heals": 0,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": true,
+   "deaths": 1,
+   "hitsByMove": {
+    "leap": 2,
+    "grab": 2,
+    "comboDelay": 1,
+    "flurry": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "jump_dependent",
+    "strength": 1,
+    "evidence": "jumped 5 sweeps"
+   }
+  ],
+  "playerMemory": {
+   "fights": 4,
+   "wins": 4,
+   "losses": 0,
+   "consecutive_losses": 0,
+   "habit_avgs": {
+    "jump_dependent": 0.96
+   }
+  },
+  "globalMemory": {
+   "totalFights": 36,
+   "habitPrevalence": {
+    "block_holder": 0.38,
+    "deflect_expert": 0.09,
+    "dodge_spammer": 0.18,
+    "jump_dependent": 0.1,
+    "heal_greedy": 0.3,
+    "passive": 0.27,
+    "aggressive": 0.04
+   },
+   "moveHits": {
+    "leap": 42,
+    "combo": 29,
+    "comboDelay": 34,
+    "overhead": 10,
+    "thrust": 60,
+    "sweep": 22,
+    "grab": 59,
+    "flurry": 42
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "Do not repeat the same opening string twice in a row."
+  ],
+  "limits": {
+   "maxStrings": 1,
+   "maxStringLen": 2,
+   "maxTempoStep": 1,
+   "maxGapStep": 1
+  }
+ },
+ {
+  "fight": 1,
+  "bossLevel": 6,
+  "stats": {
+   "fightSeconds": 98,
+   "deflects": 1,
+   "lateDeflects": 1,
+   "blocks": 1,
+   "hitsTaken": 3,
+   "dodged": 2,
+   "playerHits": 34,
+   "sweepsJumped": 7,
+   "grabbed": 0,
+   "grabsEvaded": 2,
+   "heals": 1,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": true,
+   "deaths": 0,
+   "hitsByMove": {
+    "sweep": 1,
+    "combo": 1,
+    "flurry": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "jump_dependent",
+    "strength": 1,
+    "evidence": "jumped 7 sweeps"
+   },
+   {
+    "habit": "aggressive",
+    "strength": 0.861111111111111,
+    "evidence": "landed 34 cuts but took 3 hits"
+   }
+  ],
+  "playerMemory": {
+   "fights": 0,
+   "wins": 0,
+   "losses": 0,
+   "consecutive_losses": 0,
+   "habit_avgs": {
+    "jump_dependent": 0.67,
+    "aggressive": 0.54
+   }
+  },
+  "globalMemory": {
+   "totalFights": 64,
+   "habitPrevalence": {
+    "block_holder": 0.28,
+    "deflect_expert": 0.4,
+    "dodge_spammer": 0.34,
+    "jump_dependent": 0.17,
+    "heal_greedy": 0.29,
+    "passive": 0.38,
+    "aggressive": 0.31
+   },
+   "moveHits": {
+    "leap": 12,
+    "combo": 47,
+    "comboDelay": 11,
+    "overhead": 36,
+    "thrust": 25,
+    "sweep": 22,
+    "grab": 50,
+    "flurry": 46
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "Do not repeat the same opening string twice in a row.",
+   "If the player won easily, raise tempo_step by one within the limits."
+  ],
+  "limits": {
+   "maxStrings": 2,
+   "maxStringLen": 3,
+   "maxTempoStep": 2,
+   "maxGapStep": 1
+  }
+ },
+ {
+  "fight": 5,
+  "bossLevel": 1,
+  "stats": {
+   "fightSeconds": 82,
+   "deflects": 3,
+   "lateDeflects": 0,
+   "blocks": 3,
+   "hitsTaken": 2,
+   "dodged": 2,
+   "playerHits": 24,
+   "sweepsJumped": 8,
+   "grabbed": 0,
+   "grabsEvaded": 0,
+   "heals": 1,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": false,
+   "deaths": 1,
+   "hitsByMove": {
+    "sweep": 1,
+    "thrust": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "jump_dependent",
+    "strength": 1,
+    "evidence": "jumped 8 sweeps"
+   }
+  ],
+  "playerMemory": {
+   "fights": 4,
+   "wins": 4,
+   "losses": 0,
+   "consecutive_losses": 0,
+   "habit_avgs": {
+    "jump_dependent": 0.84
+   }
+  },
+  "globalMemory": {
+   "totalFights": 34,
+   "habitPrevalence": {
+    "block_holder": 0.08,
+    "deflect_expert": 0.25,
+    "dodge_spammer": 0.3,
+    "jump_dependent": 0.1,
+    "heal_greedy": 0.33,
+    "passive": 0.07,
+    "aggressive": 0.3
+   },
+   "moveHits": {
+    "leap": 19,
+    "combo": 57,
+    "comboDelay": 39,
+    "overhead": 32,
+    "thrust": 7,
+    "sweep": 23,
+    "grab": 24,
+    "flurry": 13
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "When the player blocks often, favour thrust or grab."
+  ],
+  "limits": {
+   "maxStrings": 1,
+   "maxStringLen": 2,
+   "maxTempoStep": 0,
+   "maxGapStep": 0
+  }
+ },
+ {
+  "fight": 2,
+  "bossLevel": 2,
+  "stats": {
+   "fightSeconds": 59,
+   "deflects": 3,
+   "lateDeflects": 1,
+   "blocks": 1,
+   "hitsTaken": 1,
+   "dodged": 3,
+   "playerHits": 16,
+   "sweepsJumped": 1,
+   "grabbed": 0,
+   "grabsEvaded": 1,
+   "heals": 5,
+   "firstHealAtSeconds": 23,
+   "medianDeflectTiming": null,
+   "victory": false,
+   "deaths": 1,
+   "hitsByMove": {
+    "thrust": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "heal_greedy",
+    "strength": 1,
+    "evidence": "drank the gourd 5 times"
+   }
+  ],
+  "playerMemory": {
+   "fights": 1,
+   "wins": 0,
+   "losses": 2,
+   "consecutive_losses": 1,
+   "habit_avgs": {
+    "heal_greedy": 0.72
+   }
+  },
+  "globalMemory": {
+   "totalFights": 30,
+   "habitPrevalence": {
+    "block_holder": 0.28,
+    "deflect_expert": 0.06,
+    "dodge_spammer": 0.04,
+    "jump_dependent": 0.2,
+    "heal_greedy": 0.25,
+    "passive": 0.17,
+    "aggressive": 0.01
+   },
+   "moveHits": {
+    "leap": 19,
+    "combo": 5,
+    "comboDelay": 59,
+    "overhead": 41,
+    "thrust": 55,
+    "sweep": 59,
+    "grab": 49,
+    "flurry": 35
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [],
+  "limits": {
+   "maxStrings": 1,
+   "maxStringLen": 2,
+   "maxTempoStep": 0,
+   "maxGapStep": 0
+  }
+ },
+ {
+  "fight": 5,
+  "bossLevel": 1,
+  "stats": {
+   "fightSeconds": 26,
+   "deflects": 2,
+   "lateDeflects": 0,
+   "blocks": 1,
+   "hitsTaken": 2,
+   "dodged": 2,
+   "playerHits": 6,
+   "sweepsJumped": 1,
+   "grabbed": 2,
+   "grabsEvaded": 2,
+   "heals": 3,
+   "firstHealAtSeconds": 7,
+   "medianDeflectTiming": null,
+   "victory": false,
+   "deaths": 0,
+   "hitsByMove": {
+    "flurry": 1,
+    "combo": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "heal_greedy",
+    "strength": 0.6666666666666666,
+    "evidence": "drank the gourd 3 times"
+   }
+  ],
+  "playerMemory": {
+   "fights": 4,
+   "wins": 2,
+   "losses": 2,
+   "consecutive_losses": 0,
+   "habit_avgs": {
+    "heal_greedy": 0.53
+   }
+  },
+  "globalMemory": {
+   "totalFights": 14,
+   "habitPrevalence": {
+    "block_holder": 0.1,
+    "deflect_expert": 0.38,
+    "dodge_spammer": 0.33,
+    "jump_dependent": 0.09,
+    "heal_greedy": 0.35,
+    "passive": 0.37,
+    "aggressive": 0.3
+   },
+   "moveHits": {
+    "leap": 46,
+    "combo": 31,
+    "comboDelay": 11,
+    "overhead": 16,
+    "thrust": 60,
+    "sweep": 56,
+    "grab": 33,
+    "flurry": 8
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "When the player blocks often, favour thrust or grab.",
+   "Do not repeat the same opening string twice in a row."
+  ],
+  "limits": {
+   "maxStrings": 1,
+   "maxStringLen": 2,
+   "maxTempoStep": 0,
+   "maxGapStep": 0
+  }
+ },
+ {
+  "fight": 4,
+  "bossLevel": 5,
+  "stats": {
+   "fightSeconds": 104,
+   "deflects": 0,
+   "lateDeflects": 0,
+   "blocks": 2,
+   "hitsTaken": 4,
+   "dodged": 1,
+   "playerHits": 36,
+   "sweepsJumped": 1,
+   "grabbed": 0,
+   "grabsEvaded": 1,
+   "heals": 5,
+   "firstHealAtSeconds": 7,
+   "medianDeflectTiming": null,
+   "victory": false,
+   "deaths": 0,
+   "hitsByMove": {
+    "grab": 1,
+    "combo": 1,
+    "sweep": 1,
+    "overhead": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "heal_greedy",
+    "strength": 1,
+    "evidence": "drank the gourd 5 times"
+   },
+   {
+    "habit": "aggressive",
+    "strength": 0.8684210526315789,
+    "evidence": "landed 36 cuts but took 4 hits"
+   }
+  ],
+  "playerMemory": {
+   "fights": 3,
+   "wins": 1,
+   "losses": 2,
+   "consecutive_losses": 2,
+   "habit_avgs": {
+    "heal_greedy": 0.91,
+    "aggressive": 0.77
+   }
+  },
+  "globalMemory": {
+   "totalFights": 38,
+   "habitPrevalence": {
+    "block_holder": 0.25,
+    "deflect_expert": 0.39,
+    "dodge_spammer": 0.25,
+    "jump_dependent": 0.06,
+    "heal_greedy": 0.4,
+    "passive": 0.05,
+    "aggressive": 0.33
+   },
+   "moveHits": {
+    "leap": 26,
+    "combo": 35,
+    "comboDelay": 53,
+    "overhead": 52,
+    "thrust": 4,
+    "sweep": 14,
+    "grab": 19,
+    "flurry": 16
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "Never exceed the string limits in limits.",
+   "When the player blocks often, favour thrust or grab.",
+   "If the player won easily, raise tempo_step by one within the limits."
+  ],
+  "limits": {
+   "maxStrings": 1,
+   "maxStringLen": 2,
+   "maxTempoStep": 1,
+   "maxGapStep": 1
+  }
+ },
+ {
+  "fight": 1,
+  "bossLevel": 3,
+  "stats": {
+   "fightSeconds": 31,
+   "deflects": 3,
+   "lateDeflects": 0,
+   "blocks": 1,
+   "hitsTaken": 6,
+   "dodged": 3,
+   "playerHits": 10,
+   "sweepsJumped": 0,
+   "grabbed": 2,
+   "grabsEvaded": 2,
+   "heals": 3,
+   "firstHealAtSeconds": 16,
+   "medianDeflectTiming": null,
+   "victory": true,
+   "deaths": 1,
+   "hitsByMove": {
+    "flurry": 2,
+    "overhead": 1,
+    "combo": 2,
+    "thrust": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "heal_greedy",
+    "strength": 0.6666666666666666,
+    "evidence": "drank the gourd 3 times"
+   },
+   {
+    "habit": "aggressive",
+    "strength": 0.2857142857142858,
+    "evidence": "landed 10 cuts but took 6 hits"
+   }
+  ],
+  "playerMemory": {
+   "fights": 0,
+   "wins": 0,
+   "losses": 1,
+   "consecutive_losses": 1,
+   "habit_avgs": {
+    "heal_greedy": 0.63,
+    "aggressive": 0.18
+   }
+  },
+  "globalMemory": {
+   "totalFights": 33,
+   "habitPrevalence": {
+    "block_holder": 0.05,
+    "deflect_expert": 0.24,
+    "dodge_spammer": 0.12,
+    "jump_dependent": 0.17,
+    "heal_greedy": 0.19,
+    "passive": 0.33,
+    "aggressive": 0.31
+   },
+   "moveHits": {
+    "leap": 59,
+    "combo": 11,
+    "comboDelay": 34,
+    "overhead": 16,
+    "thrust": 31,
+    "sweep": 12,
+    "grab": 3,
+    "flurry": 32
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [],
+  "limits": {
+   "maxStrings": 1,
+   "maxStringLen": 2,
+   "maxTempoStep": 0,
+   "maxGapStep": 0
+  }
+ },
+ {
+  "fight": 2,
+  "bossLevel": 5,
+  "stats": {
+   "fightSeconds": 103,
+   "deflects": 3,
+   "lateDeflects": 1,
+   "blocks": 1,
+   "hitsTaken": 2,
+   "dodged": 1,
+   "playerHits": 30,
+   "sweepsJumped": 1,
+   "grabbed": 1,
+   "grabsEvaded": 2,
+   "heals": 4,
+   "firstHealAtSeconds": 15,
+   "medianDeflectTiming": null,
+   "victory": false,
+   "deaths": 1,
+   "hitsByMove": {
+    "sweep": 1,
+    "overhead": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "heal_greedy",
+    "strength": 1,
+    "evidence": "drank the gourd 4 times"
+   }
+  ],
+  "playerMemory": {
+   "fights": 1,
+   "wins": 1,
+   "losses": 0,
+   "consecutive_losses": 0,
+   "habit_avgs": {
+    "heal_greedy": 0.85
+   }
+  },
+  "globalMemory": {
+   "totalFights": 65,
+   "habitPrevalence": {
+    "block_holder": 0.17,
+    "deflect_expert": 0.06,
+    "dodge_spammer": 0.05,
+    "jump_dependent": 0.19,
+    "heal_greedy": 0.01,
+    "passive": 0.38,
+    "aggressive": 0.1
+   },
+   "moveHits": {
+    "leap": 38,
+    "combo": 41,
+    "comboDelay": 59,
+    "overhead": 40,
+    "thrust": 14,
+    "sweep": 55,
+    "grab": 10,
+    "flurry": 53
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "Do not repeat the same opening string twice in a row.",
+   "If the player won easily, raise tempo_step by one within the limits."
+  ],
+  "limits": {
+   "maxStrings": 1,
+   "maxStringLen": 2,
+   "maxTempoStep": 1,
+   "maxGapStep": 1
+  }
+ },
+ {
+  "fight": 3,
+  "bossLevel": 4,
+  "stats": {
+   "fightSeconds": 49,
+   "deflects": 3,
+   "lateDeflects": 0,
+   "blocks": 1,
+   "hitsTaken": 6,
+   "dodged": 0,
+   "playerHits": 12,
+   "sweepsJumped": 1,
+   "grabbed": 0,
+   "grabsEvaded": 1,
+   "heals": 3,
+   "firstHealAtSeconds": 11,
+   "medianDeflectTiming": null,
+   "victory": false,
+   "deaths": 1,
+   "hitsByMove": {
+    "overhead": 2,
+    "leap": 2,
+    "comboDelay": 1,
+    "grab": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "heal_greedy",
+    "strength": 0.6666666666666666,
+    "evidence": "drank the gourd 3 times"
+   },
+   {
+    "habit": "aggressive",
+    "strength": 0.37500000000000006,
+    "evidence": "landed 12 cuts but took 6 hits"
+   }
+  ],
+  "playerMemory": {
+   "fights": 2,
+   "wins": 1,
+   "losses": 1,
+   "consecutive_losses": 1,
+   "habit_avgs": {
+    "heal_greedy": 0.49,
+    "aggressive": 0.23
+   }
+  },
+  "globalMemory": {
+   "totalFights": 70,
+   "habitPrevalence": {
+    "block_holder": 0.28,
+    "deflect_expert": 0.12,
+    "dodge_spammer": 0.18,
+    "jump_dependent": 0.38,
+    "heal_greedy": 0.05,
+    "passive": 0.28,
+    "aggressive": 0.28
+   },
+   "moveHits": {
+    "leap": 40,
+    "combo": 19,
+    "comboDelay": 35,
+    "overhead": 28,
+    "thrust": 28,
+    "sweep": 56,
+    "grab": 11,
+    "flurry": 48
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "Never exceed the string limits in limits.",
+   "When the player blocks often, favour thrust or grab."
+  ],
+  "limits": {
+   "maxStrings": 1,
+   "maxStringLen": 2,
+   "maxTempoStep": 1,
+   "maxGapStep": 1
+  }
+ },
+ {
+  "fight": 3,
+  "bossLevel": 9,
+  "stats": {
+   "fightSeconds": 37,
+   "deflects": 3,
+   "lateDeflects": 0,
+   "blocks": 2,
+   "hitsTaken": 3,
+   "dodged": 2,
+   "playerHits": 11,
+   "sweepsJumped": 0,
+   "grabbed": 1,
+   "grabsEvaded": 2,
+   "heals": 5,
+   "firstHealAtSeconds": 12,
+   "medianDeflectTiming": null,
+   "victory": true,
+   "deaths": 1,
+   "hitsByMove": {
+    "leap": 1,
+    "thrust": 1,
+    "flurry": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "heal_greedy",
+    "strength": 1,
+    "evidence": "drank the gourd 5 times"
+   },
+   {
+    "habit": "aggressive",
+    "strength": 0.21875000000000006,
+    "evidence": "landed 11 cuts but took 3 hits"
+   }
+  ],
+  "playerMemory": {
+   "fights": 2,
+   "wins": 2,
+   "losses": 0,
+   "consecutive_losses": 0,
+   "habit_avgs": {
+    "heal_greedy": 0.75,
+    "aggressive": 0.18
+   }
+  },
+  "globalMemory": {
+   "totalFights": 6,
+   "habitPrevalence": {
+    "block_holder": 0.21,
+    "deflect_expert": 0.25,
+    "dodge_spammer": 0.27,
+    "jump_dependent": 0.39,
+    "heal_greedy": 0.24,
+    "passive": 0.33,
+    "aggressive": 0.25
+   },
+   "moveHits": {
+    "leap": 56,
+    "combo": 39,
+    "comboDelay": 33,
+    "overhead": 27,
+    "thrust": 58,
+    "sweep": 4,
+    "grab": 50,
+    "flurry": 43
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "When the player blocks often, favour thrust or grab."
+  ],
+  "limits": {
+   "maxStrings": 2,
+   "maxStringLen": 3,
+   "maxTempoStep": 3,
+   "maxGapStep": 2
+  }
+ },
+ {
+  "fight": 4,
+  "bossLevel": 5,
+  "stats": {
+   "fightSeconds": 94,
+   "deflects": 2,
+   "lateDeflects": 1,
+   "blocks": 3,
+   "hitsTaken": 3,
+   "dodged": 3,
+   "playerHits": 21,
+   "sweepsJumped": 1,
+   "grabbed": 1,
+   "grabsEvaded": 0,
+   "heals": 5,
+   "firstHealAtSeconds": 14,
+   "medianDeflectTiming": null,
+   "victory": false,
+   "deaths": 1,
+   "hitsByMove": {
+    "grab": 1,
+    "thrust": 1,
+    "flurry": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "heal_greedy",
+    "strength": 1,
+    "evidence": "drank the gourd 5 times"
+   },
+   {
+    "habit": "aggressive",
+    "strength": 0.5192307692307693,
+    "evidence": "landed 21 cuts but took 3 hits"
+   }
+  ],
+  "playerMemory": {
+   "fights": 3,
+   "wins": 0,
+   "losses": 4,
+   "consecutive_losses": 1,
+   "habit_avgs": {
+    "heal_greedy": 0.79,
+    "aggressive": 0.36
+   }
+  },
+  "globalMemory": {
+   "totalFights": 1,
+   "habitPrevalence": {
+    "block_holder": 0.07,
+    "deflect_expert": 0.22,
+    "dodge_spammer": 0.2,
+    "jump_dependent": 0.4,
+    "heal_greedy": 0.25,
+    "passive": 0.39,
+    "aggressive": 0.03
+   },
+   "moveHits": {
+    "leap": 27,
+    "combo": 52,
+    "comboDelay": 16,
+    "overhead": 60,
+    "thrust": 43,
+    "sweep": 53,
+    "grab": 38,
+    "flurry": 56
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "Do not repeat the same opening string twice in a row.",
+   "If the player won easily, raise tempo_step by one within the limits."
+  ],
+  "limits": {
+   "maxStrings": 1,
+   "maxStringLen": 2,
+   "maxTempoStep": 1,
+   "maxGapStep": 1
+  }
+ },
+ {
+  "fight": 5,
+  "bossLevel": 7,
+  "stats": {
+   "fightSeconds": 51,
+   "deflects": 3,
+   "lateDeflects": 0,
+   "blocks": 2,
+   "hitsTaken": 3,
+   "dodged": 2,
+   "playerHits": 12,
+   "sweepsJumped": 0,
+   "grabbed": 2,
+   "grabsEvaded": 1,
+   "heals": 5,
+   "firstHealAtSeconds": 9,
+   "medianDeflectTiming": null,
+   "victory": false,
+   "deaths": 0,
+   "hitsByMove": {
+    "flurry": 2,
+    "grab": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "heal_greedy",
+    "strength": 1,
+    "evidence": "drank the gourd 5 times"
+   },
+   {
+    "habit": "aggressive",
+    "strength": 0.26470588235294135,
+    "evidence": "landed 12 cuts but took 3 hits"
+   }
+  ],
+  "playerMemory": {
+   "fights": 4,
+   "wins": 2,
+   "losses": 2,
+   "consecutive_losses": 2,
+   "habit_avgs": {
+    "heal_greedy": 0.77,
+    "aggressive": 0.24
+   }
+  },
+  "globalMemory": {
+   "totalFights": 3,
+   "habitPrevalence": {
+    "block_holder": 0.34,
+    "deflect_expert": 0.2,
+    "dodge_spammer": 0.21,
+    "jump_dependent": 0.12,
+    "heal_greedy": 0.02,
+    "passive": 0.16,
+    "aggressive": 0.17
+   },
+   "moveHits": {
+    "leap": 13,
+    "combo": 5,
+    "comboDelay": 58,
+    "overhead": 57,
+    "thrust": 4,
+    "sweep": 47,
+    "grab": 43,
+    "flurry": 60
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "Never exceed the string limits in limits."
+  ],
+  "limits": {
+   "maxStrings": 2,
+   "maxStringLen": 3,
+   "maxTempoStep": 2,
+   "maxGapStep": 2
+  }
+ },
+ {
+  "fight": 5,
+  "bossLevel": 4,
+  "stats": {
+   "fightSeconds": 116,
+   "deflects": 3,
+   "lateDeflects": 1,
+   "blocks": 1,
+   "hitsTaken": 1,
+   "dodged": 0,
+   "playerHits": 1,
+   "sweepsJumped": 0,
+   "grabbed": 2,
+   "grabsEvaded": 2,
+   "heals": 0,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": true,
+   "deaths": 1,
+   "hitsByMove": {
+    "overhead": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "passive",
+    "strength": 0.942528735632184,
+    "evidence": "landed only 1 cuts in 116 s"
+   }
+  ],
+  "playerMemory": {
+   "fights": 4,
+   "wins": 4,
+   "losses": 0,
+   "consecutive_losses": 0,
+   "habit_avgs": {
+    "passive": 0.79
+   }
+  },
+  "globalMemory": {
+   "totalFights": 18,
+   "habitPrevalence": {
+    "block_holder": 0.25,
+    "deflect_expert": 0.04,
+    "dodge_spammer": 0.06,
+    "jump_dependent": 0.13,
+    "heal_greedy": 0,
+    "passive": 0.06,
+    "aggressive": 0.01
+   },
+   "moveHits": {
+    "leap": 35,
+    "combo": 5,
+    "comboDelay": 36,
+    "overhead": 32,
+    "thrust": 57,
+    "sweep": 12,
+    "grab": 46,
+    "flurry": 12
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [],
+  "limits": {
+   "maxStrings": 1,
+   "maxStringLen": 2,
+   "maxTempoStep": 1,
+   "maxGapStep": 1
+  }
+ },
+ {
+  "fight": 3,
+  "bossLevel": 3,
+  "stats": {
+   "fightSeconds": 77,
+   "deflects": 1,
+   "lateDeflects": 1,
+   "blocks": 0,
+   "hitsTaken": 1,
+   "dodged": 0,
+   "playerHits": 2,
+   "sweepsJumped": 0,
+   "grabbed": 2,
+   "grabsEvaded": 2,
+   "heals": 0,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": false,
+   "deaths": 1,
+   "hitsByMove": {
+    "flurry": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "passive",
+    "strength": 0.8268398268398268,
+    "evidence": "landed only 2 cuts in 77 s"
+   }
+  ],
+  "playerMemory": {
+   "fights": 2,
+   "wins": 2,
+   "losses": 0,
+   "consecutive_losses": 0,
+   "habit_avgs": {
+    "passive": 0.66
+   }
+  },
+  "globalMemory": {
+   "totalFights": 62,
+   "habitPrevalence": {
+    "block_holder": 0.15,
+    "deflect_expert": 0.06,
+    "dodge_spammer": 0.34,
+    "jump_dependent": 0.25,
+    "heal_greedy": 0.13,
+    "passive": 0.09,
+    "aggressive": 0.32
+   },
+   "moveHits": {
+    "leap": 50,
+    "combo": 3,
+    "comboDelay": 25,
+    "overhead": 25,
+    "thrust": 6,
+    "sweep": 49,
+    "grab": 16,
+    "flurry": 40
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "If the player won easily, raise tempo_step by one within the limits."
+  ],
+  "limits": {
+   "maxStrings": 1,
+   "maxStringLen": 2,
+   "maxTempoStep": 0,
+   "maxGapStep": 0
+  }
+ },
+ {
+  "fight": 2,
+  "bossLevel": 6,
+  "stats": {
+   "fightSeconds": 110,
+   "deflects": 3,
+   "lateDeflects": 1,
+   "blocks": 2,
+   "hitsTaken": 5,
+   "dodged": 0,
+   "playerHits": 4,
+   "sweepsJumped": 0,
+   "grabbed": 0,
+   "grabsEvaded": 1,
+   "heals": 1,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": true,
+   "deaths": 0,
+   "hitsByMove": {
+    "sweep": 2,
+    "grab": 1,
+    "leap": 1,
+    "thrust": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "passive",
+    "strength": 0.7575757575757576,
+    "evidence": "landed only 4 cuts in 110 s"
+   }
+  ],
+  "playerMemory": {
+   "fights": 1,
+   "wins": 0,
+   "losses": 1,
+   "consecutive_losses": 1,
+   "habit_avgs": {
+    "passive": 0.59
+   }
+  },
+  "globalMemory": {
+   "totalFights": 9,
+   "habitPrevalence": {
+    "block_holder": 0.31,
+    "deflect_expert": 0.34,
+    "dodge_spammer": 0.32,
+    "jump_dependent": 0.27,
+    "heal_greedy": 0.28,
+    "passive": 0.03,
+    "aggressive": 0.02
+   },
+   "moveHits": {
+    "leap": 19,
+    "combo": 15,
+    "comboDelay": 27,
+    "overhead": 26,
+    "thrust": 46,
+    "sweep": 28,
+    "grab": 55,
+    "flurry": 52
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "If the player won easily, raise tempo_step by one within the limits."
+  ],
+  "limits": {
+   "maxStrings": 2,
+   "maxStringLen": 3,
+   "maxTempoStep": 2,
+   "maxGapStep": 1
+  }
+ },
+ {
+  "fight": 4,
+  "bossLevel": 4,
+  "stats": {
+   "fightSeconds": 66,
+   "deflects": 1,
+   "lateDeflects": 0,
+   "blocks": 2,
+   "hitsTaken": 4,
+   "dodged": 3,
+   "playerHits": 0,
+   "sweepsJumped": 0,
+   "grabbed": 2,
+   "grabsEvaded": 1,
+   "heals": 0,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": false,
+   "deaths": 1,
+   "hitsByMove": {
+    "thrust": 1,
+    "overhead": 1,
+    "flurry": 1,
+    "sweep": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "passive",
+    "strength": 1,
+    "evidence": "landed only 0 cuts in 66 s"
+   }
+  ],
+  "playerMemory": {
+   "fights": 3,
+   "wins": 0,
+   "losses": 4,
+   "consecutive_losses": 0,
+   "habit_avgs": {
+    "passive": 0.82
+   }
+  },
+  "globalMemory": {
+   "totalFights": 40,
+   "habitPrevalence": {
+    "block_holder": 0.23,
+    "deflect_expert": 0.4,
+    "dodge_spammer": 0.38,
+    "jump_dependent": 0.11,
+    "heal_greedy": 0.3,
+    "passive": 0.23,
+    "aggressive": 0.23
+   },
+   "moveHits": {
+    "leap": 22,
+    "combo": 40,
+    "comboDelay": 32,
+    "overhead": 54,
+    "thrust": 54,
+    "sweep": 48,
+    "grab": 35,
+    "flurry": 47
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [],
+  "limits": {
+   "maxStrings": 1,
+   "maxStringLen": 2,
+   "maxTempoStep": 1,
+   "maxGapStep": 1
+  }
+ },
+ {
+  "fight": 4,
+  "bossLevel": 1,
+  "stats": {
+   "fightSeconds": 116,
+   "deflects": 2,
+   "lateDeflects": 0,
+   "blocks": 0,
+   "hitsTaken": 4,
+   "dodged": 0,
+   "playerHits": 2,
+   "sweepsJumped": 0,
+   "grabbed": 2,
+   "grabsEvaded": 2,
+   "heals": 1,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": false,
+   "deaths": 1,
+   "hitsByMove": {
+    "sweep": 1,
+    "comboDelay": 1,
+    "flurry": 1,
+    "overhead": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "passive",
+    "strength": 0.8850574712643677,
+    "evidence": "landed only 2 cuts in 116 s"
+   }
+  ],
+  "playerMemory": {
+   "fights": 3,
+   "wins": 2,
+   "losses": 1,
+   "consecutive_losses": 1,
+   "habit_avgs": {
+    "passive": 0.82
+   }
+  },
+  "globalMemory": {
+   "totalFights": 48,
+   "habitPrevalence": {
+    "block_holder": 0.28,
+    "deflect_expert": 0.15,
+    "dodge_spammer": 0.3,
+    "jump_dependent": 0.12,
+    "heal_greedy": 0.36,
+    "passive": 0.09,
+    "aggressive": 0.13
+   },
+   "moveHits": {
+    "leap": 17,
+    "combo": 54,
+    "comboDelay": 50,
+    "overhead": 27,
+    "thrust": 42,
+    "sweep": 7,
+    "grab": 25,
+    "flurry": 48
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "Never exceed the string limits in limits.",
+   "Do not repeat the same opening string twice in a row."
+  ],
+  "limits": {
+   "maxStrings": 1,
+   "maxStringLen": 2,
+   "maxTempoStep": 0,
+   "maxGapStep": 0
+  }
+ },
+ {
+  "fight": 6,
+  "bossLevel": 8,
+  "stats": {
+   "fightSeconds": 59,
+   "deflects": 2,
+   "lateDeflects": 1,
+   "blocks": 2,
+   "hitsTaken": 3,
+   "dodged": 1,
+   "playerHits": 2,
+   "sweepsJumped": 0,
+   "grabbed": 1,
+   "grabsEvaded": 1,
+   "heals": 0,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": true,
+   "deaths": 1,
+   "hitsByMove": {
+    "grab": 1,
+    "flurry": 1,
+    "thrust": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "passive",
+    "strength": 0.7740112994350283,
+    "evidence": "landed only 2 cuts in 59 s"
+   }
+  ],
+  "playerMemory": {
+   "fights": 5,
+   "wins": 3,
+   "losses": 2,
+   "consecutive_losses": 2,
+   "habit_avgs": {
+    "passive": 0.51
+   }
+  },
+  "globalMemory": {
+   "totalFights": 27,
+   "habitPrevalence": {
+    "block_holder": 0.24,
+    "deflect_expert": 0.3,
+    "dodge_spammer": 0.32,
+    "jump_dependent": 0.13,
+    "heal_greedy": 0.2,
+    "passive": 0.15,
+    "aggressive": 0.1
+   },
+   "moveHits": {
+    "leap": 25,
+    "combo": 41,
+    "comboDelay": 2,
+    "overhead": 19,
+    "thrust": 47,
+    "sweep": 5,
+    "grab": 55,
+    "flurry": 55
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "When the player blocks often, favour thrust or grab."
+  ],
+  "limits": {
+   "maxStrings": 2,
+   "maxStringLen": 3,
+   "maxTempoStep": 3,
+   "maxGapStep": 2
+  }
+ },
+ {
+  "fight": 5,
+  "bossLevel": 6,
+  "stats": {
+   "fightSeconds": 46,
+   "deflects": 2,
+   "lateDeflects": 0,
+   "blocks": 1,
+   "hitsTaken": 6,
+   "dodged": 3,
+   "playerHits": 2,
+   "sweepsJumped": 0,
+   "grabbed": 0,
+   "grabsEvaded": 2,
+   "heals": 0,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": true,
+   "deaths": 0,
+   "hitsByMove": {
+    "thrust": 1,
+    "grab": 2,
+    "combo": 2,
+    "overhead": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "passive",
+    "strength": 0.7101449275362319,
+    "evidence": "landed only 2 cuts in 46 s"
+   }
+  ],
+  "playerMemory": {
+   "fights": 4,
+   "wins": 3,
+   "losses": 1,
+   "consecutive_losses": 1,
+   "habit_avgs": {
+    "passive": 0.45
+   }
+  },
+  "globalMemory": {
+   "totalFights": 13,
+   "habitPrevalence": {
+    "block_holder": 0.17,
+    "deflect_expert": 0.08,
+    "dodge_spammer": 0.36,
+    "jump_dependent": 0.35,
+    "heal_greedy": 0.01,
+    "passive": 0.36,
+    "aggressive": 0.39
+   },
+   "moveHits": {
+    "leap": 6,
+    "combo": 53,
+    "comboDelay": 20,
+    "overhead": 1,
+    "thrust": 55,
+    "sweep": 44,
+    "grab": 2,
+    "flurry": 41
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "Never exceed the string limits in limits.",
+   "If the player won easily, raise tempo_step by one within the limits."
+  ],
+  "limits": {
+   "maxStrings": 2,
+   "maxStringLen": 3,
+   "maxTempoStep": 2,
+   "maxGapStep": 1
+  }
+ },
+ {
+  "fight": 3,
+  "bossLevel": 4,
+  "stats": {
+   "fightSeconds": 53,
+   "deflects": 2,
+   "lateDeflects": 0,
+   "blocks": 2,
+   "hitsTaken": 5,
+   "dodged": 0,
+   "playerHits": 0,
+   "sweepsJumped": 0,
+   "grabbed": 2,
+   "grabsEvaded": 1,
+   "heals": 1,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": true,
+   "deaths": 1,
+   "hitsByMove": {
+    "leap": 1,
+    "grab": 2,
+    "combo": 1,
+    "comboDelay": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "passive",
+    "strength": 1,
+    "evidence": "landed only 0 cuts in 53 s"
+   }
+  ],
+  "playerMemory": {
+   "fights": 2,
+   "wins": 1,
+   "losses": 1,
+   "consecutive_losses": 1,
+   "habit_avgs": {
+    "passive": 0.92
+   }
+  },
+  "globalMemory": {
+   "totalFights": 69,
+   "habitPrevalence": {
+    "block_holder": 0.37,
+    "deflect_expert": 0.1,
+    "dodge_spammer": 0.29,
+    "jump_dependent": 0.12,
+    "heal_greedy": 0.13,
+    "passive": 0.11,
+    "aggressive": 0.33
+   },
+   "moveHits": {
+    "leap": 47,
+    "combo": 31,
+    "comboDelay": 26,
+    "overhead": 24,
+    "thrust": 13,
+    "sweep": 21,
+    "grab": 24,
+    "flurry": 52
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "Do not repeat the same opening string twice in a row.",
+   "If the player won easily, raise tempo_step by one within the limits."
+  ],
+  "limits": {
+   "maxStrings": 1,
+   "maxStringLen": 2,
+   "maxTempoStep": 1,
+   "maxGapStep": 1
+  }
+ },
+ {
+  "fight": 1,
+  "bossLevel": 5,
+  "stats": {
+   "fightSeconds": 97,
+   "deflects": 1,
+   "lateDeflects": 0,
+   "blocks": 0,
+   "hitsTaken": 2,
+   "dodged": 0,
+   "playerHits": 0,
+   "sweepsJumped": 1,
+   "grabbed": 0,
+   "grabsEvaded": 2,
+   "heals": 1,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": false,
+   "deaths": 1,
+   "hitsByMove": {
+    "thrust": 1,
+    "leap": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "passive",
+    "strength": 1,
+    "evidence": "landed only 0 cuts in 97 s"
+   }
+  ],
+  "playerMemory": {
+   "fights": 0,
+   "wins": 0,
+   "losses": 1,
+   "consecutive_losses": 1,
+   "habit_avgs": {
+    "passive": 0.99
+   }
+  },
+  "globalMemory": {
+   "totalFights": 3,
+   "habitPrevalence": {
+    "block_holder": 0.27,
+    "deflect_expert": 0.28,
+    "dodge_spammer": 0.38,
+    "jump_dependent": 0.03,
+    "heal_greedy": 0.1,
+    "passive": 0.09,
+    "aggressive": 0.01
+   },
+   "moveHits": {
+    "leap": 1,
+    "combo": 30,
+    "comboDelay": 15,
+    "overhead": 37,
+    "thrust": 46,
+    "sweep": 38,
+    "grab": 50,
+    "flurry": 42
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [],
+  "limits": {
+   "maxStrings": 1,
+   "maxStringLen": 2,
+   "maxTempoStep": 1,
+   "maxGapStep": 1
+  }
+ },
+ {
+  "fight": 1,
+  "bossLevel": 3,
+  "stats": {
+   "fightSeconds": 60,
+   "deflects": 0,
+   "lateDeflects": 0,
+   "blocks": 2,
+   "hitsTaken": 5,
+   "dodged": 1,
+   "playerHits": 36,
+   "sweepsJumped": 0,
+   "grabbed": 1,
+   "grabsEvaded": 2,
+   "heals": 0,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": true,
+   "deaths": 1,
+   "hitsByMove": {
+    "overhead": 1,
+    "grab": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "aggressive",
+    "strength": 0.8684210526315789,
+    "evidence": "landed 36 cuts but took 5 hits"
+   }
+  ],
+  "playerMemory": {
+   "fights": 0,
+   "wins": 0,
+   "losses": 0,
+   "consecutive_losses": 0,
+   "habit_avgs": {
+    "aggressive": 0.73
+   }
+  },
+  "globalMemory": {
+   "totalFights": 30,
+   "habitPrevalence": {
+    "block_holder": 0.28,
+    "deflect_expert": 0.3,
+    "dodge_spammer": 0.21,
+    "jump_dependent": 0.32,
+    "heal_greedy": 0.28,
+    "passive": 0.07,
+    "aggressive": 0.38
+   },
+   "moveHits": {
+    "leap": 51,
+    "combo": 53,
+    "comboDelay": 22,
+    "overhead": 31,
+    "thrust": 43,
+    "sweep": 43,
+    "grab": 19,
+    "flurry": 58
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "Never exceed the string limits in limits.",
+   "If the player won easily, raise tempo_step by one within the limits."
+  ],
+  "limits": {
+   "maxStrings": 1,
+   "maxStringLen": 2,
+   "maxTempoStep": 0,
+   "maxGapStep": 0
+  }
+ },
+ {
+  "fight": 1,
+  "bossLevel": 7,
+  "stats": {
+   "fightSeconds": 55,
+   "deflects": 2,
+   "lateDeflects": 1,
+   "blocks": 2,
+   "hitsTaken": 10,
+   "dodged": 2,
+   "playerHits": 26,
+   "sweepsJumped": 0,
+   "grabbed": 0,
+   "grabsEvaded": 1,
+   "heals": 1,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": true,
+   "deaths": 1,
+   "hitsByMove": {
+    "comboDelay": 2,
+    "grab": 1,
+    "overhead": 1,
+    "flurry": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "aggressive",
+    "strength": 0.6666666666666667,
+    "evidence": "landed 26 cuts but took 10 hits"
+   }
+  ],
+  "playerMemory": {
+   "fights": 0,
+   "wins": 0,
+   "losses": 1,
+   "consecutive_losses": 1,
+   "habit_avgs": {
+    "aggressive": 0.58
+   }
+  },
+  "globalMemory": {
+   "totalFights": 15,
+   "habitPrevalence": {
+    "block_holder": 0.26,
+    "deflect_expert": 0.02,
+    "dodge_spammer": 0.32,
+    "jump_dependent": 0.03,
+    "heal_greedy": 0.33,
+    "passive": 0.34,
+    "aggressive": 0.32
+   },
+   "moveHits": {
+    "leap": 44,
+    "combo": 14,
+    "comboDelay": 12,
+    "overhead": 12,
+    "thrust": 44,
+    "sweep": 34,
+    "grab": 33,
+    "flurry": 2
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [],
+  "limits": {
+   "maxStrings": 2,
+   "maxStringLen": 3,
+   "maxTempoStep": 2,
+   "maxGapStep": 2
+  }
+ },
+ {
+  "fight": 5,
+  "bossLevel": 7,
+  "stats": {
+   "fightSeconds": 40,
+   "deflects": 2,
+   "lateDeflects": 1,
+   "blocks": 1,
+   "hitsTaken": 9,
+   "dodged": 2,
+   "playerHits": 34,
+   "sweepsJumped": 0,
+   "grabbed": 2,
+   "grabsEvaded": 1,
+   "heals": 1,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": true,
+   "deaths": 0,
+   "hitsByMove": {
+    "overhead": 1,
+    "leap": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "aggressive",
+    "strength": 0.7972972972972975,
+    "evidence": "landed 34 cuts but took 9 hits"
+   }
+  ],
+  "playerMemory": {
+   "fights": 4,
+   "wins": 1,
+   "losses": 3,
+   "consecutive_losses": 0,
+   "habit_avgs": {
+    "aggressive": 0.52
+   }
+  },
+  "globalMemory": {
+   "totalFights": 52,
+   "habitPrevalence": {
+    "block_holder": 0.04,
+    "deflect_expert": 0.34,
+    "dodge_spammer": 0.33,
+    "jump_dependent": 0.2,
+    "heal_greedy": 0.28,
+    "passive": 0.31,
+    "aggressive": 0.09
+   },
+   "moveHits": {
+    "leap": 46,
+    "combo": 6,
+    "comboDelay": 3,
+    "overhead": 34,
+    "thrust": 7,
+    "sweep": 21,
+    "grab": 54,
+    "flurry": 47
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [],
+  "limits": {
+   "maxStrings": 2,
+   "maxStringLen": 3,
+   "maxTempoStep": 2,
+   "maxGapStep": 2
+  }
+ },
+ {
+  "fight": 5,
+  "bossLevel": 7,
+  "stats": {
+   "fightSeconds": 47,
+   "deflects": 1,
+   "lateDeflects": 0,
+   "blocks": 2,
+   "hitsTaken": 6,
+   "dodged": 0,
+   "playerHits": 36,
+   "sweepsJumped": 0,
+   "grabbed": 1,
+   "grabsEvaded": 1,
+   "heals": 0,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": false,
+   "deaths": 1,
+   "hitsByMove": {
+    "flurry": 1,
+    "leap": 2,
+    "combo": 2,
+    "sweep": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "aggressive",
+    "strength": 0.8076923076923078,
+    "evidence": "landed 36 cuts but took 6 hits"
+   }
+  ],
+  "playerMemory": {
+   "fights": 4,
+   "wins": 3,
+   "losses": 1,
+   "consecutive_losses": 0,
+   "habit_avgs": {
+    "aggressive": 0.65
+   }
+  },
+  "globalMemory": {
+   "totalFights": 52,
+   "habitPrevalence": {
+    "block_holder": 0.07,
+    "deflect_expert": 0.33,
+    "dodge_spammer": 0.3,
+    "jump_dependent": 0.04,
+    "heal_greedy": 0.25,
+    "passive": 0.09,
+    "aggressive": 0.27
+   },
+   "moveHits": {
+    "leap": 52,
+    "combo": 18,
+    "comboDelay": 44,
+    "overhead": 46,
+    "thrust": 13,
+    "sweep": 22,
+    "grab": 22,
+    "flurry": 51
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "Never exceed the string limits in limits.",
+   "When the player blocks often, favour thrust or grab.",
+   "If the player won easily, raise tempo_step by one within the limits."
+  ],
+  "limits": {
+   "maxStrings": 2,
+   "maxStringLen": 3,
+   "maxTempoStep": 2,
+   "maxGapStep": 2
+  }
+ },
+ {
+  "fight": 1,
+  "bossLevel": 3,
+  "stats": {
+   "fightSeconds": 50,
+   "deflects": 2,
+   "lateDeflects": 1,
+   "blocks": 1,
+   "hitsTaken": 9,
+   "dodged": 3,
+   "playerHits": 38,
+   "sweepsJumped": 1,
+   "grabbed": 2,
+   "grabsEvaded": 2,
+   "heals": 0,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": false,
+   "deaths": 0,
+   "hitsByMove": {
+    "comboDelay": 2,
+    "grab": 1,
+    "leap": 1,
+    "sweep": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "aggressive",
+    "strength": 0.8170731707317075,
+    "evidence": "landed 38 cuts but took 9 hits"
+   }
+  ],
+  "playerMemory": {
+   "fights": 0,
+   "wins": 0,
+   "losses": 0,
+   "consecutive_losses": 0,
+   "habit_avgs": {
+    "aggressive": 0.62
+   }
+  },
+  "globalMemory": {
+   "totalFights": 63,
+   "habitPrevalence": {
+    "block_holder": 0.03,
+    "deflect_expert": 0.37,
+    "dodge_spammer": 0.35,
+    "jump_dependent": 0.23,
+    "heal_greedy": 0.36,
+    "passive": 0.16,
+    "aggressive": 0.13
+   },
+   "moveHits": {
+    "leap": 16,
+    "combo": 29,
+    "comboDelay": 24,
+    "overhead": 7,
+    "thrust": 22,
+    "sweep": 45,
+    "grab": 52,
+    "flurry": 51
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "Do not repeat the same opening string twice in a row.",
+   "If the player won easily, raise tempo_step by one within the limits."
+  ],
+  "limits": {
+   "maxStrings": 1,
+   "maxStringLen": 2,
+   "maxTempoStep": 0,
+   "maxGapStep": 0
+  }
+ },
+ {
+  "fight": 2,
+  "bossLevel": 7,
+  "stats": {
+   "fightSeconds": 50,
+   "deflects": 2,
+   "lateDeflects": 1,
+   "blocks": 2,
+   "hitsTaken": 5,
+   "dodged": 0,
+   "playerHits": 28,
+   "sweepsJumped": 1,
+   "grabbed": 0,
+   "grabsEvaded": 1,
+   "heals": 1,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": false,
+   "deaths": 0,
+   "hitsByMove": {
+    "leap": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "aggressive",
+    "strength": 0.6875,
+    "evidence": "landed 28 cuts but took 5 hits"
+   }
+  ],
+  "playerMemory": {
+   "fights": 1,
+   "wins": 1,
+   "losses": 0,
+   "consecutive_losses": 0,
+   "habit_avgs": {
+    "aggressive": 0.62
+   }
+  },
+  "globalMemory": {
+   "totalFights": 50,
+   "habitPrevalence": {
+    "block_holder": 0.15,
+    "deflect_expert": 0.33,
+    "dodge_spammer": 0.15,
+    "jump_dependent": 0.19,
+    "heal_greedy": 0.17,
+    "passive": 0.36,
+    "aggressive": 0.23
+   },
+   "moveHits": {
+    "leap": 57,
+    "combo": 50,
+    "comboDelay": 24,
+    "overhead": 4,
+    "thrust": 10,
+    "sweep": 37,
+    "grab": 46,
+    "flurry": 21
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "Never exceed the string limits in limits.",
+   "Do not repeat the same opening string twice in a row.",
+   "If the player won easily, raise tempo_step by one within the limits."
+  ],
+  "limits": {
+   "maxStrings": 2,
+   "maxStringLen": 3,
+   "maxTempoStep": 2,
+   "maxGapStep": 2
+  }
+ },
+ {
+  "fight": 2,
+  "bossLevel": 5,
+  "stats": {
+   "fightSeconds": 57,
+   "deflects": 2,
+   "lateDeflects": 0,
+   "blocks": 2,
+   "hitsTaken": 8,
+   "dodged": 2,
+   "playerHits": 25,
+   "sweepsJumped": 1,
+   "grabbed": 2,
+   "grabsEvaded": 1,
+   "heals": 0,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": false,
+   "deaths": 0,
+   "hitsByMove": {
+    "combo": 2,
+    "grab": 1,
+    "leap": 1,
+    "overhead": 1,
+    "flurry": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "aggressive",
+    "strength": 0.6551724137931033,
+    "evidence": "landed 25 cuts but took 8 hits"
+   }
+  ],
+  "playerMemory": {
+   "fights": 1,
+   "wins": 0,
+   "losses": 1,
+   "consecutive_losses": 1,
+   "habit_avgs": {
+    "aggressive": 0.62
+   }
+  },
+  "globalMemory": {
+   "totalFights": 70,
+   "habitPrevalence": {
+    "block_holder": 0.2,
+    "deflect_expert": 0.2,
+    "dodge_spammer": 0.21,
+    "jump_dependent": 0.06,
+    "heal_greedy": 0.18,
+    "passive": 0.01,
+    "aggressive": 0.26
+   },
+   "moveHits": {
+    "leap": 35,
+    "combo": 0,
+    "comboDelay": 43,
+    "overhead": 21,
+    "thrust": 58,
+    "sweep": 34,
+    "grab": 55,
+    "flurry": 36
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "Never exceed the string limits in limits.",
+   "Do not repeat the same opening string twice in a row.",
+   "If the player won easily, raise tempo_step by one within the limits."
+  ],
+  "limits": {
+   "maxStrings": 1,
+   "maxStringLen": 2,
+   "maxTempoStep": 1,
+   "maxGapStep": 1
+  }
+ },
+ {
+  "fight": 3,
+  "bossLevel": 10,
+  "stats": {
+   "fightSeconds": 57,
+   "deflects": 0,
+   "lateDeflects": 0,
+   "blocks": 1,
+   "hitsTaken": 6,
+   "dodged": 1,
+   "playerHits": 31,
+   "sweepsJumped": 0,
+   "grabbed": 1,
+   "grabsEvaded": 2,
+   "heals": 0,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": false,
+   "deaths": 1,
+   "hitsByMove": {
+    "combo": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "aggressive",
+    "strength": 0.921875,
+    "evidence": "landed 31 cuts but took 6 hits"
+   }
+  ],
+  "playerMemory": {
+   "fights": 2,
+   "wins": 0,
+   "losses": 2,
+   "consecutive_losses": 2,
+   "habit_avgs": {
+    "aggressive": 0.78
+   }
+  },
+  "globalMemory": {
+   "totalFights": 65,
+   "habitPrevalence": {
+    "block_holder": 0.32,
+    "deflect_expert": 0.02,
+    "dodge_spammer": 0.02,
+    "jump_dependent": 0.35,
+    "heal_greedy": 0.1,
+    "passive": 0.26,
+    "aggressive": 0.02
+   },
+   "moveHits": {
+    "leap": 29,
+    "combo": 29,
+    "comboDelay": 48,
+    "overhead": 30,
+    "thrust": 14,
+    "sweep": 48,
+    "grab": 60,
+    "flurry": 23
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "Do not repeat the same opening string twice in a row."
+  ],
+  "limits": {
+   "maxStrings": 3,
+   "maxStringLen": 4,
+   "maxTempoStep": 4,
+   "maxGapStep": 3
+  }
+ },
+ {
+  "fight": 4,
+  "bossLevel": 6,
+  "stats": {
+   "fightSeconds": 68,
+   "deflects": 0,
+   "lateDeflects": 0,
+   "blocks": 1,
+   "hitsTaken": 10,
+   "dodged": 2,
+   "playerHits": 38,
+   "sweepsJumped": 1,
+   "grabbed": 0,
+   "grabsEvaded": 2,
+   "heals": 1,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": true,
+   "deaths": 0,
+   "hitsByMove": {
+    "comboDelay": 1,
+    "flurry": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "aggressive",
+    "strength": 0.9358974358974359,
+    "evidence": "landed 38 cuts but took 10 hits"
+   }
+  ],
+  "playerMemory": {
+   "fights": 3,
+   "wins": 0,
+   "losses": 3,
+   "consecutive_losses": 3,
+   "habit_avgs": {
+    "aggressive": 0.74
+   }
+  },
+  "globalMemory": {
+   "totalFights": 47,
+   "habitPrevalence": {
+    "block_holder": 0.09,
+    "deflect_expert": 0.28,
+    "dodge_spammer": 0.2,
+    "jump_dependent": 0.38,
+    "heal_greedy": 0.19,
+    "passive": 0.02,
+    "aggressive": 0.35
+   },
+   "moveHits": {
+    "leap": 29,
+    "combo": 11,
+    "comboDelay": 27,
+    "overhead": 4,
+    "thrust": 3,
+    "sweep": 43,
+    "grab": 48,
+    "flurry": 24
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [],
+  "limits": {
+   "maxStrings": 2,
+   "maxStringLen": 3,
+   "maxTempoStep": 2,
+   "maxGapStep": 1
+  }
+ },
+ {
+  "fight": 3,
+  "bossLevel": 5,
+  "stats": {
+   "fightSeconds": 66,
+   "deflects": 0,
+   "lateDeflects": 1,
+   "blocks": 1,
+   "hitsTaken": 10,
+   "dodged": 3,
+   "playerHits": 34,
+   "sweepsJumped": 0,
+   "grabbed": 2,
+   "grabsEvaded": 2,
+   "heals": 1,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": 0.08,
+   "victory": true,
+   "deaths": 0,
+   "hitsByMove": {
+    "comboDelay": 1,
+    "thrust": 1,
+    "overhead": 2,
+    "flurry": 1,
+    "sweep": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "aggressive",
+    "strength": 0.9285714285714286,
+    "evidence": "landed 34 cuts but took 10 hits"
+   }
+  ],
+  "playerMemory": {
+   "fights": 2,
+   "wins": 1,
+   "losses": 1,
+   "consecutive_losses": 1,
+   "habit_avgs": {
+    "aggressive": 0.85
+   }
+  },
+  "globalMemory": {
+   "totalFights": 2,
+   "habitPrevalence": {
+    "block_holder": 0.21,
+    "deflect_expert": 0.27,
+    "dodge_spammer": 0.03,
+    "jump_dependent": 0.31,
+    "heal_greedy": 0.24,
+    "passive": 0.34,
+    "aggressive": 0.27
+   },
+   "moveHits": {
+    "leap": 19,
+    "combo": 56,
+    "comboDelay": 35,
+    "overhead": 14,
+    "thrust": 6,
+    "sweep": 17,
+    "grab": 28,
+    "flurry": 8
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "When the player blocks often, favour thrust or grab.",
+   "Do not repeat the same opening string twice in a row.",
+   "If the player won easily, raise tempo_step by one within the limits."
+  ],
+  "limits": {
+   "maxStrings": 1,
+   "maxStringLen": 2,
+   "maxTempoStep": 1,
+   "maxGapStep": 1
+  }
+ },
+ {
+  "fight": 6,
+  "bossLevel": 3,
+  "stats": {
+   "fightSeconds": 51,
+   "deflects": 2,
+   "lateDeflects": 1,
+   "blocks": 1,
+   "hitsTaken": 6,
+   "dodged": 3,
+   "playerHits": 28,
+   "sweepsJumped": 6,
+   "grabbed": 1,
+   "grabsEvaded": 1,
+   "heals": 0,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": false,
+   "deaths": 1,
+   "hitsByMove": {
+    "grab": 1,
+    "flurry": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "jump_dependent",
+    "strength": 1,
+    "evidence": "jumped 6 sweeps"
+   },
+   {
+    "habit": "aggressive",
+    "strength": 0.7580645161290323,
+    "evidence": "landed 28 cuts but took 6 hits"
+   }
+  ],
+  "playerMemory": {
+   "fights": 5,
+   "wins": 0,
+   "losses": 5,
+   "consecutive_losses": 0,
+   "habit_avgs": {
+    "jump_dependent": 0.91,
+    "aggressive": 0.58
+   }
+  },
+  "globalMemory": {
+   "totalFights": 22,
+   "habitPrevalence": {
+    "block_holder": 0.14,
+    "deflect_expert": 0.21,
+    "dodge_spammer": 0.39,
+    "jump_dependent": 0.2,
+    "heal_greedy": 0.23,
+    "passive": 0.2,
+    "aggressive": 0.37
+   },
+   "moveHits": {
+    "leap": 58,
+    "combo": 43,
+    "comboDelay": 53,
+    "overhead": 10,
+    "thrust": 5,
+    "sweep": 3,
+    "grab": 25,
+    "flurry": 44
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [],
+  "limits": {
+   "maxStrings": 1,
+   "maxStringLen": 2,
+   "maxTempoStep": 0,
+   "maxGapStep": 0
+  }
+ },
+ {
+  "fight": 1,
+  "bossLevel": 2,
+  "stats": {
+   "fightSeconds": 49,
+   "deflects": 11,
+   "lateDeflects": 0,
+   "blocks": 1,
+   "hitsTaken": 0,
+   "dodged": 0,
+   "playerHits": 10,
+   "sweepsJumped": 0,
+   "grabbed": 1,
+   "grabsEvaded": 0,
+   "heals": 5,
+   "firstHealAtSeconds": 11,
+   "medianDeflectTiming": 0.06,
+   "victory": false,
+   "deaths": 0,
+   "hitsByMove": {
+    "leap": 1,
+    "comboDelay": 1,
+    "grab": 1,
+    "sweep": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "heal_greedy",
+    "strength": 1,
+    "evidence": "drank the gourd 5 times"
+   },
+   {
+    "habit": "deflect_expert",
+    "strength": 0.861111111111111,
+    "evidence": "deflected 11 blows, blocked 1"
+   }
+  ],
+  "playerMemory": {
+   "fights": 0,
+   "wins": 0,
+   "losses": 0,
+   "consecutive_losses": 0,
+   "habit_avgs": {
+    "heal_greedy": 0.87,
+    "deflect_expert": 0.81
+   }
+  },
+  "globalMemory": {
+   "totalFights": 59,
+   "habitPrevalence": {
+    "block_holder": 0.23,
+    "deflect_expert": 0.39,
+    "dodge_spammer": 0.24,
+    "jump_dependent": 0.33,
+    "heal_greedy": 0.28,
+    "passive": 0.02,
+    "aggressive": 0.35
+   },
+   "moveHits": {
+    "leap": 13,
+    "combo": 1,
+    "comboDelay": 7,
+    "overhead": 55,
+    "thrust": 24,
+    "sweep": 40,
+    "grab": 51,
+    "flurry": 7
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "When the player blocks often, favour thrust or grab.",
+   "If the player won easily, raise tempo_step by one within the limits."
+  ],
+  "limits": {
+   "maxStrings": 1,
+   "maxStringLen": 2,
+   "maxTempoStep": 0,
+   "maxGapStep": 0
+  }
+ },
+ {
+  "fight": 3,
+  "bossLevel": 7,
+  "stats": {
+   "fightSeconds": 102,
+   "deflects": 1,
+   "lateDeflects": 0,
+   "blocks": 0,
+   "hitsTaken": 1,
+   "dodged": 2,
+   "playerHits": 25,
+   "sweepsJumped": 8,
+   "grabbed": 1,
+   "grabsEvaded": 1,
+   "heals": 4,
+   "firstHealAtSeconds": 11,
+   "medianDeflectTiming": null,
+   "victory": true,
+   "deaths": 0,
+   "hitsByMove": {
+    "combo": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "jump_dependent",
+    "strength": 1,
+    "evidence": "jumped 8 sweeps"
+   },
+   {
+    "habit": "heal_greedy",
+    "strength": 1,
+    "evidence": "drank the gourd 4 times"
+   }
+  ],
+  "playerMemory": {
+   "fights": 2,
+   "wins": 1,
+   "losses": 1,
+   "consecutive_losses": 1,
+   "habit_avgs": {
+    "jump_dependent": 0.92,
+    "heal_greedy": 0.64
+   }
+  },
+  "globalMemory": {
+   "totalFights": 4,
+   "habitPrevalence": {
+    "block_holder": 0.35,
+    "deflect_expert": 0.3,
+    "dodge_spammer": 0.17,
+    "jump_dependent": 0.28,
+    "heal_greedy": 0.4,
+    "passive": 0.25,
+    "aggressive": 0.05
+   },
+   "moveHits": {
+    "leap": 24,
+    "combo": 38,
+    "comboDelay": 58,
+    "overhead": 54,
+    "thrust": 59,
+    "sweep": 24,
+    "grab": 37,
+    "flurry": 0
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [],
+  "limits": {
+   "maxStrings": 2,
+   "maxStringLen": 3,
+   "maxTempoStep": 2,
+   "maxGapStep": 2
+  }
+ },
+ {
+  "fight": 6,
+  "bossLevel": 7,
+  "stats": {
+   "fightSeconds": 105,
+   "deflects": 10,
+   "lateDeflects": 0,
+   "blocks": 0,
+   "hitsTaken": 2,
+   "dodged": 3,
+   "playerHits": 1,
+   "sweepsJumped": 0,
+   "grabbed": 2,
+   "grabsEvaded": 2,
+   "heals": 0,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": 0.06,
+   "victory": false,
+   "deaths": 0,
+   "hitsByMove": {
+    "combo": 1,
+    "sweep": 1,
+    "comboDelay": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "passive",
+    "strength": 0.9365079365079365,
+    "evidence": "landed only 1 cuts in 105 s"
+   },
+   {
+    "habit": "deflect_expert",
+    "strength": 0.7222222222222223,
+    "evidence": "deflected 10 blows, blocked 0"
+   }
+  ],
+  "playerMemory": {
+   "fights": 5,
+   "wins": 3,
+   "losses": 2,
+   "consecutive_losses": 1,
+   "habit_avgs": {
+    "passive": 0.69,
+    "deflect_expert": 0.44
+   }
+  },
+  "globalMemory": {
+   "totalFights": 42,
+   "habitPrevalence": {
+    "block_holder": 0.39,
+    "deflect_expert": 0.17,
+    "dodge_spammer": 0.17,
+    "jump_dependent": 0.38,
+    "heal_greedy": 0.17,
+    "passive": 0.18,
+    "aggressive": 0.03
+   },
+   "moveHits": {
+    "leap": 49,
+    "combo": 6,
+    "comboDelay": 8,
+    "overhead": 21,
+    "thrust": 52,
+    "sweep": 53,
+    "grab": 55,
+    "flurry": 3
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [],
+  "limits": {
+   "maxStrings": 2,
+   "maxStringLen": 3,
+   "maxTempoStep": 2,
+   "maxGapStep": 2
+  }
+ },
+ {
+  "fight": 2,
+  "bossLevel": 6,
+  "stats": {
+   "fightSeconds": 97,
+   "deflects": 8,
+   "lateDeflects": 1,
+   "blocks": 2,
+   "hitsTaken": 2,
+   "dodged": 1,
+   "playerHits": 23,
+   "sweepsJumped": 1,
+   "grabbed": 1,
+   "grabsEvaded": 2,
+   "heals": 0,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": 0.12,
+   "victory": true,
+   "deaths": 0,
+   "hitsByMove": {
+    "sweep": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "deflect_expert",
+    "strength": 0.44444444444444436,
+    "evidence": "deflected 8 blows, blocked 2"
+   }
+  ],
+  "playerMemory": {
+   "fights": 1,
+   "wins": 0,
+   "losses": 2,
+   "consecutive_losses": 0,
+   "habit_avgs": {
+    "deflect_expert": 0.28
+   }
+  },
+  "globalMemory": {
+   "totalFights": 44,
+   "habitPrevalence": {
+    "block_holder": 0.3,
+    "deflect_expert": 0.36,
+    "dodge_spammer": 0.29,
+    "jump_dependent": 0.28,
+    "heal_greedy": 0.34,
+    "passive": 0.31,
+    "aggressive": 0.01
+   },
+   "moveHits": {
+    "leap": 9,
+    "combo": 27,
+    "comboDelay": 10,
+    "overhead": 26,
+    "thrust": 23,
+    "sweep": 7,
+    "grab": 15,
+    "flurry": 4
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "Never exceed the string limits in limits.",
+   "When the player blocks often, favour thrust or grab."
+  ],
+  "limits": {
+   "maxStrings": 2,
+   "maxStringLen": 3,
+   "maxTempoStep": 2,
+   "maxGapStep": 1
+  }
+ },
+ {
+  "fight": 6,
+  "bossLevel": 9,
+  "stats": {
+   "fightSeconds": 36,
+   "deflects": 14,
+   "lateDeflects": 1,
+   "blocks": 2,
+   "hitsTaken": 3,
+   "dodged": 18,
+   "playerHits": 7,
+   "sweepsJumped": 1,
+   "grabbed": 1,
+   "grabsEvaded": 0,
+   "heals": 0,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": 0.05,
+   "victory": false,
+   "deaths": 1,
+   "hitsByMove": {
+    "sweep": 1,
+    "flurry": 2,
+    "combo": 2,
+    "thrust": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "dodge_spammer",
+    "strength": 1,
+    "evidence": "dodged 18 times"
+   },
+   {
+    "habit": "deflect_expert",
+    "strength": 0.5614035087719298,
+    "evidence": "deflected 14 blows, blocked 2"
+   }
+  ],
+  "playerMemory": {
+   "fights": 5,
+   "wins": 2,
+   "losses": 3,
+   "consecutive_losses": 1,
+   "habit_avgs": {
+    "dodge_spammer": 0.84,
+    "deflect_expert": 0.36
+   }
+  },
+  "globalMemory": {
+   "totalFights": 77,
+   "habitPrevalence": {
+    "block_holder": 0.34,
+    "deflect_expert": 0.11,
+    "dodge_spammer": 0.02,
+    "jump_dependent": 0.19,
+    "heal_greedy": 0.13,
+    "passive": 0.37,
+    "aggressive": 0.24
+   },
+   "moveHits": {
+    "leap": 7,
+    "combo": 36,
+    "comboDelay": 37,
+    "overhead": 32,
+    "thrust": 17,
+    "sweep": 54,
+    "grab": 41,
+    "flurry": 12
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "Do not repeat the same opening string twice in a row.",
+   "If the player won easily, raise tempo_step by one within the limits."
+  ],
+  "limits": {
+   "maxStrings": 2,
+   "maxStringLen": 3,
+   "maxTempoStep": 3,
+   "maxGapStep": 2
+  }
+ },
+ {
+  "fight": 1,
+  "bossLevel": 9,
+  "stats": {
+   "fightSeconds": 43,
+   "deflects": 1,
+   "lateDeflects": 1,
+   "blocks": 19,
+   "hitsTaken": 6,
+   "dodged": 11,
+   "playerHits": 9,
+   "sweepsJumped": 0,
+   "grabbed": 1,
+   "grabsEvaded": 2,
+   "heals": 1,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": true,
+   "deaths": 1,
+   "hitsByMove": {
+    "flurry": 2,
+    "thrust": 2,
+    "comboDelay": 1,
+    "leap": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "dodge_spammer",
+    "strength": 0.875,
+    "evidence": "dodged 11 times"
+   },
+   {
+    "habit": "block_holder",
+    "strength": 0.8749999999999999,
+    "evidence": "blocked 19 times, deflected 1"
+   }
+  ],
+  "playerMemory": {
+   "fights": 0,
+   "wins": 0,
+   "losses": 0,
+   "consecutive_losses": 0,
+   "habit_avgs": {
+    "dodge_spammer": 0.77,
+    "block_holder": 0.66
+   }
+  },
+  "globalMemory": {
+   "totalFights": 20,
+   "habitPrevalence": {
+    "block_holder": 0.05,
+    "deflect_expert": 0.19,
+    "dodge_spammer": 0.01,
+    "jump_dependent": 0.07,
+    "heal_greedy": 0.33,
+    "passive": 0.08,
+    "aggressive": 0.34
+   },
+   "moveHits": {
+    "leap": 55,
+    "combo": 34,
+    "comboDelay": 53,
+    "overhead": 54,
+    "thrust": 4,
+    "sweep": 24,
+    "grab": 14,
+    "flurry": 26
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "When the player blocks often, favour thrust or grab.",
+   "If the player won easily, raise tempo_step by one within the limits."
+  ],
+  "limits": {
+   "maxStrings": 2,
+   "maxStringLen": 3,
+   "maxTempoStep": 3,
+   "maxGapStep": 2
+  }
+ },
+ {
+  "fight": 1,
+  "bossLevel": 4,
+  "stats": {
+   "fightSeconds": 42,
+   "deflects": 2,
+   "lateDeflects": 0,
+   "blocks": 1,
+   "hitsTaken": 7,
+   "dodged": 3,
+   "playerHits": 34,
+   "sweepsJumped": 0,
+   "grabbed": 1,
+   "grabsEvaded": 0,
+   "heals": 0,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": false,
+   "deaths": 1,
+   "hitsByMove": {
+    "thrust": 1,
+    "comboDelay": 1,
+    "sweep": 1,
+    "grab": 1,
+    "combo": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "aggressive",
+    "strength": 0.7972972972972975,
+    "evidence": "landed 34 cuts but took 7 hits"
+   }
+  ],
+  "playerMemory": {
+   "fights": 0,
+   "wins": 0,
+   "losses": 1,
+   "consecutive_losses": 1,
+   "habit_avgs": {
+    "aggressive": 0.55
+   }
+  },
+  "globalMemory": {
+   "totalFights": 65,
+   "habitPrevalence": {
+    "block_holder": 0.34,
+    "deflect_expert": 0.33,
+    "dodge_spammer": 0.06,
+    "jump_dependent": 0.27,
+    "heal_greedy": 0.18,
+    "passive": 0.04,
+    "aggressive": 0.31
+   },
+   "moveHits": {
+    "leap": 3,
+    "combo": 37,
+    "comboDelay": 32,
+    "overhead": 43,
+    "thrust": 36,
+    "sweep": 38,
+    "grab": 32,
+    "flurry": 24
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [],
+  "limits": {
+   "maxStrings": 1,
+   "maxStringLen": 2,
+   "maxTempoStep": 1,
+   "maxGapStep": 1
+  }
+ },
+ {
+  "fight": 6,
+  "bossLevel": 8,
+  "stats": {
+   "fightSeconds": 115,
+   "deflects": 1,
+   "lateDeflects": 0,
+   "blocks": 0,
+   "hitsTaken": 1,
+   "dodged": 18,
+   "playerHits": 0,
+   "sweepsJumped": 1,
+   "grabbed": 2,
+   "grabsEvaded": 2,
+   "heals": 0,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": false,
+   "deaths": 1,
+   "hitsByMove": {
+    "overhead": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "dodge_spammer",
+    "strength": 1,
+    "evidence": "dodged 18 times"
+   },
+   {
+    "habit": "passive",
+    "strength": 1,
+    "evidence": "landed only 0 cuts in 115 s"
+   }
+  ],
+  "playerMemory": {
+   "fights": 5,
+   "wins": 0,
+   "losses": 5,
+   "consecutive_losses": 1,
+   "habit_avgs": {
+    "dodge_spammer": 0.69,
+    "passive": 0.99
+   }
+  },
+  "globalMemory": {
+   "totalFights": 17,
+   "habitPrevalence": {
+    "block_holder": 0.25,
+    "deflect_expert": 0.07,
+    "dodge_spammer": 0.01,
+    "jump_dependent": 0.18,
+    "heal_greedy": 0.29,
+    "passive": 0.01,
+    "aggressive": 0.35
+   },
+   "moveHits": {
+    "leap": 44,
+    "combo": 36,
+    "comboDelay": 44,
+    "overhead": 13,
+    "thrust": 2,
+    "sweep": 10,
+    "grab": 7,
+    "flurry": 27
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "Never exceed the string limits in limits.",
+   "When the player blocks often, favour thrust or grab.",
+   "Do not repeat the same opening string twice in a row."
+  ],
+  "limits": {
+   "maxStrings": 2,
+   "maxStringLen": 3,
+   "maxTempoStep": 3,
+   "maxGapStep": 2
+  }
+ },
+ {
+  "fight": 4,
+  "bossLevel": 6,
+  "stats": {
+   "fightSeconds": 120,
+   "deflects": 3,
+   "lateDeflects": 0,
+   "blocks": 2,
+   "hitsTaken": 4,
+   "dodged": 3,
+   "playerHits": 42,
+   "sweepsJumped": 1,
+   "grabbed": 1,
+   "grabsEvaded": 1,
+   "heals": 3,
+   "firstHealAtSeconds": 21,
+   "medianDeflectTiming": null,
+   "victory": true,
+   "deaths": 1,
+   "hitsByMove": {
+    "thrust": 1,
+    "sweep": 1,
+    "flurry": 1,
+    "combo": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "aggressive",
+    "strength": 0.7340425531914893,
+    "evidence": "landed 42 cuts but took 4 hits"
+   },
+   {
+    "habit": "heal_greedy",
+    "strength": 0.6666666666666666,
+    "evidence": "drank the gourd 3 times"
+   }
+  ],
+  "playerMemory": {
+   "fights": 3,
+   "wins": 3,
+   "losses": 0,
+   "consecutive_losses": 0,
+   "habit_avgs": {
+    "aggressive": 0.52,
+    "heal_greedy": 0.65
+   }
+  },
+  "globalMemory": {
+   "totalFights": 30,
+   "habitPrevalence": {
+    "block_holder": 0.32,
+    "deflect_expert": 0.2,
+    "dodge_spammer": 0,
+    "jump_dependent": 0.35,
+    "heal_greedy": 0.14,
+    "passive": 0.01,
+    "aggressive": 0.02
+   },
+   "moveHits": {
+    "leap": 20,
+    "combo": 15,
+    "comboDelay": 55,
+    "overhead": 37,
+    "thrust": 49,
+    "sweep": 44,
+    "grab": 54,
+    "flurry": 16
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "Never exceed the string limits in limits.",
+   "If the player won easily, raise tempo_step by one within the limits."
+  ],
+  "limits": {
+   "maxStrings": 2,
+   "maxStringLen": 3,
+   "maxTempoStep": 2,
+   "maxGapStep": 1
+  }
+ },
+ {
+  "fight": 5,
+  "bossLevel": 2,
+  "stats": {
+   "fightSeconds": 83,
+   "deflects": 2,
+   "lateDeflects": 1,
+   "blocks": 10,
+   "hitsTaken": 4,
+   "dodged": 0,
+   "playerHits": 19,
+   "sweepsJumped": 0,
+   "grabbed": 0,
+   "grabsEvaded": 1,
+   "heals": 0,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": false,
+   "deaths": 0,
+   "hitsByMove": {
+    "grab": 1,
+    "comboDelay": 1,
+    "overhead": 1,
+    "leap": 1
+   }
+  },
+  "habits": [
+   {
+    "habit": "block_holder",
+    "strength": 0.5833333333333335,
+    "evidence": "blocked 10 times, deflected 2"
+   },
+   {
+    "habit": "aggressive",
+    "strength": 0.032258064516129115,
+    "evidence": "landed 19 cuts but took 4 hits"
+   }
+  ],
+  "playerMemory": {
+   "fights": 4,
+   "wins": 3,
+   "losses": 1,
+   "consecutive_losses": 0,
+   "habit_avgs": {
+    "block_holder": 0.54,
+    "aggressive": 0.02
+   }
+  },
+  "globalMemory": {
+   "totalFights": 75,
+   "habitPrevalence": {
+    "block_holder": 0.03,
+    "deflect_expert": 0.26,
+    "dodge_spammer": 0.12,
+    "jump_dependent": 0.4,
+    "heal_greedy": 0.26,
+    "passive": 0.04,
+    "aggressive": 0.19
+   },
+   "moveHits": {
+    "leap": 51,
+    "combo": 58,
+    "comboDelay": 9,
+    "overhead": 0,
+    "thrust": 5,
+    "sweep": 37,
+    "grab": 27,
+    "flurry": 49
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "Do not repeat the same opening string twice in a row."
+  ],
+  "limits": {
+   "maxStrings": 1,
+   "maxStringLen": 2,
+   "maxTempoStep": 0,
+   "maxGapStep": 0
+  }
+ },
+ {
+  "fight": 1,
+  "bossLevel": 4,
+  "stats": {
+   "fightSeconds": 10,
+   "deflects": 2,
+   "lateDeflects": 1,
+   "blocks": 2,
+   "hitsTaken": 2,
+   "dodged": 1,
+   "playerHits": 6,
+   "sweepsJumped": 1,
+   "grabbed": 2,
+   "grabsEvaded": 2,
+   "heals": 0,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": false,
+   "deaths": 0,
+   "hitsByMove": {}
+  },
+  "habits": [],
+  "playerMemory": {
+   "fights": 0,
+   "wins": 0,
+   "losses": 1,
+   "consecutive_losses": 1,
+   "habit_avgs": {}
+  },
+  "globalMemory": {
+   "totalFights": 12,
+   "habitPrevalence": {
+    "block_holder": 0.02,
+    "deflect_expert": 0.29,
+    "dodge_spammer": 0.21,
+    "jump_dependent": 0.28,
+    "heal_greedy": 0.09,
+    "passive": 0.38,
+    "aggressive": 0.34
+   },
+   "moveHits": {
+    "leap": 36,
+    "combo": 9,
+    "comboDelay": 57,
+    "overhead": 5,
+    "thrust": 34,
+    "sweep": 28,
+    "grab": 4,
+    "flurry": 5
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "Never exceed the string limits in limits."
+  ],
+  "limits": {
+   "maxStrings": 1,
+   "maxStringLen": 2,
+   "maxTempoStep": 1,
+   "maxGapStep": 1
+  }
+ },
+ {
+  "fight": 2,
+  "bossLevel": 7,
+  "stats": {
+   "fightSeconds": 9,
+   "deflects": 1,
+   "lateDeflects": 1,
+   "blocks": 1,
+   "hitsTaken": 0,
+   "dodged": 1,
+   "playerHits": 1,
+   "sweepsJumped": 0,
+   "grabbed": 0,
+   "grabsEvaded": 1,
+   "heals": 1,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": false,
+   "deaths": 1,
+   "hitsByMove": {}
+  },
+  "habits": [],
+  "playerMemory": {
+   "fights": 1,
+   "wins": 0,
+   "losses": 2,
+   "consecutive_losses": 1,
+   "habit_avgs": {}
+  },
+  "globalMemory": {
+   "totalFights": 62,
+   "habitPrevalence": {
+    "block_holder": 0.33,
+    "deflect_expert": 0.07,
+    "dodge_spammer": 0.18,
+    "jump_dependent": 0.14,
+    "heal_greedy": 0.17,
+    "passive": 0.1,
+    "aggressive": 0.11
+   },
+   "moveHits": {
+    "leap": 36,
+    "combo": 57,
+    "comboDelay": 38,
+    "overhead": 49,
+    "thrust": 16,
+    "sweep": 4,
+    "grab": 56,
+    "flurry": 19
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "When the player blocks often, favour thrust or grab.",
+   "Do not repeat the same opening string twice in a row."
+  ],
+  "limits": {
+   "maxStrings": 2,
+   "maxStringLen": 3,
+   "maxTempoStep": 2,
+   "maxGapStep": 2
+  }
+ },
+ {
+  "fight": 1,
+  "bossLevel": 10,
+  "stats": {
+   "fightSeconds": 14,
+   "deflects": 4,
+   "lateDeflects": 1,
+   "blocks": 0,
+   "hitsTaken": 1,
+   "dodged": 1,
+   "playerHits": 2,
+   "sweepsJumped": 0,
+   "grabbed": 2,
+   "grabsEvaded": 0,
+   "heals": 0,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": false,
+   "deaths": 0,
+   "hitsByMove": {}
+  },
+  "habits": [],
+  "playerMemory": {
+   "fights": 0,
+   "wins": 0,
+   "losses": 0,
+   "consecutive_losses": 0,
+   "habit_avgs": {}
+  },
+  "globalMemory": {
+   "totalFights": 68,
+   "habitPrevalence": {
+    "block_holder": 0.08,
+    "deflect_expert": 0.26,
+    "dodge_spammer": 0.18,
+    "jump_dependent": 0.23,
+    "heal_greedy": 0.17,
+    "passive": 0.23,
+    "aggressive": 0.28
+   },
+   "moveHits": {
+    "leap": 25,
+    "combo": 56,
+    "comboDelay": 42,
+    "overhead": 43,
+    "thrust": 45,
+    "sweep": 13,
+    "grab": 32,
+    "flurry": 45
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "When the player blocks often, favour thrust or grab."
+  ],
+  "limits": {
+   "maxStrings": 3,
+   "maxStringLen": 4,
+   "maxTempoStep": 4,
+   "maxGapStep": 3
+  }
+ },
+ {
+  "fight": 3,
+  "bossLevel": 7,
+  "stats": {
+   "fightSeconds": 19,
+   "deflects": 3,
+   "lateDeflects": 0,
+   "blocks": 0,
+   "hitsTaken": 2,
+   "dodged": 1,
+   "playerHits": 7,
+   "sweepsJumped": 1,
+   "grabbed": 1,
+   "grabsEvaded": 1,
+   "heals": 1,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": true,
+   "deaths": 0,
+   "hitsByMove": {}
+  },
+  "habits": [],
+  "playerMemory": {
+   "fights": 2,
+   "wins": 0,
+   "losses": 3,
+   "consecutive_losses": 3,
+   "habit_avgs": {}
+  },
+  "globalMemory": {
+   "totalFights": 16,
+   "habitPrevalence": {
+    "block_holder": 0.14,
+    "deflect_expert": 0.15,
+    "dodge_spammer": 0.29,
+    "jump_dependent": 0.14,
+    "heal_greedy": 0.24,
+    "passive": 0.05,
+    "aggressive": 0.06
+   },
+   "moveHits": {
+    "leap": 28,
+    "combo": 46,
+    "comboDelay": 10,
+    "overhead": 20,
+    "thrust": 38,
+    "sweep": 37,
+    "grab": 21,
+    "flurry": 16
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [
+   "If the player won easily, raise tempo_step by one within the limits."
+  ],
+  "limits": {
+   "maxStrings": 2,
+   "maxStringLen": 3,
+   "maxTempoStep": 2,
+   "maxGapStep": 2
+  }
+ },
+ {
+  "fight": 2,
+  "bossLevel": 7,
+  "stats": {
+   "fightSeconds": 17,
+   "deflects": 1,
+   "lateDeflects": 1,
+   "blocks": 3,
+   "hitsTaken": 1,
+   "dodged": 4,
+   "playerHits": 1,
+   "sweepsJumped": 0,
+   "grabbed": 2,
+   "grabsEvaded": 1,
+   "heals": 0,
+   "firstHealAtSeconds": null,
+   "medianDeflectTiming": null,
+   "victory": false,
+   "deaths": 0,
+   "hitsByMove": {}
+  },
+  "habits": [],
+  "playerMemory": {
+   "fights": 1,
+   "wins": 0,
+   "losses": 1,
+   "consecutive_losses": 0,
+   "habit_avgs": {}
+  },
+  "globalMemory": {
+   "totalFights": 70,
+   "habitPrevalence": {
+    "block_holder": 0.28,
+    "deflect_expert": 0.35,
+    "dodge_spammer": 0.08,
+    "jump_dependent": 0.19,
+    "heal_greedy": 0.36,
+    "passive": 0.14,
+    "aggressive": 0.36
+   },
+   "moveHits": {
+    "leap": 10,
+    "combo": 37,
+    "comboDelay": 48,
+    "overhead": 19,
+    "thrust": 5,
+    "sweep": 31,
+    "grab": 9,
+    "flurry": 18
+   }
+  },
+  "unlocked": [
+   "leap",
+   "combo",
+   "comboDelay",
+   "overhead",
+   "thrust",
+   "sweep",
+   "grab",
+   "flurry"
+  ],
+  "designerRules": [],
+  "limits": {
+   "maxStrings": 2,
+   "maxStringLen": 3,
+   "maxTempoStep": 2,
+   "maxGapStep": 2
+  }
+ }
+]
