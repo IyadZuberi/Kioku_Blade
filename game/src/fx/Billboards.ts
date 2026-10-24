@@ -3,7 +3,7 @@
  * boss, and the glowing red dot that marks a broken posture.
  */
 import * as THREE from "three";
-import { brushText } from "../ui/brush";
+import { brushText, LATIN_FONT } from "../ui/brush";
 
 const BB_VERT = /* glsl */ `
 varying vec2 vUv;
@@ -100,7 +100,7 @@ export class Flash {
 const _proj = new THREE.Vector3();
 
 /**
- * Red brush kanji warning above the boss for the unblockable thrust. Drawn as a DOM overlay
+ * Red brush "!" warning above the boss for the unblockable thrust. Drawn as a DOM overlay
  * (after post-processing) so bloom and the sun's light shafts behind the boss can't wash it out.
  */
 export class PerilGlyph {
@@ -111,7 +111,7 @@ export class PerilGlyph {
   active = false;
 
   constructor() {
-    const c = brushText("危", { size: 200, weight: 700, color: "#c8160c", seed: 11, dry: 0.3, splatter: 0.25 });
+    const c = brushText("!", { size: 200, font: LATIN_FONT, weight: 900, color: "#c8160c", seed: 11, dry: 0.3, splatter: 0.25 });
     this.el = document.createElement("div");
     this.el.style.cssText =
       "position:fixed;left:0;top:0;width:17vh;height:17vh;pointer-events:none;opacity:0;z-index:5;will-change:transform,opacity;" +

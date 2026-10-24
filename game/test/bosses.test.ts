@@ -16,7 +16,7 @@ describe("boss registry", () => {
   });
   it("names are distinct", () => {
     expect(new Set(BOSS_IDS.map((i) => BOSSES[i].latin)).size).toBe(3);
-    expect(new Set(BOSS_IDS.map((i) => BOSSES[i].jp)).size).toBe(3);
+    expect(new Set(BOSS_IDS.map((i) => BOSSES[i].epithet)).size).toBe(3);
   });
 });
 

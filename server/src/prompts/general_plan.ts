@@ -10,7 +10,7 @@ import { ACCEPTED_COUNTERS, HABITS, MOVES, PLAN_SCHEMA, rulesPlan, type BossId, 
 import type { TaskDef } from "../mubit/client";
 
 export interface PlanInput {
-  /** Which boss is being planned (1 Onikage Masatora, 2 Kaze-no-Tomoe, 3 the Hollow Shogun). */
+  /** Which boss is being planned (1 Masatora, 2 Kazemaru, 3 Kurogane the Hollow Shogun). */
   boss: BossId;
   /** Wins in a row against this boss (the gate to the next one is 3, then 6). */
   bossStreak: number;

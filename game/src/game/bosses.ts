@@ -13,7 +13,7 @@ export type BossLook = "ronin" | "reed" | "hollow";
 export interface BossDef {
   id: BossId;
   chapter: string;
-  jp: string;
+  /** Display name (English only; Japanese appears on the loading screen alone). */
   latin: string;
   epithet: string;
   arena: ThemeId;
@@ -47,8 +47,7 @@ export const BOSSES: Record<BossId, BossDef> = {
   1: {
     id: 1,
     chapter: "I",
-    jp: "鬼影 正虎",
-    latin: "Onikage Masatora",
+    latin: "Masatora",
     epithet: "The Garden Duelist",
     arena: 1,
     gate: 3,
@@ -59,9 +58,8 @@ export const BOSSES: Record<BossId, BossDef> = {
   2: {
     id: 2,
     chapter: "II",
-    jp: "風の巴",
-    latin: "Kaze-no-Tomoe",
-    epithet: "The Reed Duelist",
+    latin: "Kazemaru",
+    epithet: "The Spear of the Wind",
     arena: 2,
     gate: 6,
     moves: BOSS_MOVES[2],
@@ -73,14 +71,13 @@ export const BOSSES: Record<BossId, BossDef> = {
     gapStep: 2,
     lean: { amount: 0.35, knobs: READS_YOU },
     look: "reed",
-    line: "Win six duels in a row to face the Hollow Shogun.",
+    line: "Win six duels in a row to face Kurogane, the Hollow Shogun.",
   },
   3: {
     id: 3,
     chapter: "III",
-    jp: "空洞の将軍",
-    latin: "The Hollow Shogun",
-    epithet: "The Last Duel",
+    latin: "Kurogane",
+    epithet: "The Hollow Shogun",
     arena: 3,
     gate: 0,
     moves: BOSS_MOVES[3],

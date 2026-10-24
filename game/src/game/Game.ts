@@ -481,7 +481,7 @@ export class Game {
   setBoss(id: BossId): void {
     this.bossDef = BOSSES[bossOf(id)];
     this.setArena(this.bossDef.arena);
-    this.hud.setBoss(this.bossDef.jp, this.bossDef.latin);
+    this.hud.setBoss(this.bossDef.latin, this.bossDef.epithet);
     this.applyLooks();
   }
 

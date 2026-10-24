@@ -1,6 +1,6 @@
 /**
- * Boss hazards that are not blade contacts: the wind cut Kaze-no-Tomoe throws (windSlash) and the
- * ground ring of the Hollow Shogun's slam (shockwave). The maths is pure and tested; the Hazards
+ * Boss hazards that are not blade contacts: the wind cut Kazemaru throws (windSlash) and the
+ * ground ring of Kurogane's slam (shockwave). The maths is pure and tested; the Hazards
  * class owns the meshes and reports hits to the game, which resolves them with the same guard,
  * deflect and damage rules as any other blow.
  */

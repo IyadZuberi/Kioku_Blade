@@ -12,7 +12,7 @@ const pos = args.filter((a, i) => !a.startsWith("--") && args[i - 1] !== "--at")
 const whoArg = pos[0];
 const clipArg = pos[1];
 
-const browser = await chromium.launch({ channel: "chromium", headless: true, args: ["--use-angle=d3d11", "--enable-gpu", "--mute-audio"] });
+const browser = await chromium.launch({ channel: process.env.CH ?? "chrome", headless: true, args: ["--use-angle=d3d11", "--enable-gpu", "--mute-audio"] });
 const page = await browser.newPage({ viewport: { width: 960, height: 540 } });
 const errors = [];
 page.on("pageerror", (e) => errors.push(e.message));

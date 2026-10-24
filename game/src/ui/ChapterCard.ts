@@ -3,7 +3,7 @@
  * whenever a new general (and arena) is about to load. The swap happens while the card is opaque,
  * so any one-off hitch (new scenery, shaders) is never seen.
  */
-import { LATIN_FONT, KANJI_FONT } from "./brush";
+import { LATIN_FONT } from "./brush";
 import type { BossDef } from "../game/bosses";
 import { ARENA_NAMES } from "./arenaNames";
 
@@ -12,7 +12,7 @@ const CSS = `
   background: radial-gradient(110% 90% at 50% 100%, rgba(80,40,34,0.96) 0%, rgba(13,12,16,0.99) 62%); color: #efe7da; opacity: 0; pointer-events: none; transition: opacity 0.45s ease; }
 #chapter.on { opacity: 1; }
 #chapter .num { font: 600 2.4vmin/1 ${LATIN_FONT}; letter-spacing: 0.5em; margin-right: -0.5em; color: #e1a58f; }
-#chapter .jp { margin: 0; font: 700 13vmin/1.05 ${KANJI_FONT}; text-shadow: 0 0 3vmin rgba(0,0,0,0.6); }
+#chapter .name { margin: 0; font: 600 11vmin/1.05 ${LATIN_FONT}; letter-spacing: 0.08em; text-shadow: 0 0 3vmin rgba(0,0,0,0.6); }
 #chapter .latin { margin: 0; font: 600 3.4vmin/1.1 ${LATIN_FONT}; letter-spacing: 0.3em; margin-right: -0.3em; }
 #chapter .epi { margin: 0; font: italic 2.6vmin/1.3 ${LATIN_FONT}; color: #d9cdb9; }
 #chapter .place { margin-top: 3vmin; font: 2vmin/1.4 ${LATIN_FONT}; color: #a99d89; max-width: 60ch; text-align: center; padding: 0 6vw; }
@@ -46,8 +46,7 @@ export class ChapterCard {
     this.timers = [];
     this.box.replaceChildren();
     el("div", "num", this.box, `Chapter ${def.chapter}`);
-    el("h2", "jp", this.box, def.jp).setAttribute("lang", "ja");
-    el("p", "latin", this.box, def.latin);
+    el("h2", "name", this.box, def.latin);
     el("p", "epi", this.box, def.epithet);
     el("p", "place", this.box, `${ARENA_NAMES[def.arena].name}. ${ARENA_NAMES[def.arena].line}`);
     void this.box.offsetWidth;

@@ -6,7 +6,7 @@
  */
 import { rng } from "../core/math";
 import type { DifficultyName } from "../game/difficulty";
-import { brushStroke, brushText, KANJI_FONT, LATIN_FONT } from "./brush";
+import { brushStroke, brushText, LATIN_FONT } from "./brush";
 
 const CSS = /* css */ `
 #hud { position: fixed; inset: 0; pointer-events: none; font-family: ${LATIN_FONT}; color: #efe7da; user-select: none; }
@@ -168,18 +168,20 @@ function gourdIcon(): string {
   return c.toDataURL();
 }
 
-export const BOSS_NAME = { kanji: "鬼影 正虎", latin: "Onikage Masatora" };
+export const BOSS_NAME = { name: "Masatora", epithet: "The Garden Duelist" };
 
 type EndKind = "victory" | "defeat" | "death";
+/** The line under each end word: victory, defeat, death with a resurrection left. */
+const END_LINES = ["THE GENERAL FALLS", "THE GENERAL REMEMBERS", "NOT YET"];
 const PROMPTS: Record<EndKind, string> = {
   death: "E / Enter / click  ·  rise again          Esc  ·  accept death",
   defeat: "Enter / click  ·  duel again          Esc  ·  title",
   victory: "Enter / click  ·  title",
 };
-const DIFFS: { id: DifficultyName; kanji: string; latin: string }[] = [
-  { id: "easy", kanji: "易", latin: "Easy" },
-  { id: "medium", kanji: "中", latin: "Medium" },
-  { id: "hard", kanji: "難", latin: "Hard" },
+const DIFFS: { id: DifficultyName; latin: string }[] = [
+  { id: "easy", latin: "Easy" },
+  { id: "medium", latin: "Medium" },
+  { id: "hard", latin: "Hard" },
 ];
 
 export class Hud {
@@ -230,7 +232,7 @@ export class Hud {
     // ---------------------------------------------------------------- title
     this.title = el("div", "layer", root);
     this.title.id = "title";
-    const tk = brushText("記憶", { size: 260, color: "#f1ebe0", seed: 21, dry: 0.7, splatter: 0.6, glow: "rgba(255,120,40,0.25)" });
+    const tk = brushText("KIOKU", { size: 210, font: LATIN_FONT, weight: 700, color: "#f1ebe0", seed: 21, dry: 0.7, splatter: 0.6, letterSpacing: 0.16, glow: "rgba(255,120,40,0.25)" });
     const tkImg = new Image();
     tkImg.src = tk.toDataURL();
     tkImg.className = "t-kanji";
@@ -240,7 +242,7 @@ export class Hud {
     stImg.src = st.toDataURL();
     stImg.className = "t-stroke";
     this.title.appendChild(stImg);
-    const tl = brushText("KIOKU", { size: 64, font: LATIN_FONT, weight: 700, color: "#efe7da", seed: 4, dry: 0.35, splatter: 0.1, letterSpacing: 0.28 });
+    const tl = brushText("BLADES THAT REMEMBER", { size: 40, font: LATIN_FONT, weight: 600, color: "#efe7da", seed: 4, dry: 0.35, splatter: 0.1, letterSpacing: 0.28 });
     const tlImg = new Image();
     tlImg.src = tl.toDataURL();
     tlImg.className = "t-latin";
@@ -255,14 +257,11 @@ export class Hud {
       opt.dataset.difficulty = d.id;
       const k = new Image();
       k.className = "k";
-      k.src = brushText(d.kanji, { size: 64, color: "#f1ebe0", seed: 50 + i, dry: 0.6, splatter: 0.15, pad: 6 }).toDataURL();
-      const l = new Image();
-      l.className = "l";
-      l.src = brushText(d.latin, { size: 28, font: LATIN_FONT, weight: 600, color: "#ece3d4", seed: 55 + i, dry: 0.3, splatter: 0, letterSpacing: 0.14, pad: 4 }).toDataURL();
+      k.src = brushText(d.latin, { size: 46, font: LATIN_FONT, weight: 700, color: "#f1ebe0", seed: 50 + i, dry: 0.5, splatter: 0.1, letterSpacing: 0.12, pad: 6 }).toDataURL();
       const u = new Image();
       u.className = "u";
       u.src = brushStroke(240, 18, "#a8231a", 60 + i).toDataURL();
-      opt.append(k, l, u);
+      opt.append(k, u);
       // Swallow the press so the title's "any key" prompt never sees it.
       opt.addEventListener("mousedown", (e) => {
         e.stopPropagation();
@@ -278,8 +277,8 @@ export class Hud {
     const bb = el("div", "", this.fight);
     bb.id = "bossbar";
     this.bossbar = bb;
-    const nameC = brushText(BOSS_NAME.kanji, { size: 70, color: "#f3ece0", seed: 8, dry: 0.55, splatter: 0.25, letterSpacing: 0.05 });
-    const latinC = brushText(BOSS_NAME.latin, { size: 34, font: LATIN_FONT, weight: 600, color: "#e9e0d2", seed: 12, dry: 0.25, splatter: 0, letterSpacing: 0.12 });
+    const nameC = brushText(BOSS_NAME.name, { size: 58, font: LATIN_FONT, weight: 700, color: "#f3ece0", seed: 8, dry: 0.55, splatter: 0.25, letterSpacing: 0.08 });
+    const latinC = brushText(BOSS_NAME.epithet, { size: 34, font: LATIN_FONT, weight: 600, color: "#e9e0d2", seed: 12, dry: 0.25, splatter: 0, letterSpacing: 0.12 });
     const nameWrap = el("div", "", bb);
     nameWrap.style.cssText = "display:flex;align-items:center;gap:10px;margin-bottom:2px";
     // Deathblow markers: crimson seals, one per life left.
@@ -333,11 +332,6 @@ export class Hud {
     this.pHpBar = ph;
     this.pLag = el("div", "lag", ph);
     this.pHp = el("div", "fill", ph);
-    const crest = brushText("忍", { size: 60, color: "#e8dccb", seed: 3, dry: 0.4, splatter: 0, pad: 4 });
-    const cImg = new Image();
-    cImg.src = crest.toDataURL();
-    cImg.className = "crest";
-    pb.appendChild(cImg);
 
     // ---------------------------------------------------------------- end screens
     this.end = el("div", "layer hidden", root);
@@ -390,9 +384,9 @@ export class Hud {
   }
 
   /** The boss bar shows the current general's name (brush lettering, drawn once per boss). */
-  setBoss(jp: string, latin: string): void {
-    this.bossNameImg.src = brushText(jp, { size: 70, color: "#f3ece0", seed: 8, dry: 0.55, splatter: 0.25, letterSpacing: 0.05 }).toDataURL();
-    this.bossLatinImg.src = brushText(latin, { size: 34, font: LATIN_FONT, weight: 600, color: "#e9e0d2", seed: 12, dry: 0.25, splatter: 0, letterSpacing: 0.12 }).toDataURL();
+  setBoss(name: string, epithet: string): void {
+    this.bossNameImg.src = brushText(name, { size: 58, font: LATIN_FONT, weight: 700, color: "#f3ece0", seed: 8, dry: 0.55, splatter: 0.25, letterSpacing: 0.08 }).toDataURL();
+    this.bossLatinImg.src = brushText(epithet, { size: 34, font: LATIN_FONT, weight: 600, color: "#e9e0d2", seed: 12, dry: 0.25, splatter: 0, letterSpacing: 0.12 }).toDataURL();
   }
 
   showTitle(on: boolean): void {
@@ -419,7 +413,7 @@ export class Hud {
     const key = text + color;
     let u = this.kanjiCache.get(key);
     if (!u) {
-      u = brushText(text, { size: 300, color, seed, dry: 0.75, splatter: 0.8, font: KANJI_FONT, glow: "rgba(0,0,0,0.4)" }).toDataURL();
+      u = brushText(text, { size: 190, color, seed, dry: 0.75, splatter: 0.8, font: LATIN_FONT, weight: 700, letterSpacing: 0.06, glow: "rgba(0,0,0,0.4)" }).toDataURL();
       this.kanjiCache.set(key, u);
     }
     return u;
@@ -427,22 +421,22 @@ export class Hud {
 
   /** Pre-render end-screen lettering so the reveal never hitches. */
   warm(): void {
-    this.kanjiURL("勝利", "#f4ede2", 31);
-    this.kanjiURL("敗北", "#b3261a", 32);
-    this.kanjiURL("再起", "#d8e4e6", 33);
-    for (const t of ["VICTORY", "DEFEAT", "RISE AGAIN"]) this.latinURL(t);
+    this.kanjiURL("Victory", "#f4ede2", 31);
+    this.kanjiURL("Defeat", "#b3261a", 32);
+    this.kanjiURL("Rise", "#d8e4e6", 33);
+    for (const t of END_LINES) this.latinURL(t);
     for (const k of Object.values(PROMPTS)) this.smallURL(k);
   }
 
   /** Death with a resurrection left: rise again, or accept death. */
   showDeath(): void {
-    this.show("death", this.kanjiURL("再起", "#d8e4e6", 33), this.latinURL("RISE AGAIN"));
+    this.show("death", this.kanjiURL("Rise", "#d8e4e6", 33), this.latinURL(END_LINES[2]));
     this.end.classList.add("prompt");
   }
 
   showEnd(kind: "victory" | "defeat"): void {
-    if (kind === "victory") this.show(kind, this.kanjiURL("勝利", "#f4ede2", 31), this.latinURL("VICTORY"));
-    else this.show(kind, this.kanjiURL("敗北", "#b3261a", 32), this.latinURL("DEFEAT"));
+    if (kind === "victory") this.show(kind, this.kanjiURL("Victory", "#f4ede2", 31), this.latinURL(END_LINES[0]));
+    else this.show(kind, this.kanjiURL("Defeat", "#b3261a", 32), this.latinURL(END_LINES[1]));
   }
 
   private show(kind: EndKind, kanji: string, latin: string): void {
