@@ -303,20 +303,16 @@ game.arena
   // Lighting agent: rim-tag the fighters' armour before the warm-up so it compiles with everything else.
   .then(() => game.arena.tagCharacterRim())
   .then(async () => {
-    // Compile every arena's shaders now (behind the loading screen) so a chapter change never hitches.
-    await warmArena();
-    const start = game.arena.spec?.id ?? 1;
-    for (const id of [2, 3] as const) {
-      game.setArena(id);
-      await warmArena();
-    }
-    game.setArena(start);
+    // Compile every general's shaders now (arena, body, weapon, gear) behind the loading screen, without
+    // blocking it (compileAsync), so neither the first frame nor a chapter change ever waits on one.
+    await game.warmGenerals(warmArena);
   })
   .catch((e: unknown) => console.error("[arena] failed to load", e))
   .finally(() => {
     const boot = document.getElementById("boot");
     boot?.classList.add("done");
     setTimeout(() => boot?.remove(), 800);
+    game.ready = true;
     window.__duel.ready = true;
   });
 

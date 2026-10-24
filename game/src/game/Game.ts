@@ -290,6 +290,8 @@ export class Game {
   private qs: QualitySettings = settingsFor("high");
   private governor!: QualityGovernor;
   private paused = false;
+  /** Set once every shader has been compiled behind the loading screen; frames are drawn from then on. */
+  ready = false;
 
   constructor(canvas: HTMLCanvasElement, hudRoot: HTMLElement) {
     installFog();
@@ -341,20 +343,9 @@ export class Game {
     this.resize();
     this.loadChapter();
     this.toTitle();
-    // Warm up shaders and GPU buffers so the first deflect/finisher never hitches. The combat fx
-    // start hidden and hidden objects are skipped, so show everything for one render.
+    // Shaders are compiled behind the loading screen (main.ts: compileAsync per general, then
+    // warmPost); nothing is drawn until `ready`, so no frame ever waits on a shader compile.
     stableShadowDepth(this.scene);
-    const hidden: THREE.Object3D[] = [];
-    this.scene.traverse((o) => {
-      if (!o.visible) {
-        hidden.push(o);
-        o.visible = true;
-      }
-    });
-    // Render through the composer: the scene draws into its linear target, not the sRGB canvas,
-    // and programs are keyed on that output colour space.
-    this.post.render(1 / 60);
-    for (const o of hidden) o.visible = false;
     this.hud.warm();
   }
 
@@ -528,6 +519,33 @@ export class Game {
     this.hud.setBoss(this.bossDef.latin, this.bossDef.epithet);
     this.applyBodies();
     this.applyLooks();
+  }
+
+  /** Loading: put each general (arena, body, look) on stage in turn so `compile` sees all of it, then back. */
+  async warmGenerals(compile: () => Promise<void>): Promise<void> {
+    for (const id of [1, 2, 3] as const) {
+      this.setBoss(id);
+      stableShadowDepth(this.scene);
+      await compile();
+      // one real draw of this general's stage too: the driver uploads textures and buffers (and ANGLE
+      // finishes its own shader translation) on first use, which would otherwise land on a game frame
+      this.warmPost();
+      await new Promise((r) => setTimeout(r, 0));
+    }
+    this.setBoss(this.progress.boss);
+  }
+
+  /** The post-process passes compile on their first draw: do that once, behind the loading screen. */
+  warmPost(): void {
+    const hidden: THREE.Object3D[] = [];
+    this.scene.traverse((o) => {
+      if (!o.visible) {
+        hidden.push(o);
+        o.visible = true;
+      }
+    });
+    this.post.render(1 / 60);
+    for (const o of hidden) o.visible = false;
   }
 
   /** The title's chapter chips (or the host): pick an unlocked general. */
@@ -1963,7 +1981,7 @@ export class Game {
       { health: p.health, posture: p.posture, gourd: p.gourd, rez: p.rez, limited: vitalityRegen(pf) < 0.5 },
     );
 
-    if (render) {
+    if (render && this.ready) {
       this.playerBody.beginRender(this.interp.p);
       this.bossBody.beginRender(this.interp.b);
       this.post.render(dt);
@@ -1998,7 +2016,14 @@ export class Game {
 
   /** Put a fighter on another body (a loaded SkinnedCharacter); applied between fights. */
   useBody(who: "player" | "boss", body: Fighter): void {
-    if (who === "boss") this.bossSkinned = body;
+    if (who === "boss") {
+      this.bossSkinned = body;
+      // in the scene from the start (hidden), so its shaders compile with everything else
+      if (!body.rig.root.parent) {
+        body.addTo(this.scene);
+        body.setVisible(false);
+      }
+    }
     else this.nextBody[who] = body;
     if (this.state === "title") this.applyBodies();
   }

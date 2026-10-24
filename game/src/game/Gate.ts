@@ -29,12 +29,12 @@ const portalMat = () =>
       float h(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
       float n(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
         return mix(mix(h(i), h(i + vec2(1, 0)), f.x), mix(h(i + vec2(0, 1)), h(i + vec2(1, 1)), f.x), f.y); }
-      float fbm(vec2 p) { float a = 0.5, s = 0.0; for (int k = 0; k < 4; k++) { s += a * n(p); p *= 2.03; a *= 0.5; } return s; }
+      float fbm(vec2 p) { float a = 0.5, s = 0.0; for (int k = 0; k < 3; k++) { s += a * n(p); p *= 2.03; a *= 0.5; } return s; }
       void main() {
         vec2 c = vUv - 0.5;
         // soft edges: nothing at the posts and lintel, full light inside
         float edge = smoothstep(0.0, 0.16, vUv.x) * smoothstep(1.0, 0.84, vUv.x) * smoothstep(0.0, 0.05, vUv.y) * smoothstep(1.0, 0.86, vUv.y);
-        float mist = fbm(vec2(c.x * 3.0, c.y * 2.0 - uTime * 0.18) + fbm(c * 4.0 + uTime * 0.07));
+        float mist = fbm(vec2(c.x * 3.0 + sin(c.y * 5.0 + uTime * 0.3) * 0.3, c.y * 2.0 - uTime * 0.18));
         float heart = exp(-dot(c * vec2(1.6, 1.1), c * vec2(1.6, 1.1)) * 6.0);
         // the light fills from the ground up as the gate opens
         float fill = smoothstep(uOpen * 1.25 - 0.05, uOpen * 1.25 - 0.3, vUv.y);
