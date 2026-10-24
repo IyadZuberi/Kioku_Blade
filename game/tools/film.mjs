@@ -13,6 +13,11 @@ const { browser, page, errors } = await launch({ width: 1280, height: 720 });
 if (name === "finisher") {
   await page.evaluate(() => window.__duel.scene("break"));
   await page.evaluate(() => { const g = window.__duel.game; g.bot.deflect = false; g.startFinisher(); g.resume(); });
+} else if (name.startsWith("move-")) {
+  // one boss attack in a live fight: film.mjs move-spin  (DUEL_URL ...?boss=2)
+  await page.evaluate(() => { const g = window.__duel.game; g.startFight(); g.bot.deflect = false; g.bot.play = false; g.boss.passive = true; g.paused = true; g.resume(); });
+  await page.waitForTimeout(2500);
+  await page.evaluate((n) => { const g = window.__duel.game; g.boss.pos.set(g.player.pos.x, 0, g.player.pos.z - 2.6); g.boss.passive = false; g.forceBossAttack(n); }, name.slice(5));
 } else if (name === "gate") {
   // the real path: two wins already on boss 1, this finisher is the third, then any key at the victory prompt
   await page.evaluate(() => { const g = window.__duel.game; g.progress = { boss: 1, streak: 2, unlocked: 1, cleared: false }; });

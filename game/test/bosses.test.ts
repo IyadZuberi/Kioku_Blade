@@ -14,6 +14,11 @@ describe("boss registry", () => {
   it("gates are 3 wins, then 6, then none", () => {
     expect([BOSSES[1].gate, BOSSES[2].gate, BOSSES[3].gate]).toEqual([3, 6, 0]);
   });
+  it("each opens with his own moves, all of them his", () => {
+    for (const id of BOSS_IDS) for (const m of BOSSES[id].opening) expect(BOSSES[id].moves).toContain(m);
+    expect(BOSSES[2].opening).toContain("spin");
+    expect(BOSSES[3].opening).toContain("kick");
+  });
   it("names are distinct", () => {
     expect(new Set(BOSS_IDS.map((i) => BOSSES[i].latin)).size).toBe(3);
     expect(new Set(BOSS_IDS.map((i) => BOSSES[i].epithet)).size).toBe(3);

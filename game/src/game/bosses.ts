@@ -31,6 +31,8 @@ export interface BossDef {
    * Never past HARD, and never the deflect windows or the player's damage.
    */
   lean?: { amount: number; knobs: readonly LeanKnob[] };
+  /** How he opens a fight when the war council has no plan yet: his signature, straight away. */
+  opening: readonly string[];
   look: BossLook;
   /** Line on the chapter card. */
   line: string;
@@ -52,6 +54,7 @@ export const BOSSES: Record<BossId, BossDef> = {
     arena: 1,
     gate: 3,
     moves: BOSS_MOVES[1],
+    opening: ["leap", "combo", "thrust", "comboDelay", "overhead", "sweep"],
     look: "ronin",
     line: "Win three duels in a row to meet the next general.",
   },
@@ -63,6 +66,7 @@ export const BOSSES: Record<BossId, BossDef> = {
     arena: 2,
     gate: 6,
     moves: BOSS_MOVES[2],
+    opening: ["leap", "spin", "windSlash", "thrust", "comboDelay", "spin", "waterfowl"],
     picks: {
       p1: { combo: 0.12, comboDelay: 0.16, overhead: 0.06, thrust: 0.14, sweep: 0.08, grab: 0.02, windSlash: 0.18, waterfowl: 0.08, spin: 0.14, idle: 0.02 },
       p2: { flurry: 0.12, combo: 0.08, comboDelay: 0.12, overhead: 0.04, thrust: 0.14, sweep: 0.08, grab: 0.04, windSlash: 0.14, waterfowl: 0.12, spin: 0.12, idle: 0 },
@@ -81,6 +85,7 @@ export const BOSSES: Record<BossId, BossDef> = {
     arena: 3,
     gate: 0,
     moves: BOSS_MOVES[3],
+    opening: ["shockwave", "overhead", "kick", "combo", "grab", "shockwave", "kick"],
     picks: {
       p1: { combo: 0.1, comboDelay: 0.14, overhead: 0.22, thrust: 0.06, sweep: 0.1, grab: 0.1, shockwave: 0.14, windSlash: 0.02, kick: 0.1, idle: 0.02 },
       p2: { flurry: 0.06, combo: 0.06, comboDelay: 0.12, overhead: 0.16, thrust: 0.06, sweep: 0.1, grab: 0.12, shockwave: 0.16, windSlash: 0.04, kick: 0.12, idle: 0 },

@@ -435,6 +435,7 @@ export class Game {
     // The boss's own tuning first, then the war council's plan for THIS boss on top of it.
     overrideDifficulty(bossKnobs(this.bossDef, structuredClone(DIFFICULTY)));
     this.boss.canWind = this.bossDef.moves.includes("windSlash");
+    this.boss.setOpening([this.bossDef.opening]);
     if (this.learn.result && this.learn.boss === this.bossDef.id) applyPlan(this.learn.result.plan, this.boss);
     // Gesture mode: webcam latency eats the deflect window, so widen it (never tighten).
     if (this.gestureAssist) overrideDifficulty(assistKnobs(structuredClone(DIFFICULTY)));

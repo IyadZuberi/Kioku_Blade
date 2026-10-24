@@ -15,6 +15,8 @@ import { Animator, I, POSE_N, type Clip, type Pose } from "./Pose";
 import { Rig, type RigDims } from "./Rig";
 
 const _zero = new THREE.Vector3();
+/** The procedural bodies have no clip for the skinned generals' signature moves: the closest one stands in. */
+const STAND_IN: Record<string, string> = { spin: "sweep", kick: "overhead" };
 
 export interface ClothPiece {
   cloth: Cloth;
@@ -89,7 +91,7 @@ export abstract class Character implements Fighter {
     this.held = 0;
     // Fade from what is on screen (a contact snap / hold may differ from the clip output).
     this.anim.out.set(this.base);
-    this.anim.play(this.clips[name], fade, t0);
+    this.anim.play(this.clips[name] ?? this.clips[STAND_IN[name]] ?? this.clips.idle, fade, t0);
   }
 
   get clipName(): string {
@@ -97,7 +99,8 @@ export abstract class Character implements Fighter {
   }
 
   timeline(name: string): Timeline {
-    return resolveEvents(this.events[name], this.clips[name]?.dur ?? 0);
+    const n = this.clips[name] ? name : (STAND_IN[name] ?? name);
+    return resolveEvents(this.events[n], this.clips[n]?.dur ?? 0);
   }
 
   setHold(on: boolean): void {
