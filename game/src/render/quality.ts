@@ -20,3 +20,26 @@ export function pickQuality(rendererName: string, search: string): Quality {
 export function settingsFor(q: Quality): QualitySettings {
   return q === "low" ? { pixelRatio: 1, ao: false, msaa: 0 } : { pixelRatio: 1.5, ao: true, msaa: 4 };
 }
+
+/**
+ * Dynamic resolution: if the frame rate stays low for three readings in a row, lower the pixel
+ * ratio by 0.15 (down to a floor). It never raises it again, so the picture cannot flicker.
+ * Returns the new ratio when it changes, otherwise null. A reading of 0 (paused) is ignored.
+ */
+export class ResolutionGovernor {
+  private low = 0;
+  constructor(
+    private ratio: number,
+    private readonly floor = 0.6,
+    private readonly minFps = 28,
+  ) {}
+
+  update(fps: number): number | null {
+    if (fps <= 0) return null;
+    this.low = fps < this.minFps ? this.low + 1 : 0;
+    if (this.low < 3 || this.ratio <= this.floor) return null;
+    this.low = 0;
+    this.ratio = Math.max(this.floor, Math.round((this.ratio - 0.15) * 100) / 100);
+    return this.ratio;
+  }
+}

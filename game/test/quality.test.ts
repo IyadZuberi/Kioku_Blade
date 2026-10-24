@@ -1,5 +1,5 @@
-﻿import { describe, expect, it } from "vitest";
-import { pickQuality, settingsFor } from "../src/render/quality";
+import { describe, expect, it } from "vitest";
+import { ResolutionGovernor, pickQuality, settingsFor } from "../src/render/quality";
 
 describe("quality", () => {
   it("picks low for Intel integrated GPUs", () => {
@@ -24,3 +24,24 @@ describe("quality", () => {
   });
 });
 
+describe("ResolutionGovernor", () => {
+  it("drops the pixel ratio by 0.15 after 3 low readings in a row", () => {
+    const g = new ResolutionGovernor(1, 0.6);
+    expect([g.update(20), g.update(20), g.update(20)]).toEqual([null, null, 0.85]);
+  });
+  it("a single dip, or a recovery in between, does nothing", () => {
+    const g = new ResolutionGovernor(1, 0.6);
+    expect([g.update(20), g.update(20), g.update(45), g.update(20), g.update(20)]).toEqual([null, null, null, null, null]);
+  });
+  it("never goes below the floor and never raises the ratio again", () => {
+    const g = new ResolutionGovernor(0.7, 0.6);
+    const out: (number | null)[] = [];
+    for (let i = 0; i < 12; i++) out.push(g.update(15));
+    expect(out.filter((x) => x !== null)).toEqual([0.6]);
+    for (let i = 0; i < 12; i++) expect(g.update(60)).toBeNull();
+  });
+  it("ignores a 0 reading (paused or not rendering)", () => {
+    const g = new ResolutionGovernor(1, 0.6);
+    expect([g.update(0), g.update(0), g.update(0), g.update(0)]).toEqual([null, null, null, null]);
+  });
+});

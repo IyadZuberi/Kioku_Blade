@@ -41,7 +41,7 @@ import { Hud } from "../ui/Hud";
 import { Arena } from "../world/Arena";
 import { RIM, SUN_DIR, installFog } from "../world/materials";
 import { ATTACKS, BOSS_MAX, Boss, OPEN, type HitDef } from "./Boss";
-import { pickQuality, type Quality, type QualitySettings, settingsFor } from "../render/quality";
+import { pickQuality, type Quality, type QualitySettings, ResolutionGovernor, settingsFor } from "../render/quality";
 import type { HabitScore } from "@gr/shared";
 import { Council } from "../ui/Council";
 import { assistKnobs } from "../input/assist";
@@ -223,6 +223,7 @@ export class Game {
   rendererName = "unknown";
   quality: Quality = "high";
   private qs: QualitySettings = settingsFor("high");
+  private governor = new ResolutionGovernor(1.5);
   private paused = false;
 
   constructor(canvas: HTMLCanvasElement, hudRoot: HTMLElement) {
@@ -238,6 +239,7 @@ export class Game {
     this.quality = pickQuality(this.rendererName, location.search);
     this.qs = settingsFor(this.quality);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, this.qs.pixelRatio));
+    this.governor = new ResolutionGovernor(this.renderer.getPixelRatio());
 
     this.arena = new Arena(this.scene);
     // Dusk reflections for steel and lacquer: bake the world (before the fighters exist).
@@ -1618,7 +1620,7 @@ export class Game {
     // Trails run on game time so hitstop freezes them with the blades.
     this.playerBody.frame(dt * this.timeScale);
     this.bossBody.frame(dt * this.timeScale * b.tempo);
-    this.snow.update(this.realTime, this.camera.position, this.windK, window.innerHeight * Math.min(window.devicePixelRatio, this.qs.pixelRatio));
+    this.snow.update(this.realTime, this.camera.position, this.windK, window.innerHeight * this.renderer.getPixelRatio());
     this.arena.update(dt, this.windK);
 
     const au = this.audio;
@@ -1652,6 +1654,12 @@ export class Game {
       this.fps = this.frames / this.fpsT;
       this.frames = 0;
       this.fpsT = 0;
+      // Keep it smooth: shed resolution on a slow machine (not while loading or paused).
+      const r = this.realTime > 6 && !this.paused ? this.governor.update(this.fps) : null;
+      if (r !== null) {
+        this.renderer.setPixelRatio(r);
+        this.resize();
+      }
     }
   }
 
