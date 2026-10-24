@@ -202,6 +202,10 @@ export class Game {
   /** The title's choice; loaded into DIFFICULTY only when a fight starts (restarts keep it). */
   difficulty: DifficultyName = initialDifficulty();
   private promptShown = false;
+  /** Victory: the end card waits for the fall (he collapses, she sheathes, the camera pulls back). */
+  private endCard = false;
+  private gateFlash = false;
+  private gateDone = false;
   private desatTarget = 0;
   private barsTarget = 0;
   private finInk2 = false;
@@ -374,6 +378,7 @@ export class Game {
     this.state = s;
     this.endT = 0;
     this.promptShown = false;
+    this.endCard = false;
     this.input.disarmPrompt();
   }
 
@@ -569,6 +574,8 @@ export class Game {
     this.desatTarget = 0;
     this.audio.setDuck(0.2);
     this.gateT = 0;
+    this.gateFlash = false;
+    this.gateDone = false;
     p.enter("move");
     p.unbounded = true;
     p.yaw = Math.PI;
@@ -577,20 +584,32 @@ export class Game {
   }
 
   private gateWalk(dt: number, g: number, prompt: string | null): void {
+    // through the gate: the chapter card is up and the next fight is being set up behind it
+    if (this.gateDone) return;
     const p = this.player;
     this.gateT += dt;
     const t = this.gateT;
-    this.input.setAnalog("gate", 0, t > 1.2 ? 1 : 0);
+    // she waits for the gate to rise and its light to open, then walks into it
+    this.input.setAnalog("gate", 0, t > 2.4 ? 1 : 0);
     p.update(g, this.input, Math.PI, this.boss.pos, false);
     this.boss.update(g, p.pos, true);
-    const through = p.pos.z < this.gate.z + 0.4;
-    this.gate.update(this.gameTime, Math.min(1, t / 2.2));
-    // Camera: behind and a little above the walker, drifting toward the gate, then past it.
+    this.gate.update(t, this.gameTime);
+    if (this.gate.rising(t)) this.cam.shake(0.05);
+    const toGate = p.pos.z - this.gate.z;
+    // Camera: low and wide while the gate rises, then behind her, closing in as she nears the light.
+    const near = THREE.MathUtils.clamp(1 - toGate / 14, 0, 1);
     this.cam.override = {
-      pos: new THREE.Vector3(p.pos.x + Math.sin(t * 0.3) * 0.8, 1.55 + Math.min(t, 6) * 0.05, p.pos.z + 3.6),
-      look: new THREE.Vector3(this.gate.group.position.x, 3.2, this.gate.z - 1.5),
+      pos: new THREE.Vector3(p.pos.x + Math.sin(t * 0.3) * 0.8, 1.35 + near * 0.6, p.pos.z + 4.2 - near * 1.4),
+      look: new THREE.Vector3(this.gate.group.position.x, 3.0 + (1 - near) * 0.6, this.gate.z - 1.5),
     };
-    if (through || t > 14 || (prompt && t > 1.5)) {
+    // the light swallows the screen as she steps through
+    if (toGate < 2.2 && !this.gateFlash) {
+      this.gateFlash = true;
+      this.post.hitFlash(1.2, 0xfff0d0);
+      this.audio.whoosh(true);
+    }
+    if (toGate < 0.4 || t > 16 || (prompt && t > 1.5)) {
+      this.gateDone = true;
       this.input.setAnalog("gate", 0, 0);
       this.cam.override = null;
       this.gate.hide();
@@ -602,6 +621,7 @@ export class Game {
   }
 
   toTitle(): void {
+    if (this.state === "victory" && !this.endCard) this.endLearning(); // left during the fall: the win still counts
     this.go("title");
     if (this.progressFor !== getNickname()) this.loadChapter();
     this.setBoss(this.progress.boss);
@@ -749,8 +769,16 @@ export class Game {
         p.update(g, null, this.cam.moveYaw, b.pos, false);
         b.sense.down = this.state === "defeat";
         b.update(g, p.pos, true);
+        if (this.state === "victory" && !this.endCard && this.endT > 1.9) {
+          this.endCard = true;
+          this.endLearning();
+          this.cam.setMode("victory");
+          this.desatTarget = 0.65;
+          this.barsTarget = 0;
+          this.hud.showEnd("victory");
+        }
         // The prompt waits for the council's answer (at most 6 s), so the rematch uses the new plan.
-        if (!this.promptShown && this.endT > (this.state === "victory" ? 4.5 : 1.0) && (this.learn.state !== "pending" || this.endT > 6)) {
+        if (!this.promptShown && this.endT > (this.state === "victory" ? 5.5 : 1.0) && (this.learn.state !== "pending" || this.endT > 6)) {
           this.promptShown = true;
           this.hud.showPrompt();
           this.input.armPrompt("menu", 0.25);
@@ -1581,14 +1609,10 @@ export class Game {
     if (t >= tl.end) {
       this.go("victory");
       this.stats.victory = true;
-      this.endLearning();
       wavedash.submitScore(`victory-${this.difficulty}`, (this.gameTime - this.fightStartT) * 1000);
       wavedash.achieve("VICTORY");
       if (this.difficulty === "hard") wavedash.achieve("VICTORY_HARD");
       if (this.stats.deaths === this.fightStartDeaths) wavedash.achieve("NO_DEATH");
-      this.desatTarget = 0.65;
-      this.hud.showEnd("victory");
-      this.cam.setMode("victory");
       p.enter("victory");
       p.setClip("victory", 0.4);
       b.enter("dead");

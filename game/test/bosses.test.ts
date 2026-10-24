@@ -62,6 +62,30 @@ describe("bossKnobs", () => {
         }
     }
   });
+  it("each later general is harder on the style knobs, and never past the HARD preset", () => {
+    const base = structuredClone(DIFFICULTY_PRESETS.medium);
+    const hard = DIFFICULTY_PRESETS.hard;
+    const [k1, k2, k3] = BOSS_IDS.map((id) => bossKnobs(BOSSES[id], structuredClone(base)));
+    // lower is harder for these (fewer openings, faster answers, less of his posture per cut)
+    const lowerHarder = (k: typeof base) => [k.recoverAfterAttack[0], k.recoverAfterAttack[1], k.counterDelay, k.guardSlip[0], k.healReact, k.cutPostureArmoured];
+    // higher is harder for these
+    const higherHarder = (k: typeof base) => [k.bossDeflect[3], k.counterFlurry, k.bossRegen, k.blockPosture];
+    const a = [lowerHarder(k1), lowerHarder(k2), lowerHarder(k3)];
+    const b = [higherHarder(k1), higherHarder(k2), higherHarder(k3)];
+    for (let i = 0; i < a[0].length; i++) {
+      expect(a[1][i]).toBeLessThanOrEqual(a[0][i]);
+      expect(a[2][i]).toBeLessThanOrEqual(a[1][i]);
+      expect(a[2][i]).toBeGreaterThanOrEqual(lowerHarder(hard)[i]);
+    }
+    for (let i = 0; i < b[0].length; i++) {
+      expect(b[1][i]).toBeGreaterThanOrEqual(b[0][i]);
+      expect(b[2][i]).toBeGreaterThanOrEqual(b[1][i]);
+      expect(b[2][i]).toBeLessThanOrEqual(higherHarder(hard)[i]);
+    }
+    // and strictly harder somewhere: a real step up each chapter
+    expect(a[1].some((v, i) => v < a[0][i]) || b[1].some((v, i) => v > b[0][i])).toBe(true);
+    expect(a[2].some((v, i) => v < a[1][i]) || b[2].some((v, i) => v > b[1][i])).toBe(true);
+  });
   it("does not mutate its input", () => {
     const base = structuredClone(DIFFICULTY_PRESETS.medium);
     const copy = structuredClone(base);

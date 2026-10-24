@@ -12,6 +12,7 @@ export type CamMode = "title" | "intro" | "lock" | "free" | "finisher" | "death"
 
 const _v = new THREE.Vector3();
 const _w = new THREE.Vector3();
+const _away = new THREE.Vector3();
 
 export class CameraRig {
   mode: CamMode = "title";
@@ -110,6 +111,10 @@ export class CameraRig {
         lookRate = 30;
         if (this.modeT > 1.2) this.mode = "lock";
       }
+      // Never inside the general: his leap can land beside the camera (and a wide kasa fills the lens).
+      const away = _away.subVectors(P, bossChest).setY(0);
+      const ad = away.length();
+      if (ad < 2.4) P.addScaledVector(ad > 1e-3 ? away.divideScalar(ad) : back, 2.4 - ad);
     } else if (this.mode === "free") {
       this.yaw -= mouse.dx * 0.0026;
       this.pitch = clamp(this.pitch + mouse.dy * 0.002, -0.35, 0.8);

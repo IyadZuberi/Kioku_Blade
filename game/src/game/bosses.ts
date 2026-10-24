@@ -6,7 +6,7 @@
  */
 import { BOSS_MOVES, GAP_BY_STEP, type BossId, type Move } from "@gr/shared";
 import type { ThemeId } from "../world/themes";
-import type { DifficultyValues } from "./difficulty";
+import { DIFFICULTY_PRESETS, type DifficultyValues } from "./difficulty";
 
 export type BossLook = "ronin" | "reed" | "hollow";
 
@@ -26,10 +26,22 @@ export interface BossDef {
   tempoP2?: number;
   /** Rhythm: gaps shorten to this step of GAP_BY_STEP (never past HARD). */
   gapStep?: 0 | 1 | 2 | 3;
+  /**
+   * Fighting style: these knobs move this far (0..1) from the chosen preset toward the HARD preset.
+   * Never past HARD, and never the deflect windows or the player's damage.
+   */
+  lean?: { amount: number; knobs: readonly LeanKnob[] };
   look: BossLook;
   /** Line on the chapter card. */
   line: string;
 }
+
+export type LeanKnob = "bossDeflect" | "counterDelay" | "counterFlurry" | "recoverAfterAttack" | "guardSlip" | "healReact" | "bossRegen" | "blockPosture" | "cutPostureArmoured" | "cutPostureOpen";
+
+/** Swift and watchful: parries strings, answers fast, rarely stands open. */
+const READS_YOU: readonly LeanKnob[] = ["bossDeflect", "counterDelay", "counterFlurry", "recoverAfterAttack", "guardSlip", "healReact"];
+/** Armoured and relentless: all of that, plus his posture holds and his blows crush a held guard. */
+const IRON: readonly LeanKnob[] = [...READS_YOU, "bossRegen", "blockPosture", "cutPostureArmoured", "cutPostureOpen"];
 
 export const BOSSES: Record<BossId, BossDef> = {
   1: {
@@ -59,6 +71,7 @@ export const BOSSES: Record<BossId, BossDef> = {
     },
     tempoP2: 1.08,
     gapStep: 2,
+    lean: { amount: 0.35, knobs: READS_YOU },
     look: "reed",
     line: "Win six duels in a row to face the Hollow Shogun.",
   },
@@ -77,6 +90,7 @@ export const BOSSES: Record<BossId, BossDef> = {
     },
     tempoP2: 1.12,
     gapStep: 3,
+    lean: { amount: 0.6, knobs: IRON },
     look: "hollow",
     line: "No one has seen the end of this fight.",
   },
@@ -101,6 +115,15 @@ export function bossKnobs(def: BossDef, base: DifficultyValues): DifficultyValue
   if (def.gapStep) {
     const g = GAP_BY_STEP[def.gapStep];
     k.gap = { p1: harder(base.gap.p1, g.p1), p2: harder(base.gap.p2, g.p2) };
+  }
+  if (def.lean) {
+    const hard = DIFFICULTY_PRESETS.hard as Record<string, unknown>;
+    const out = k as unknown as Record<string, unknown>;
+    const mix = (a: number, b: number) => a + (b - a) * def.lean!.amount;
+    for (const knob of def.lean.knobs) {
+      const a = out[knob], b = hard[knob];
+      out[knob] = Array.isArray(a) ? a.map((v: number, i: number) => mix(v, (b as number[])[i])) : mix(a as number, b as number);
+    }
   }
   return k;
 }
