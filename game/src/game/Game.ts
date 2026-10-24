@@ -61,6 +61,8 @@ import { applyDifficulty, DIFFICULTY, DIFFICULTY_NAMES, type DifficultyName, ini
 import { CameraRig } from "./CameraRig";
 import { KICK_REACH, PLAYER_MAX, Player, vitalityRegen } from "./Player";
 import { wavedash } from "../wavedash";
+import { Subtitles } from "../ui/Subtitles";
+import { AGAIN, FALL, MEET, PROLOGUE, TRIUMPH, speakerOf, type Line } from "./story";
 
 export const HITSTOP_DEFLECT = 0.07;
 export const HITSTOP_BLOCK = 0.04;
@@ -78,7 +80,25 @@ export function deflectPosture(h: HitDef, chain: number): number {
   return DIFFICULTY.deflectPosture * (1 + 0.12 * Math.min(chain, 4)) * (h.heavy ? 1.15 : 1);
 }
 
-type GState = "title" | "fight" | "deathblow" | "finisher" | "victory" | "dying" | "defeat" | "gate";
+const STORY_KEY = "kioku.story";
+function storyFlag(k: string): boolean {
+  try {
+    return (JSON.parse(localStorage.getItem(STORY_KEY) ?? "[]") as string[]).includes(k);
+  } catch {
+    return false;
+  }
+}
+function setStoryFlag(k: string): void {
+  try {
+    const s = new Set(JSON.parse(localStorage.getItem(STORY_KEY) ?? "[]") as string[]);
+    s.add(k);
+    localStorage.setItem(STORY_KEY, JSON.stringify([...s]));
+  } catch {
+    /* private mode: the story just plays again next time */
+  }
+}
+
+type GState = "title" | "parley" | "fight" | "deathblow" | "finisher" | "victory" | "dying" | "defeat" | "gate";
 
 const _a = new THREE.Vector3();
 const _b = new THREE.Vector3();
@@ -168,6 +188,10 @@ export class Game {
   private poseTick = 0;
   private advancedTo: BossId | null = null;
   readonly chapterCard: ChapterCard;
+  /** The prologue, the words before each duel and after it. */
+  readonly subs: Subtitles;
+  /** The words before this fight have been spoken (reset when it starts). */
+  private parleyDone = false;
   private readonly hazards = new Hazards(this.scene);
   private readonly gate = new Gate(this.scene);
   /** Called when a plan arrives (the Council screen listens). */
@@ -286,6 +310,7 @@ export class Game {
     this.hud = new Hud(hudRoot);
     this.council = new Council(hudRoot);
     this.chapterCard = new ChapterCard(hudRoot);
+    this.subs = new Subtitles(hudRoot);
     this.input = new Input(canvas);
     this.hud.setDifficulty(this.difficulty);
     this.hud.onDifficultyPick = (d) => {
@@ -503,6 +528,12 @@ export class Game {
     const me = this.playerBody.active as unknown as Parameters<typeof applyPlayerLook>[0];
     if (this.bossBody.active !== this.bossBody.procedural) applyBossLook(boss, this.bossDef.look);
     if (this.playerBody.active !== this.playerBody.procedural) applyPlayerLook(me);
+    // each general dies his own way: her finisher clip, and his fall
+    const fin = this.bossDef.finisher;
+    this.playerBody.active.setMove?.("finisher", fin.clip === "finisher" ? null : { clip: fin.clip });
+    this.bossBody.active.setMove?.("finished", fin.fall ? { plan: fin.fall } : null);
+    // ...and lies where that fall left him
+    this.bossBody.active.setMove?.("dead", fin.fall ? { clip: fin.fall[fin.fall.length - 1].clip } : null);
     stableShadowDepth(this.scene);
   }
 
@@ -624,6 +655,8 @@ export class Game {
   }
 
   toTitle(): void {
+    this.subs.stop();
+    this.parleyDone = false;
     if (this.state === "victory" && !this.endCard) this.endLearning(); // left during the fall: the win still counts
     this.go("title");
     if (this.progressFor !== getNickname()) this.loadChapter();
@@ -668,6 +701,15 @@ export class Game {
 
   /** Title / defeat → the fight, opening with the general's leap straight off the keypress. */
   private beginIntro(): void {
+    // The very first duel: why these fights.
+    if (!storyFlag("prologue")) {
+      setStoryFlag("prologue");
+      this.input.disarmPrompt();
+      this.hud.showTitle(false);
+      this.council.hide();
+      this.subs.play(PROLOGUE, () => this.beginIntro(), true);
+      return;
+    }
     // A new general (or the first fight of the session): the chapter card covers the arena swap.
     if (this.cardFor !== this.progress.boss) {
       this.cardFor = this.progress.boss;
@@ -676,6 +718,8 @@ export class Game {
       this.chapterCard.show(def, () => this.setBoss(def.id), () => this.beginIntro());
       return;
     }
+    if (!this.parleyDone) return this.beginParley();
+    this.parleyDone = false;
     this.fightsStarted++;
     this.audio.start();
     this.audio.uiStart();
@@ -694,6 +738,41 @@ export class Game {
     this.boss.passive = false;
     this.boss.startAttack("leap", 0.12);
     this.audio.setTaiko(true);
+  }
+
+  /**
+   * Before the duel: the two face each other and speak (his introduction the first time, one line on a
+   * rematch: the war council's taunt when it has one). Any key moves the words on; Esc skips them.
+   */
+  private beginParley(): void {
+    const id = this.bossDef.id;
+    const first = !storyFlag(`met${id}`);
+    setStoryFlag(`met${id}`);
+    const taunt = this.learn.result && this.learn.boss === id ? this.learn.result.plan.taunt : "";
+    const lines: Line[] = first ? MEET[id] : [taunt ? { id: "", who: speakerOf(id), text: taunt } : AGAIN[id]];
+    this.input.disarmPrompt();
+    this.hud.showTitle(false);
+    this.hud.hideEnd();
+    this.hud.showFight(false);
+    this.council.hide();
+    this.resetActors();
+    this.boss.passive = true;
+    this.go("parley");
+    this.barsTarget = 0.6;
+    // over Kaede's shoulder, on the general
+    const p = this.player.pos, b = this.boss.pos;
+    const back = new THREE.Vector3().subVectors(p, b).setY(0).normalize();
+    const right = new THREE.Vector3(-back.z, 0, back.x);
+    this.cam.override = {
+      pos: p.clone().addScaledVector(back, 2.3).addScaledVector(right, -1.0).setY(1.75),
+      look: b.clone().setY(1.55),
+    };
+    this.subs.play(lines, () => {
+      this.cam.override = null;
+      this.barsTarget = 0;
+      this.parleyDone = true;
+      this.beginIntro();
+    });
   }
 
   /** Skip the title and begin the fight immediately (tests). */
@@ -751,6 +830,10 @@ export class Game {
         p.update(g, null, this.cam.moveYaw, b.pos, true);
         if (prompt) this.beginIntro();
         break;
+      case "parley":
+        b.update(g, p.pos, true);
+        p.update(g, null, this.cam.moveYaw, b.pos, true);
+        break;
       case "fight":
         this.fight(g);
         break;
@@ -772,7 +855,8 @@ export class Game {
         p.update(g, null, this.cam.moveYaw, b.pos, false);
         b.sense.down = this.state === "defeat";
         b.update(g, p.pos, true);
-        if (this.state === "victory" && !this.endCard && this.endT > 1.9) {
+        if (this.state === "victory" && !this.endCard && this.endT > 1.9 && (!this.subs.playing || this.endT > 9)) {
+          this.subs.stop();
           this.endCard = true;
           this.endLearning();
           this.cam.setMode("victory");
@@ -1446,6 +1530,7 @@ export class Game {
 
   private trueDeath(): void {
     this.go("defeat");
+    this.subs.play([TRIUMPH[this.bossDef.id]], () => {});
     this.stats.defeats++;
     this.endLearning();
     this.hud.showEnd("defeat");
@@ -1497,7 +1582,7 @@ export class Game {
     this.releaseHolds();
     // The plunge is meant to go through him (a skinned blade is driven into his chest), and the
     // cloth starts from the new spots.
-    p.ch.plungeInto?.(b.ch.rig.chestW);
+    if (clip === "deathblow" || this.bossDef.finisher.plunge) p.ch.plungeInto?.(b.ch.rig.chestW);
     p.ch.resetCloth();
     b.ch.resetCloth();
     p.ch.setAvoid(false);
@@ -1603,6 +1688,7 @@ export class Game {
       b.health = 0;
       b.markers = 0;
       b.setClip("finished", 0.05);
+      this.subs.caption(this.bossDef.finisher.name);
       this.plungeFx(1);
       this.audio.finisher();
       this.hud.markerTaken(0);
@@ -1618,6 +1704,7 @@ export class Game {
       wavedash.achieve("VICTORY");
       if (this.difficulty === "hard") wavedash.achieve("VICTORY_HARD");
       if (this.stats.deaths === this.fightStartDeaths) wavedash.achieve("NO_DEATH");
+      this.subs.play(FALL[this.bossDef.id], () => {});
       p.enter("victory");
       p.setClip("victory", 0.4);
       b.enter("dead");

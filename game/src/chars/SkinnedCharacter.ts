@@ -402,6 +402,26 @@ export class SkinnedCharacter implements Fighter {
     return o;
   }
 
+  private readonly moveDefaults = new Map<string, { clip?: ClipSpec; plan?: Segment[] }>();
+
+  /**
+   * Re-map a logical move to another clip (and/or a segment plan), e.g. each general's own finisher.
+   * `null` restores what the config had. Timelines and warps for the move are rebuilt on next use.
+   */
+  setMove(name: string, o: { clip?: string; plan?: Segment[] } | null): void {
+    const cfg = this.cfg as SkinnedConfig & { plans?: Record<string, Segment[]> };
+    if (!this.moveDefaults.has(name)) this.moveDefaults.set(name, { clip: cfg.clips[name], plan: cfg.plans?.[name] });
+    const d = this.moveDefaults.get(name)!;
+    const clip = o?.clip ? { ...(d.clip ?? { clip: o.clip }), clip: o.clip } : d.clip;
+    if (clip) cfg.clips[name] = clip;
+    const plan = o ? o.plan : d.plan;
+    cfg.plans ??= {};
+    if (plan) cfg.plans[name] = plan;
+    else delete cfg.plans[name];
+    for (const k of [...this.warps.keys()]) if (k === name || k.startsWith(name + "|")) this.warps.delete(k);
+    this.tlCache.delete(name);
+  }
+
   /** Hold another weapon (null: back to the stock katana). The hit segment follows the new blade. */
   setWeapon(w: Weapon | null): void {
     const S = this.swordSocket;

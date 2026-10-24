@@ -49,6 +49,8 @@ export interface Fighter {
   bounce(hold?: number): void;
   /** Outside its active windows the blade would pass through the other fighter: lift it clear. */
   setAvoid(on: boolean): void;
+  /** Re-map a logical move to another clip / segment plan (skinned bodies; null restores). */
+  setMove?(name: string, o: { clip?: string; plan?: import("./animEvents").Segment[] } | null): void;
   /** Swap the held weapon (skinned bodies; null = the stock katana). */
   setWeapon?(w: import("./weapons").Weapon | null): void;
   /** The held weapon's steel, when it is a swapped weapon (parry-stance glow). */

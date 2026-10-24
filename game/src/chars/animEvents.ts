@@ -235,8 +235,9 @@ export const MIXAMO_PLAYER: EventTable = {
   attack2: { norm: true, hits: [{ start: 0.28, end: 0.48 }], chain: 0.5, end: 0.9 },
   attack3: { norm: true, hits: [{ start: 0.35, end: 0.55 }], chain: 0.7, end: 0.95 },
   finisher: { norm: true, plunge: 0.3, withdraw: 0.65, end: 1 },
-  attack_charged: { norm: true, hits: [{ start: 0.42, end: 0.6 }], chain: 0.85, end: 0.95 },
-  jump_attack: { norm: true, hits: [{ start: 0.3, end: 0.6 }], end: 1 },
+  // plunge / withdraw: when these clips are a general's finisher (the killing cut, the recovery).
+  attack_charged: { norm: true, hits: [{ start: 0.42, end: 0.6 }], chain: 0.85, end: 0.95, plunge: 0.344, withdraw: 0.52 },
+  jump_attack: { norm: true, hits: [{ start: 0.3, end: 0.6 }], end: 1, plunge: 0.526, withdraw: 0.7 },
   kick: { norm: true, cue: { hit: 0.3 }, end: 1 },
   drink: { norm: true, cue: { sip: 0.45 }, end: 1 },
   mikiri: { norm: true, cue: { stomp: 0.2 }, end: 1 },

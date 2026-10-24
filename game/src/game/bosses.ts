@@ -31,6 +31,11 @@ export interface BossDef {
    * Never past HARD, and never the deflect windows or the player's damage.
    */
   lean?: { amount: number; knobs: readonly LeanKnob[] };
+  /**
+   * His finisher: the clip the shinobi plays, whether it is a plunge (the blade driven into his chest)
+   * or a cut, and how he falls (a segment plan for his "finished" move; none = the default kneel and fall).
+   */
+  finisher: { name: string; clip: string; plunge: boolean; fall?: { clip: string; from?: number; to?: number; speed?: number }[] };
   /** How he opens a fight when the war council has no plan yet: his signature, straight away. */
   opening: readonly string[];
   look: BossLook;
@@ -55,6 +60,7 @@ export const BOSSES: Record<BossId, BossDef> = {
     gate: 3,
     moves: BOSS_MOVES[1],
     opening: ["leap", "combo", "thrust", "comboDelay", "overhead", "sweep"],
+    finisher: { name: "Through the Heart", clip: "finisher", plunge: true },
     look: "ronin",
     line: "Win three duels in a row to meet the next general.",
   },
@@ -67,6 +73,8 @@ export const BOSSES: Record<BossId, BossDef> = {
     gate: 6,
     moves: BOSS_MOVES[2],
     opening: ["leap", "spin", "windSlash", "thrust", "comboDelay", "spin", "waterfowl"],
+    // she spins past his spear and opens him with one turning cut; he falls back into the grass
+    finisher: { name: "Wind's End", clip: "attack_charged", plunge: false, fall: [{ clip: "hit_heavy", to: 0.5 }, { clip: "death", from: 0.15 }] },
     picks: {
       p1: { combo: 0.12, comboDelay: 0.16, overhead: 0.06, thrust: 0.14, sweep: 0.08, grab: 0.02, windSlash: 0.18, waterfowl: 0.08, spin: 0.14, idle: 0.02 },
       p2: { flurry: 0.12, combo: 0.08, comboDelay: 0.12, overhead: 0.04, thrust: 0.14, sweep: 0.08, grab: 0.04, windSlash: 0.14, waterfowl: 0.12, spin: 0.12, idle: 0 },
@@ -86,6 +94,8 @@ export const BOSSES: Record<BossId, BossDef> = {
     gate: 0,
     moves: BOSS_MOVES[3],
     opening: ["shockwave", "overhead", "kick", "combo", "grab", "shockwave", "kick"],
+    // she leaps and cleaves down through the great helm; the shogun staggers and topples like his keep
+    finisher: { name: "Fall of the Keep", clip: "jump_attack", plunge: false, fall: [{ clip: "stumble", to: 0.55 }, { clip: "knockdown", from: 0.1 }] },
     picks: {
       p1: { combo: 0.1, comboDelay: 0.14, overhead: 0.22, thrust: 0.06, sweep: 0.1, grab: 0.1, shockwave: 0.14, windSlash: 0.02, kick: 0.1, idle: 0.02 },
       p2: { flurry: 0.06, combo: 0.06, comboDelay: 0.12, overhead: 0.16, thrust: 0.06, sweep: 0.1, grab: 0.12, shockwave: 0.16, windSlash: 0.04, kick: 0.12, idle: 0 },

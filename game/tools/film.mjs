@@ -18,6 +18,11 @@ if (name === "finisher") {
   await page.evaluate(() => { const g = window.__duel.game; g.startFight(); g.bot.deflect = false; g.bot.play = false; g.boss.passive = true; g.paused = true; g.resume(); });
   await page.waitForTimeout(2500);
   await page.evaluate((n) => { const g = window.__duel.game; g.boss.pos.set(g.player.pos.x, 0, g.player.pos.z - 2.6); g.boss.passive = false; g.forceBossAttack(n); }, name.slice(5));
+} else if (name === "start") {
+  // a new player: title, any key, the prologue, the chapter card, the words before the duel
+  await page.evaluate(() => { localStorage.removeItem("kioku.story"); const g = window.__duel.game; g.paused = true; g.resume(); window.__duel.toTitle(); });
+  await page.waitForTimeout(1200);
+  await page.keyboard.press("Enter");
 } else if (name === "gate") {
   // the real path: two wins already on boss 1, this finisher is the third, then any key at the victory prompt
   await page.evaluate(() => { const g = window.__duel.game; g.progress = { boss: 1, streak: 2, unlocked: 1, cleared: false }; });
@@ -32,6 +37,7 @@ for (let i = 0; i < n; i++) {
   await page.screenshot({ path: join(out, `film_${name}_${String(i).padStart(2, "0")}.png`) });
   const st = await page.evaluate(() => { const g = window.__duel.game; const f = (v) => v.toArray().map((x) => x.toFixed(1)).join(","); return `${g.state} cam=${g.cam.mode} ov=${!!g.cam.override} camPos=${f(g.camera.position)} P=${f(g.player.pos)} B=${f(g.boss.pos)} bstate=${g.boss.state}`; });
   if (process.env.LOG || i % 4 === 0) console.log(i, st);
+  if (process.env.ADVANCE && i % +process.env.ADVANCE === +process.env.ADVANCE - 1) await page.keyboard.press("Enter");
   await page.waitForTimeout(every * 1000);
 }
 await browser.close();
