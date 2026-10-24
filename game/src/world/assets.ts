@@ -5,6 +5,7 @@
  */
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { RGBELoader } from "three/addons/loaders/RGBELoader.js";
 
 const BASE = `${(import.meta as { env?: { BASE_URL?: string } }).env?.BASE_URL ?? "/"}assets/ph/`;
@@ -66,7 +67,7 @@ export function pbr(name: string, o: PbrOpts = {}): THREE.MeshStandardMaterial {
   });
 }
 
-const gltf = new GLTFLoader();
+const gltf = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
 const glbCache = new Map<string, Promise<THREE.Group>>();
 /** A decimated scan from public/assets/ph/glb. Resolves to a template; clone() it per placement. */
 export function glb(name: string): Promise<THREE.Group> {
@@ -86,6 +87,18 @@ export interface Sky {
   sunPower: number;
   /** Average colour just above the horizon (fog and distant ground blend toward it). */
   horizon: THREE.Color;
+}
+
+const fileCache = new Map<string, Promise<THREE.Group>>();
+/** Any glTF under public/ (path relative to the site root), meshopt-compressed or not. Clone per placement. */
+export function glbFile(path: string): Promise<THREE.Group> {
+  let p = fileCache.get(path);
+  if (!p) {
+    const root = (import.meta as { env?: { BASE_URL?: string } }).env?.BASE_URL ?? "/";
+    p = track(gltf.loadAsync(root + path).then((g) => g.scene));
+    fileCache.set(path, p);
+  }
+  return p;
 }
 
 const skyCache = new Map<string, Promise<Sky>>();

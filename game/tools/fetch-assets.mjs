@@ -5,7 +5,12 @@ import { dirname, join } from "node:path";
 
 const OUT = new URL("../public/assets/ph/", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
 const UA = { "User-Agent": "kioku-game-dev" };
-const HDRI = ["autumn_hill_view", "plains_sunset", "kloofendal_misty_morning"];
+const HDRI = ["autumn_hill_view", "kloofendal_48d_partly_cloudy_puresky"];
+const TEX = [
+  "grey_roof_tiles", "hinoki_planks", "japanese_cedar_bark", "japanese_cedar_planks", "japanese_stone_wall", "leaf_scattered_gravel",
+  "stone_pathway", "forest_ground_04",
+];
+const ONLY = process.argv.slice(2);
 const MODELS = ["pine_tree_01", "boulder_01", "rock_moss_set_01", "coastal_cliff_01", "coastal_cliff_02", "namaqualand_boulder_02", "stone_01", "dead_tree_trunk", "tree_stump_01"];
 
 const j = (u) => fetch(u, { headers: UA }).then((r) => r.json());
@@ -16,18 +21,18 @@ async function save(url, rel) {
   if (!r.ok) throw new Error(`${r.status} ${url}`);
   await writeFile(p, Buffer.from(await r.arrayBuffer()));
 }
-for (const id of HDRI) {
+for (const id of HDRI.filter((x) => !ONLY.length || ONLY.includes(x))) {
   const f = await j(`https://api.polyhaven.com/files/${id}`);
   await save(f.hdri["1k"].hdr.url, `hdri/${id}.hdr`);
   console.log("hdri", id);
 }
-for (const id of TEX) {
+for (const id of TEX.filter((x) => !ONLY.length || ONLY.includes(x))) {
   const f = await j(`https://api.polyhaven.com/files/${id}`);
   await save(f.Diffuse["1k"].jpg.url, `tex/${id}_diff.jpg`);
   await save(f["nor_gl"]["1k"].jpg.url, `tex/${id}_nor.jpg`);
   console.log("tex", id);
 }
-for (const id of MODELS) {
+for (const id of MODELS.filter((x) => ONLY.includes(x))) {
   const f = await j(`https://api.polyhaven.com/files/${id}`);
   const g = f.gltf["1k"].gltf;
   await save(g.url, `models/${id}/${id}.gltf`);

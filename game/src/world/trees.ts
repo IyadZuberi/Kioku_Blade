@@ -1,6 +1,7 @@
 /**
  * Real-looking trees, grown in code: a branching skeleton of tapered bark tubes (photo bark texture) carrying
- * alpha-cut foliage cards painted on a canvas (maple and ginkgo leaves, cedar sprays, black-pine needle tufts).
+ * alpha-cut foliage cards painted on a canvas (maple and ginkgo leaves, cherry blossom, cedar sprays,
+ * black-pine needle tufts).
  * One bark mesh and one foliage mesh per `forest()` call, so a whole treeline is two draw calls.
  */
 import * as THREE from "three";
@@ -8,7 +9,7 @@ import { rng } from "../core/math";
 import { pbr } from "./assets";
 import { tmerge, tpiece, type Rand } from "./kit";
 
-export type TreeKind = "cedar" | "maple" | "pine" | "ginkgo";
+export type TreeKind = "cedar" | "maple" | "pine" | "ginkgo" | "sakura";
 export type Spot = [x: number, z: number, scale: number];
 
 // ----------------------------------------------------------------------------- foliage textures
@@ -75,6 +76,39 @@ function atlas(kind: TreeKind): THREE.CanvasTexture {
       g.lineWidth = 1;
       g.stroke();
       g.restore();
+    }
+  } else if (kind === "sakura") {
+    // dense clusters of five-petalled blossoms, a few young leaves among them
+    for (let i = 0; i < 420; i++) {
+      const a = R() * Math.PI * 2, d = Math.sqrt(R()) * S * 0.44;
+      const x = S / 2 + Math.cos(a) * d, y = S / 2 + Math.sin(a) * d * 0.88;
+      if (R() < 0.08) {
+        g.save();
+        g.translate(x, y);
+        g.rotate(R() * 6.283);
+        g.fillStyle = "rgba(120,150,90,1)";
+        g.beginPath();
+        g.ellipse(0, 0, 9, 4, 0, 0, Math.PI * 2);
+        g.fill();
+        g.restore();
+        continue;
+      }
+      const r = 7 + R() * 6, rot = R() * 6.283, v = 215 + R() * 40;
+      for (let k = 0; k < 5; k++) {
+        const an = rot + (k * Math.PI * 2) / 5;
+        g.save();
+        g.translate(x + Math.cos(an) * r * 0.55, y + Math.sin(an) * r * 0.55);
+        g.rotate(an);
+        g.fillStyle = grey(v - k * 3);
+        g.beginPath();
+        g.ellipse(0, 0, r * 0.62, r * 0.42, 0, 0, Math.PI * 2);
+        g.fill();
+        g.restore();
+      }
+      g.fillStyle = "rgba(150,70,90,0.9)";
+      g.beginPath();
+      g.arc(x, y, r * 0.22, 0, Math.PI * 2);
+      g.fill();
     }
   } else if (kind === "cedar") {
     // a drooping spray: a curved stem from the bottom (the branch) to the top (the tip), twigs, then needles
@@ -217,33 +251,36 @@ function puff(cards: Cards, R: Rand, at: THREE.Vector3, crown: THREE.Vector3, si
   }
 }
 
-function growMaple(g: Grown, R: Rand, x: number, z: number, s: number, tints: THREE.Color[], kind: "maple" | "ginkgo"): void {
+function growMaple(g: Grown, R: Rand, x: number, z: number, s: number, tints: THREE.Color[], kind: "maple" | "ginkgo" | "sakura"): void {
   const big = kind === "ginkgo";
-  const trunkH = (big ? 5.5 : 2.3 + R() * 0.8) * s;
+  const sakura = kind === "sakura";
+  const trunkH = (big ? 5.5 : sakura ? 1.9 + R() * 0.7 : 2.3 + R() * 0.8) * s;
   const base = new THREE.Vector3(x, -0.15, z);
   const top = new THREE.Vector3(x + (R() - 0.5) * 0.8 * s, trunkH, z + (R() - 0.5) * 0.8 * s);
-  const rad = (big ? 0.95 : 0.33) * s;
+  const rad = (big ? 0.95 : sakura ? 0.3 : 0.33) * s;
   const crown = new THREE.Vector3(x, trunkH + (big ? 6 : 2.2) * s, z);
   tube(g.bark, base, top, rad * 1.25, rad * 0.8);
-  const leaf = (big ? 3.4 : 2.0) * s;
+  const leaf = (big ? 3.4 : sakura ? 2.0 : 2.0) * s;
   const grow = (from: THREE.Vector3, dir: THREE.Vector3, len: number, r: number, depth: number) => {
     const to = from.clone().addScaledVector(dir, len);
     tube(g.bark, from, to, r, r * 0.66);
-    if (depth <= 1) puff(g.cards, R, to, crown, leaf, big ? 4 : 5, tints);
+    if (depth <= 1) puff(g.cards, R, to, crown, leaf, big ? 4 : sakura ? 4 : 5, tints);
     if (depth === 0) return;
     if (depth <= 2) puff(g.cards, R, from.clone().lerp(to, 0.55), crown, leaf * 0.9, 2, tints);
     const n = depth > 2 ? 3 : 3;
     for (let i = 0; i < n; i++) {
       const a = (i / n) * Math.PI * 2 + R() * 1.4;
-      const d = dir.clone().multiplyScalar(0.9).add(new THREE.Vector3(Math.cos(a), 0.18 + R() * 0.4, Math.sin(a)).multiplyScalar(0.8)).normalize();
+      // cherries spread wide and low (an umbrella); the others climb
+      const d = dir.clone().multiplyScalar(0.9).add(new THREE.Vector3(Math.cos(a), sakura ? 0.02 + R() * 0.25 : 0.18 + R() * 0.4, Math.sin(a)).multiplyScalar(sakura ? 1.05 : 0.8)).normalize();
       grow(to, d, len * (0.72 + R() * 0.12), r * 0.6, depth - 1);
     }
   };
-  const lim = big ? 4 : 3;
-  for (let i = 0; i < (big ? 5 : 3); i++) {
-    const a = (i / (big ? 5 : 3)) * Math.PI * 2 + R();
-    const d = new THREE.Vector3(Math.cos(a) * 0.75, 0.9, Math.sin(a) * 0.75).normalize();
-    grow(top, d, (big ? 6 : 2.5) * s * (0.85 + R() * 0.3), rad * 0.8, lim);
+  const lim = big || sakura ? 4 : 3;
+  const limbs = big ? 5 : sakura ? 4 : 3;
+  for (let i = 0; i < limbs; i++) {
+    const a = (i / limbs) * Math.PI * 2 + R();
+    const d = new THREE.Vector3(Math.cos(a) * (sakura ? 1.0 : 0.75), sakura ? 0.65 : 0.9, Math.sin(a) * (sakura ? 1.0 : 0.75)).normalize();
+    grow(top, d, (big ? 6 : sakura ? 2.1 : 2.5) * s * (0.85 + R() * 0.3), rad * (sakura ? 0.62 : 0.8), lim);
   }
 }
 
@@ -328,6 +365,7 @@ const PALETTE: Record<TreeKind, { bark: THREE.ColorRepresentation; leaf: string[
   maple: { bark: 0x8a7868, leaf: ["#c4301c", "#d8481a", "#e8841e", "#b02a1e", "#e6a428"], rough: 0.92 },
   pine: { bark: 0x7e6a5a, leaf: ["#3e6a3a", "#4a7a3e", "#355a34"], rough: 0.95 },
   ginkgo: { bark: 0x7a6a5c, leaf: ["#e8b82c", "#f2c93c", "#d9a424", "#e6b030"], rough: 0.92 },
+  sakura: { bark: 0x5a4642, leaf: ["#f6c3cf", "#f2b2c3", "#fad4de", "#eda4b8"], rough: 0.9 },
 };
 
 export interface ForestOpts {
@@ -349,7 +387,7 @@ export function forest(kind: TreeKind, spots: Spot[], seed: number, o: ForestOpt
     const tints = kind === "maple" ? [lc[i], lc[i], lc[(i + 1) % lc.length]] : lc;
     if (kind === "cedar") growCedar(grown, R, x, z, s, tints);
     else if (kind === "pine") growPine(grown, R, x, z, s, tints);
-    else growMaple(grown, R, x, z, s, tints, kind);
+    else growMaple(grown, R, x, z, s, tints, kind as "maple" | "ginkgo" | "sakura");
   }
   const group = new THREE.Group();
   const bark = new THREE.Mesh(tmerge(grown.bark), pbr("japanese_cedar_bark", { color: pal.bark, rough: pal.rough, side: THREE.DoubleSide }));

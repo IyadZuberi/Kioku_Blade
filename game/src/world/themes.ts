@@ -3,17 +3,18 @@
  * photographed sky (CC0 HDRIs) and dressed with photo-scanned textures and rocks (CC0, Poly Haven)
  * around shapes we build in code:
  *   1  Shrine Courtyard   a mountain shrine in autumn: raked gravel, a vermilion torii, a wooden hall, cedars and maples
- *   2  Coastal Pampas     a windswept headland of silver grass, a lone pine, jizo statues and a cliff (Tsushima-like)
- *   3  Ruined Castle      the stone base of a burned castle in morning mist, fallen walls, banners, an old gold ginkgo
+ *   2  Castle Rooftop     the keep's snowy clay-tile roof at dusk, paper lanterns swinging (the base game's arena.glb)
+ *   3  Sakura Grove       a cherry grove in full bloom, an ancient sakura, a petal carpet, stone lanterns
  * Shapes, layouts and colours are our own; the mood is borrowed from Japanese history and from the games we love.
  */
 import * as THREE from "three";
 import { rng } from "../core/math";
 import type { ParticleKind } from "../fx/Snow";
 import type { QualitySettings } from "../render/quality";
-import { glb, pbr } from "./assets";
+import { glb, glbFile, pbr } from "./assets";
+import { snowify, type SnowOpts } from "./materials";
 import { forest } from "./trees";
-import { blob, glowSprite, grassField, matVC, merge, piece, terrainGeo, tmerge, tpiece, xf, type SkySpec } from "./kit";
+import { blob, glowSprite, matVC, merge, piece, ridges, terrainGeo, tmerge, tpiece, xf, type SkySpec } from "./kit";
 
 export const ARENA_R = 16.5;
 export type ThemeId = 1 | 2 | 3;
@@ -239,278 +240,211 @@ function buildShrine(): ThemeSpec {
   };
 }
 
-// ============================================================================ 2: coastal pampas
+// ============================================================================ 2: castle rooftop at dusk
 
-function jizo(R: () => number): THREE.Group {
-  const g = new THREE.Group();
-  g.add(
-    new THREE.Mesh(
-      tmerge([
-        tpiece(new THREE.BoxGeometry(0.7, 0.3, 0.7), xf(0, 0.15, 0), 0.8),
-        tpiece(new THREE.CylinderGeometry(0.22, 0.3, 0.8, 8), xf(0, 0.7, 0), 0.8),
-        tpiece(blob(0.24, 1, R, 0.1), xf(0, 1.25, 0), 0.8),
-        tpiece(new THREE.ConeGeometry(0.28, 0.22, 8), xf(0, 1.5, 0), 0.8),
-      ]),
-      pbr("rock_pitted_mossy", { color: 0xd8d4c6 }),
+/** Snow-shader settings per glTF material of the rooftop model (the base game's tuned look). */
+const SNOW_ALBEDO = new THREE.Color(0.52, 0.57, 0.7);
+const ROOF_SNOW: Record<string, SnowOpts> = {
+  clay_tiles: { amount: 0.58, scale: 0.3, patch: 2.8, far: [12, 26], color: new THREE.Color(0.44, 0.48, 0.6) },
+  kawara: { amount: 0.3, scale: 0.35 },
+  stone: { amount: 0.6, scale: 0.4 },
+  wood_dark: { amount: 0.7 },
+  lacquer: { amount: 0.9 },
+  pine_needles: { amount: 0.6, scale: 0.9 },
+};
+
+/**
+ * The castle rooftop at dusk (the base game's Blender-built arena.glb: clay-tile floor, ridge, eaves,
+ * the five-tier keep, the compound below, snowy pines and paper lanterns), under a dusk sky.
+ */
+function buildRooftop(q: QualitySettings): ThemeSpec {
+  const group = new THREE.Group();
+  const lanterns: { o: THREE.Object3D; mat: THREE.MeshStandardMaterial; rest: THREE.Quaternion; phase: number; light?: THREE.PointLight }[] = [];
+  void glbFile("assets/arena.glb")
+    .then((tpl) => {
+      const root = tpl.clone(true);
+      const patched = new Set<THREE.Material>();
+      root.traverse((o) => {
+        const mesh = o as THREE.Mesh;
+        if (!mesh.isMesh) return;
+        const near = /^Roof_|^Lantern/.test(mesh.name) || /^Lantern/.test(mesh.parent?.name ?? "");
+        mesh.receiveShadow = near;
+        mesh.castShadow = near && !/_clay|_snow/.test(mesh.name);
+        for (const m of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) {
+          const mat = m as THREE.MeshStandardMaterial;
+          if (patched.has(mat)) continue;
+          patched.add(mat);
+          const base = mat.name.split("__")[0];
+          if (ROOF_SNOW[base]) snowify(mat, ROOF_SNOW[base]);
+          if (base === "snow") mat.color.copy(SNOW_ALBEDO);
+        }
+      });
+      const R = rng(17);
+      let lights = 0;
+      root.traverse((o) => {
+        if (!/^LanternHang_\d+/.test(o.name)) return;
+        let mat: THREE.MeshStandardMaterial | null = null;
+        o.traverse((c) => {
+          const m = c as THREE.Mesh;
+          if (!m.isMesh || (m.material as THREE.Material).name !== "lantern_paper") return;
+          mat ??= ((m.material as THREE.MeshStandardMaterial).clone() as THREE.MeshStandardMaterial);
+          mat.emissive.set(0xff9a45);
+          m.material = mat;
+        });
+        if (!mat) return;
+        const L: (typeof lanterns)[number] = { o, mat, rest: o.quaternion.clone(), phase: R() * 6 };
+        if (o.name.endsWith("_L") && lights < Math.min(2, q.pointLights)) {
+          const pl = new THREE.PointLight(0xff8a3c, 16, 13, 1.35);
+          pl.position.y = -0.45;
+          o.add(pl);
+          L.light = pl;
+          lights++;
+        }
+        lanterns.push(L);
+      });
+      group.add(root);
+    })
+    .catch((e) => console.warn("[arena] rooftop missing", e));
+  // distant ranges in the dusk haze (the sky photo has no ground)
+  group.add(
+    ridges(
+      [
+        { radius: 900, height: 150, base: 20, color: 0x2a2838, haze: 0.7, seed: 3, jag: 0.6 },
+        { radius: 520, height: 90, base: 0, color: 0x1c1b28, haze: 0.45, seed: 11, jag: 0.8 },
+      ],
+      0x6e5a66,
     ),
   );
-  g.add(new THREE.Mesh(merge([piece(new THREE.BoxGeometry(0.46, 0.2, 0.3), "#c23a26", xf(0, 1.0, 0.08))]), matVC(0.9)));
-  return g;
-}
-
-function buildPampas(q: QualitySettings): ThemeSpec {
-  const R = rng(202);
-  const group = new THREE.Group();
-  const uniforms = { uTime: { value: 0 }, uWind: { value: 0.4 } };
-  groundPlates(group, pbr("withered_grass", { color: 0xb9a878, normal: 1.0 }), pbr("withered_grass", { color: 0xa89a68, normal: 0.8 }), 3.4, 6, 4.2, 21);
-  const n = q.shadowMap >= 4096 ? 5000 : 3200;
-  group.add(grassField({ count: n, rMin: 13.0, rMax: 62, hMin: 0.7, hMax: 1.9, low: 0x8a8438, high: 0xd0b45a, tip: 0xf6e8b4, seed: 3, hole: 13.8 }, uniforms));
-  group.add(grassField({ count: 8000, rMin: 1.0, rMax: 24, hMin: 0.25, hMax: 0.75, low: 0x8a8a3c, high: 0xc4b468, tip: 0xe8d8a0, seed: 8 }, uniforms));
-  group.add(forest("pine", [[16, -17, 1.5], [-24, -20, 1.2], [25, -8, 1.0]], 29));
-  for (let i = 0; i < 3; i++) {
-    const j = jizo(R);
-    j.position.set(-13.5 - i * 1.3, 0, -9 + i * 0.9);
-    j.rotation.y = 0.5;
-    group.add(j);
-  }
-  // a weathered torii leaning at the cliff path
-  const t = torii(R, 1);
-  t.position.set(-4, 0, -26);
-  t.scale.setScalar(0.8);
-  t.rotation.y = 0.12;
-  group.add(t);
-  // rope-wrapped boulder
-  const rope = new THREE.Mesh(merge([piece(new THREE.TorusGeometry(2.3, 0.14, 6, 24), "#d9ceb4", xf(11.5, 1.9, -13, Math.PI / 2, 0, 0))]), matVC(1));
-  group.add(rope);
-  scatter(group, "namaqualand_boulder_02", [
-    { x: 11.5, z: -13, s: 1.0, ry: 1.2 },
-    { x: -15, z: -17, s: 0.8, ry: 3 },
-    { x: 20, z: 2, s: 0.7, ry: 5 },
-    { x: -7, z: -33, s: 2.6, ry: 0.4 },
-    { x: 3, z: -37, s: 3.1, ry: 2.4 },
-    { x: 15, z: -31, s: 2.3, ry: 4.1 },
-    { x: -22, z: -26, s: 2.0, ry: 5.2 },
-    { x: 27, z: -22, s: 1.9, ry: 1.7 },
-  ], 0xcfc6b2);
-  scatter(group, "coastal_cliff_02", [
-    { x: -64, y: -1.0, z: -34, s: 1.3, ry: 1.0 },
-  ], 0xd8cfbc);
-  scatter(group, "dead_tree_trunk", [{ x: -19, z: 6, s: 1.4, ry: 2, tilt: 0 }], 0xbdb2a2);
+  const sw = new THREE.Quaternion();
+  const ax = new THREE.Vector3(1, 0, 0.3).normalize();
   return {
     id: 2,
-    name: "Coastal Pampas",
-    line: "Golden hour on the headland. The grass bends toward the sea.",
+    name: "Castle Rooftop",
+    line: "Dusk over the keep. Snow on the tiles, lanterns in the wind.",
     group,
-    hdri: "plains_sunset",
-    sunFrom: SUN_LEFT,
-    sunMinElev: 0.34,
-    fog: { color: 0xe6cf9a, density: 0.0068, fromSky: 0.55 },
-    key: { color: 0xffd08a, intensity: 2.9 },
-    fill: { color: 0xb4c6e6, intensity: 0.6, dir: v3(0.4, 0.3, 0.9) },
-    hemi: { sky: 0xd9d4bd, ground: 0x7a6c46, intensity: 0.55 },
-    env: 1.0,
-    sky: { sun: SUN_LEFT, top: 0x6f93c4, mid: 0xb8cbd4, horizon: 0xf2dfae, sunColor: 0xffd890, disc: 0, glow: 1.2, cloudLit: 0xfff0cc, cloudDark: 0x8e9db4, cloudAmount: 0.9, stars: 0 },
-    sunColor: 0xffd890,
-    particles: "petal",
-    look: { exposure: 0.98, bloom: 0.42, rays: 0.06, gain: [1.05, 1.0, 0.9] },
+    hdri: "sky_dusk",
+    sunFrom: v3(-0.86, 0.3, -0.49),
+    sunMinElev: 0.22,
+    fog: { color: 0x6e5a66, density: 0.0105, fromSky: 0.5 },
+    key: { color: 0xffc784, intensity: 3.1 },
+    fill: { color: 0x93a3d6, intensity: 0.8, dir: v3(-0.4, 0.3, 0.9) },
+    hemi: { sky: 0x5f6c96, ground: 0x262c3e, intensity: 0.55 },
+    env: 0.55,
+    sky: { sun: v3(-0.86, 0.14, -0.49), top: 0x2a2a44, mid: 0x6a5468, horizon: 0xc7967a, sunColor: 0xffb070, disc: 6, glow: 1.2, cloudLit: 0xffb890, cloudDark: 0x3a3048, cloudAmount: 0.6, stars: 0 },
+    sunColor: 0xffb070,
+    particles: "snow",
+    look: { exposure: 1.0, bloom: 0.5, rays: 0.08, gain: [1.03, 0.98, 1.0] },
     update(t, wind) {
-      uniforms.uTime.value = t;
-      uniforms.uWind.value = 0.35 + wind * 1.4;
+      for (const L of lanterns) {
+        const s = Math.sin(t * 1.3 + L.phase) * (0.05 + wind * 0.08);
+        L.o.quaternion.copy(L.rest).multiply(sw.setFromAxisAngle(ax, s));
+        const f = 3.8 + Math.sin(t * 7.1 + L.phase) * 0.35 + Math.sin(t * 12.7 + L.phase * 2) * 0.2;
+        L.mat.emissiveIntensity = f;
+        if (L.light) L.light.intensity = f * 4;
+      }
     },
   };
 }
 
-// ============================================================================ 3: ruined castle
+// ============================================================================ 3: sakura grove
 
-/** Sloped Japanese castle base (ishigaki): a stone frustum, optionally broken off at the top. */
-function stoneBase(w: number, d: number, h: number, x: number, z: number, ry: number, R: () => number): THREE.BufferGeometry[] {
-  const parts: THREE.BufferGeometry[] = [];
-  const g = new THREE.CylinderGeometry(Math.SQRT1_2 * w * 0.82, Math.SQRT1_2 * w, h, 4, 3);
-  g.rotateY(Math.PI / 4);
-  const p = g.attributes.position;
-  for (let i = 0; i < p.count; i++) {
-    p.setX(i, p.getX(i) * (d / w));
-    if (p.getY(i) > h / 2 - 0.01) p.setY(i, p.getY(i) - R() * h * 0.28);
+/** Fallen petals: a pale pink carpet thinning toward the trees' edges. One instanced draw. */
+function petalCarpet(n: number, rMax: number, seed: number): THREE.InstancedMesh {
+  const R = rng(seed);
+  const geo = new THREE.CircleGeometry(0.022, 5);
+  geo.rotateX(-Math.PI / 2);
+  const mesh = new THREE.InstancedMesh(geo, new THREE.MeshStandardMaterial({ roughness: 0.8, side: THREE.DoubleSide }), n);
+  const m = new THREE.Matrix4();
+  const c = new THREE.Color();
+  const pinks = [0xe9b4c2, 0xdfa0b2, 0xf0c8d2, 0xd894a8].map((h) => new THREE.Color(h));
+  for (let i = 0; i < n; i++) {
+    const r = rMax * Math.pow(R(), 0.6);
+    const a = R() * Math.PI * 2;
+    m.compose(new THREE.Vector3(Math.cos(a) * r, 0.012 + R() * 0.01, Math.sin(a) * r), new THREE.Quaternion().setFromEuler(new THREE.Euler((R() - 0.5) * 0.4, R() * 6.28, (R() - 0.5) * 0.4)), new THREE.Vector3(1 + R(), 1, 0.7 + R() * 0.6));
+    mesh.setMatrixAt(i, m);
+    mesh.setColorAt(i, c.copy(pinks[i % pinks.length]).multiplyScalar(0.85 + R() * 0.25));
   }
-  parts.push(tpiece(g, xf(x, h / 2, z, 0, ry, 0), 2.6));
-  return parts;
+  mesh.receiveShadow = true;
+  return mesh;
 }
 
-/** A sloped ishigaki wall run of length `len`, curving in from a wide base to a narrower top, along local X. */
-function ishigaki(len: number, h: number, x: number, z: number, ry: number, base = 2.4, top = 1.25): THREE.BufferGeometry {
-  const shape = new THREE.Shape();
-  const half = (y: number) => top + (base - top) * Math.pow(1 - y / h, 2.3);
-  const n = 8;
-  shape.moveTo(-base, 0);
-  for (let i = 1; i <= n; i++) shape.lineTo(-half((i / n) * h), (i / n) * h);
-  for (let i = n; i >= 0; i--) shape.lineTo(half((i / n) * h), (i / n) * h);
-  const g = new THREE.ExtrudeGeometry(shape, { depth: len, bevelEnabled: false, steps: 1 });
-  g.translate(0, 0, -len / 2);
-  g.rotateY(Math.PI / 2); // extrude axis -> X
-  return tpiece(g, xf(x, 0, z, 0, ry, 0), 2.6);
-}
-
-/** Plaster parapet (dobei) with a tiled cap that sits on top of a wall run. */
-function parapet(len: number, x: number, y: number, z: number, ry: number, plaster: THREE.BufferGeometry[], roofs: THREE.BufferGeometry[], R: () => number): void {
-  plaster.push(piece(new THREE.BoxGeometry(len, 1.9, 0.62), "#dcd5c4", xf(x, y + 0.95, z, 0, ry, 0), 0.06, R));
-  roofs.push(tpiece(new THREE.BoxGeometry(len + 0.2, 0.22, 1.5), xf(x, y + 2.05, z, 0, ry, 0), 1.6));
-  roofs.push(tpiece(new THREE.BoxGeometry(len + 0.2, 0.24, 0.5), xf(x, y + 2.25, z, 0, ry, 0), 1.6));
-}
-
-function ruinedCastle(R: () => number): THREE.Group {
-  const g = new THREE.Group();
-  const stone: THREE.BufferGeometry[] = [];
-  const plaster: THREE.BufferGeometry[] = [];
-  const roofs: THREE.BufferGeometry[] = [];
-  // curtain walls on a wide arc behind the ring; some runs are whole (parapet on top), some are broken stumps
-  const runs = 10;
-  for (let i = 0; i < runs; i++) {
-    if (i % 3 === 1) continue; // gaps where the wall has gone
-    const a0 = Math.PI * 0.1 + (i / runs) * Math.PI * 0.8;
-    const r = 40 + (i % 2) * 2.5;
-    const len = (2 * Math.PI * r * 0.8) / runs * 0.8;
-    const x = Math.cos(a0) * r, z = -Math.sin(a0) * r;
-    const ry = a0 - Math.PI / 2;
-    const broken = R() < 0.5;
-    const h = broken ? 2.2 + R() * 2.6 : 6.4;
-    stone.push(ishigaki(len, h, x, z, ry, 2.4, broken ? 1.5 : 1.25));
-    if (!broken) parapet(len, x, h, z, ry, plaster, roofs, R);
-  }
-  // gatehouse at the back: two stone piers and a plaster gate tower bridging them
-  const gx = 0, gz = -46;
-  stone.push(ishigaki(8, 8.4, gx - 7, gz, 0, 3, 1.8), ishigaki(8, 8.4, gx + 7, gz, 0, 3, 1.8));
-  plaster.push(piece(new THREE.BoxGeometry(22, 5.2, 5.4), "#dcd5c4", xf(gx, 8.4 + 2.6 + 1.4, gz), 0.05, R));
-  roofs.push(tpiece(new THREE.BoxGeometry(25, 0.5, 8.4), xf(gx, 8.4 + 5.6 + 1.4 + 0.2, gz), 2.4));
-  roofs.push(tpiece(new THREE.BoxGeometry(23, 1.4, 6.0), xf(gx, 8.4 + 5.6 + 1.4 + 1.0, gz), 2.4));
-  roofs.push(tpiece(new THREE.BoxGeometry(24, 0.3, 1.2), xf(gx, 8.4 + 5.6 + 1.4 + 1.85, gz), 2.4));
-  // dark opening, a wooden lintel and the gate leaves
-  stone.push(tpiece(new THREE.BoxGeometry(6, 0.9, 4.6), xf(gx, 8.4 + 0.45, gz), 2.6));
-  const rubble: THREE.BufferGeometry[] = [];
-  for (let i = 0; i < 46; i++) rubble.push(tpiece(blob(0.35 + R() * 0.7, 0, R, 0.4), xf((R() - 0.5) * 60, 0.15, -6 - R() * 38, R(), R(), R(), 1, 0.65, 1), 1.6));
-  g.add(new THREE.Mesh(tmerge(stone), pbr("japanese_stone_wall", { color: 0xb9b4a8 })));
-  g.add(new THREE.Mesh(merge(plaster), matVC(0.95)));
-  g.add(new THREE.Mesh(tmerge(roofs), pbr("grey_roof_tiles", { color: 0x5c5d63 })));
-  g.add(new THREE.Mesh(tmerge(rubble), pbr("mossy_stone_wall", { color: 0xaaa597 })));
-  // the keep, far off in the mist: tiered stone base, kplaster storeys, dark kroofs
-  const keep = new THREE.Group();
-  const base = tmerge(stoneBase(34, 34, 14, 0, 0, 0, () => 0.05));
-  keep.add(new THREE.Mesh(base, pbr("japanese_stone_wall", { color: 0xb0aca0 })));
-  const kplaster: THREE.BufferGeometry[] = [];
-  const kroofs: THREE.BufferGeometry[] = [];
-  let y = 14;
-  for (let k = 0; k < 4; k++) {
-    const w = 22 - k * 4;
-    kplaster.push(piece(new THREE.BoxGeometry(w, 5.2, w * 0.8), "#d9d3c2", xf(0, y + 2.6, 0), 0.05, R));
-    kroofs.push(tpiece(new THREE.BoxGeometry(w + 6, 0.9, w * 0.8 + 6), xf(0, y + 5.7, 0), 2.4));
-    kroofs.push(tpiece(new THREE.BoxGeometry(w + 2, 1.4, w * 0.8 + 2), xf(0, y + 6.7, 0), 2.4));
-    y += 6.2;
-  }
-  keep.add(new THREE.Mesh(merge(kplaster), matVC(0.95)));
-  keep.add(new THREE.Mesh(tmerge(kroofs), pbr("grey_roof_tiles", { color: 0x55565c })));
-  keep.position.set(-14, 0, -112);
-  keep.scale.setScalar(1.15);
-  g.add(keep);
-  return g;
-}
-
-function banners(R: () => number): { group: THREE.Group; cloth: THREE.Mesh[] } {
+/** The final duel: a cherry grove in full bloom on a spring afternoon, an ancient sakura behind him. */
+function buildSakura(): ThemeSpec {
+  const R = rng(404);
   const group = new THREE.Group();
-  const cloth: THREE.Mesh[] = [];
-  const poleParts: THREE.BufferGeometry[] = [];
-  const clothMat = new THREE.MeshStandardMaterial({ color: 0x8e2a22, roughness: 0.95, side: THREE.DoubleSide });
-  const spots: [number, number][] = [[-12, -14], [12, -15], [-17, -4], [17, -3], [-6, -25], [6, -26]];
-  for (const [x, z] of spots) {
-    poleParts.push(piece(new THREE.CylinderGeometry(0.07, 0.09, 6.2, 6), "#3a2c22", xf(x, 3.1, z), 0.1, R));
-    poleParts.push(piece(new THREE.BoxGeometry(1.0, 0.07, 0.07), "#3a2c22", xf(x + 0.5, 5.9, z)));
-    const c = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 3.6, 1, 6), clothMat);
-    c.position.set(x + 0.52, 4.0, z);
-    c.rotation.y = R() * 0.5 - 0.25;
-    group.add(c);
-    cloth.push(c);
+  groundPlates(group, pbr("forest_ground_04", { color: 0xb9bf9c, normal: 1.0 }), pbr("forest_ground_04", { color: 0xa8ae8c, normal: 0.9 }), 3.6, 3.6, 2.4, 41);
+  // stepping stones across the ring, the path to the old tree
+  const stones: THREE.BufferGeometry[] = [];
+  for (let i = 0; i < 26; i++) {
+    const z = 15 - i * 1.55;
+    stones.push(tpiece(blob(0.42 + R() * 0.12, 1, R, 0.25), xf((R() - 0.5) * 0.5, 0.03, z, 0, R() * 6, 0, 1.2, 0.18, 0.95), 1.2));
   }
-  group.add(new THREE.Mesh(merge(poleParts), matVC(0.9)));
-  return { group, cloth };
-}
-
-function buildCastle(): ThemeSpec {
-  const R = rng(303);
-  const group = new THREE.Group();
-  groundPlates(group, pbr("mossy_cobblestone", { color: 0x9c9a92, normal: 1.2, rough: 0.88 }), pbr("rocky_trail", { color: 0x8a8678 }), 3.2, 6, 2.2, 31);
-  group.add(ruinedCastle(R));
-  const flags = banners(R);
-  group.add(flags.group);
-  group.add(forest("ginkgo", [[-95, -150, 3.2], [-60, -60, 1.3], [38, -70, 1.5]], 31, { glow: 0.35 }));
-  const halo = glowSprite("rgba(255,196,96,1)", 120, 0.28);
-  halo.position.set(-95, 24, -150);
-  group.add(halo);
+  group.add(new THREE.Mesh(tmerge(stones), pbr("stone_pathway", { color: 0xd8d2c8 })));
+  group.add(petalCarpet(16000, 40, 7));
+  // the ancient sakura behind him, then the grove all round
+  group.add(forest("sakura", [[0, -31, 2.4]], 61));
+  const ring: [number, number, number][] = [];
+  for (let i = 0; i < 34; i++) {
+    const a = (i / 34) * Math.PI * 2 + (R() - 0.5) * 0.18;
+    const r = 23 + R() * 14;
+    const x = Math.cos(a) * r, z = Math.sin(a) * r;
+    if (z > 12 && Math.abs(x) < 10) continue; // keep the camera's side open
+    ring.push([x, z, 1.05 + R() * 0.55]);
+  }
+  group.add(forest("sakura", ring, 62));
+  group.add(forest("cedar", Array.from({ length: 16 }, (_, i): [number, number, number] => {
+    const a = Math.PI * (1.15 + (i / 15) * 0.7);
+    return [Math.cos(a) * (52 + R() * 10), Math.sin(a) * (52 + R() * 10), 1 + R() * 0.4];
+  }), 63));
+  const gate = torii(R);
+  gate.position.set(0, 0, -19);
+  gate.scale.setScalar(0.85);
+  group.add(gate);
+  const lamps: THREE.MeshStandardMaterial[] = [];
+  for (const [x, z] of [[-4.2, -17.5], [4.2, -17.5], [-15.5, -4], [15.5, -4]] as const) {
+    const l = toro(R);
+    l.group.position.set(x, 0, z);
+    l.group.scale.setScalar(1.2);
+    group.add(l.group);
+    lamps.push(l.glow);
+  }
   scatter(group, "rock_moss_set_01", [
-    { x: -16, z: -9, s: 1.7, ry: 1 },
-    { x: 17, z: -13, s: 2.0, ry: 2 },
-    { x: 3, z: -22, s: 1.5, ry: 4 },
-    { x: -9, z: 10, s: 1.2, ry: 5 },
-  ], 0xb5b0a2);
-  scatter(group, "stone_01", [
-    { x: 10, z: -4, s: 1.2, ry: 1 },
-    { x: -14, z: 5, s: 1.4, ry: 3 },
-    { x: 14, z: 11, s: 1.0, ry: 5 },
-  ], 0xaaa598);
-  scatter(group, "dead_tree_trunk", [{ x: 19, z: -4, s: 1.6, ry: 1.2 }], 0x9a9084);
-  // mist sheets drifting over the stone
-  const mist = new THREE.Group();
-  const sheets: THREE.Mesh[] = [];
-  const mistTex = (() => {
-    const c = document.createElement("canvas");
-    c.width = c.height = 256;
-    const g = c.getContext("2d")!;
-    for (let i = 0; i < 46; i++) {
-      const x = R() * 256, y = R() * 256, r = 30 + R() * 70;
-      const gr = g.createRadialGradient(x, y, 0, x, y, r);
-      gr.addColorStop(0, "rgba(255,255,255,0.22)");
-      gr.addColorStop(1, "rgba(255,255,255,0)");
-      g.fillStyle = gr;
-      g.fillRect(x - r, y - r, r * 2, r * 2);
-    }
-    const t = new THREE.CanvasTexture(c);
-    t.wrapS = t.wrapT = THREE.RepeatWrapping;
-    t.repeat.set(3, 3);
-    t.colorSpace = THREE.SRGBColorSpace;
-    return t;
-  })();
-  for (let i = 0; i < 3; i++) {
-    const m = new THREE.Mesh(new THREE.RingGeometry(9 + i * 2, 70, 40), new THREE.MeshBasicMaterial({ map: mistTex, color: 0xc4ccd8, transparent: true, opacity: 0.2, depthWrite: false, side: THREE.DoubleSide }));
-    m.rotation.x = -Math.PI / 2;
-    m.position.y = 0.4 + i * 0.8;
-    sheets.push(m);
-    mist.add(m);
-  }
-  group.add(mist);
+    { x: -18, z: -12, s: 1.5, ry: 1 },
+    { x: 19, z: -9, s: 1.7, ry: 2.5 },
+    { x: -9, z: -24, s: 1.3, ry: 4 },
+  ]);
+  group.add(
+    ridges(
+      [
+        { radius: 700, height: 110, base: 10, color: 0x6f86a0, haze: 0.75, seed: 5, jag: 0.5 },
+        { radius: 380, height: 60, base: 0, color: 0x4e6a5a, haze: 0.5, seed: 9, jag: 0.6 },
+      ],
+      0xd8dce6,
+    ),
+  );
   return {
     id: 3,
-    name: "Ruined Castle",
-    line: "Morning mist over the burned castle. Something old waits in the keep.",
+    name: "Sakura Grove",
+    line: "Spring. The old cherry is in full bloom, and the petals do not stop falling.",
     group,
-    hdri: "kloofendal_misty_morning",
+    hdri: "kloofendal_48d_partly_cloudy_puresky",
     sunFrom: SUN_LEFT,
-    sunMinElev: 0.55,
-    fog: { color: 0xaab2bc, density: 0.0125, fromSky: 0.8 },
-    key: { color: 0xdfe6f2, intensity: 2.6 },
-    fill: { color: 0xffc890, intensity: 0.7, dir: v3(-0.7, 0.2, 0.6) },
-    hemi: { sky: 0xb9c4d4, ground: 0x4e4a44, intensity: 0.7 },
-    env: 1.05,
-    sky: { sun: SUN_LEFT, top: 0x8a98ae, mid: 0xb4bdc8, horizon: 0xc8ccd2, sunColor: 0xfff0d8, disc: 0, glow: 0.6, cloudLit: 0xd8dde6, cloudDark: 0x8e98a8, cloudAmount: 0.6, stars: 0 },
-    sunColor: 0xffe8c8,
-    particles: "ember",
-    look: { exposure: 1.0, bloom: 0.45, rays: 0.05, gain: [0.98, 1.0, 1.03] },
+    sunMinElev: 0.6,
+    fog: { color: 0xd8dce6, density: 0.0065, fromSky: 0.5 },
+    key: { color: 0xfff1e0, intensity: 3.0 },
+    fill: { color: 0xc6d4ff, intensity: 0.6, dir: v3(0.4, 0.3, 0.9) },
+    hemi: { sky: 0xdfe8f6, ground: 0x6a5a50, intensity: 0.6 },
+    env: 1.0,
+    sky: { sun: SUN_LEFT, top: 0x6a90c8, mid: 0xa9c2de, horizon: 0xe6e8ee, sunColor: 0xfff4e0, disc: 0, glow: 0.8, cloudLit: 0xffffff, cloudDark: 0xb4bccc, cloudAmount: 0.5, stars: 0 },
+    sunColor: 0xfff4e0,
+    particles: "petal",
+    look: { exposure: 1.0, bloom: 0.38, rays: 0.05, gain: [1.03, 1.0, 1.0] },
     update(t) {
-      sheets.forEach((s, i) => (s.rotation.z = t * (0.012 + i * 0.006) * (i % 2 ? -1 : 1)));
-      flags.cloth.forEach((c, i) => {
-        c.rotation.y = Math.sin(t * 1.6 + i * 1.7) * 0.28 + Math.sin(t * 0.7 + i) * 0.12;
-        c.rotation.z = Math.sin(t * 2.3 + i) * 0.04;
-      });
+      for (let i = 0; i < lamps.length; i++) lamps[i].emissiveIntensity = 1.4 + Math.sin(t * 6.1 + i * 2.1) * 0.15;
     },
   };
 }
 
 export function buildTheme(id: ThemeId, q: QualitySettings): ThemeSpec {
-  return id === 1 ? buildShrine() : id === 2 ? buildPampas(q) : buildCastle();
+  return id === 1 ? buildShrine() : id === 2 ? buildRooftop(q) : buildSakura();
 }
