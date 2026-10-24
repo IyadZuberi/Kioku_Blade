@@ -46,7 +46,7 @@ describe("habitBars", () => {
 
 describe("highMoves / sourceLine", () => {
   it("lists the moves at high emphasis in canonical order", () => {
-    expect(highMoves(rulesPlan([h("block_holder", 1)], 5))).toEqual(["thrust", "grab", "flurry"]);
+    expect(highMoves(rulesPlan([h("block_holder", 1)], 5))).toEqual(["thrust", "grab", "flurry", "kick"]);
   });
   it("labels the source honestly", () => {
     expect(sourceLine({ source: "mubit", latencyMs: 412, requestId: "mreq_abc", valid: true })).toContain("mubit");

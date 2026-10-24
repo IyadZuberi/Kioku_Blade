@@ -206,6 +206,8 @@ export class Game {
   private endCard = false;
   private gateFlash = false;
   private gateDone = false;
+  /** 1 on a fresh parry by the general, fading (drives his steel's flare). */
+  private parryFlash = 0;
   private desatTarget = 0;
   private barsTarget = 0;
   private finInk2 = false;
@@ -1342,6 +1344,8 @@ export class Game {
           // He turns the cut aside (no posture cost to the player, but a long recoil) and
           // answers with the flurry.
           this.stats.bossDeflects++;
+          this.parryFlash = 1;
+          this.fx.parryCue.show();
           this.fx.deflect(at, this.sparkDir(at, new THREE.Vector3()), 0.55);
           this.audio.clang(0.75);
           this.hitstop = 0.06;
@@ -1820,6 +1824,14 @@ export class Game {
     this.fx.updateReal(dt);
     // The danger glyph flashes over the shinobi's head.
     this.fx.glyph.update(dt, _a.copy(p.ch.rig.headW).add(this.interp.p).setY(p.ch.rig.headW.y + 0.55), this.camera);
+    this.fx.parryCue.update(dt, _a.copy(b.ch.rig.headW).add(this.interp.b).setY(b.ch.rig.headW.y + 0.75), this.camera);
+    // Parry stance: his steel glows cold blue as his guard readies, and flares when he turns a cut aside.
+    const steel = this.bossBody.active.weaponSteel;
+    if (steel) {
+      this.parryFlash = Math.max(0, this.parryFlash - dt * 2.5);
+      const want = (this.state === "fight" ? b.parryReady * 2.4 : 0) + this.parryFlash * 9;
+      steel.emissiveIntensity += (want - steel.emissiveIntensity) * Math.min(1, dt * 12);
+    }
     const dotAt = _b.copy(b.ch.rig.chestW).addScaledVector(_c1.subVectors(this.camera.position, b.ch.rig.chestW).normalize(), 0.35);
     this.fx.dot.update(dt, dotAt);
     // Trails run on game time so hitstop freezes them with the blades.

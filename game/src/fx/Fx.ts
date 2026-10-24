@@ -22,6 +22,8 @@ export class Fx {
   readonly glintFlash = new Flash();
   readonly streak = new Flash("streak");
   readonly glyph = new PerilGlyph();
+  /** "Parried": the general turned the player's cut aside (stop swinging, guard for his answer). */
+  readonly parryCue = new PerilGlyph("PARRIED", "#a8d8ff", 30, 0.55);
   readonly dot = new DeathDot();
   readonly light = new THREE.PointLight(0xff9a40, 0, 9, 2);
   private lightT = 1;
@@ -269,6 +271,7 @@ export class Fx {
     this.dust.clear();
     this.splats.clear();
     this.glyph.hide();
+    this.parryCue.hide();
     this.dot.active = false;
   }
 }

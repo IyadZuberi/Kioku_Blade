@@ -215,6 +215,8 @@ export const BOSS_SKIN: SkinnedConfig = {
     dead: { clip: "death_forward", atEnd: true, alt: ["death", "finished"] },
     victory: { clip: "idle", loop: true },
     sweep: { clip: "sweep", alt: ["attack1"] },
+    spin: { clip: "spin_attack", alt: ["attack1"] },
+    kick: { clip: "kick", alt: ["attack1"] },
     grab: { clip: "grab", alt: ["thrust"] },
     grabThrow: { clip: "grab_throw", fit: 1.9, alt: ["hit"] },
     mikiried: { clip: "stumble", fit: 1.6, alt: ["hit_heavy", "hit"] },

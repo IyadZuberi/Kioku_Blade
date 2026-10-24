@@ -1,9 +1,10 @@
 /**
  * The first eight are the base game's attacks. windSlash (overhead that throws a travelling cut),
  * waterfowl (leap into a flurry) and shockwave (leap slam with a ground ring) are our variants,
- * built from the same animation clips.
+ * built from the same animation clips. spin (Kazemaru's whirling spear cut) and kick (Kurogane's
+ * guard-breaking stamp kick) are signature moves with their own clips.
  */
-export const MOVES = ["leap", "combo", "comboDelay", "overhead", "thrust", "sweep", "grab", "flurry", "windSlash", "waterfowl", "shockwave"] as const;
+export const MOVES = ["leap", "combo", "comboDelay", "overhead", "thrust", "sweep", "grab", "flurry", "windSlash", "waterfowl", "shockwave", "spin", "kick"] as const;
 export type Move = (typeof MOVES)[number];
 
 export const HABITS = ["block_holder", "deflect_expert", "dodge_spammer", "jump_dependent", "heal_greedy", "passive", "aggressive"] as const;

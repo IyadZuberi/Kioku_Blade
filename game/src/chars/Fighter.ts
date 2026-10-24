@@ -49,6 +49,10 @@ export interface Fighter {
   bounce(hold?: number): void;
   /** Outside its active windows the blade would pass through the other fighter: lift it clear. */
   setAvoid(on: boolean): void;
+  /** Swap the held weapon (skinned bodies; null = the stock katana). */
+  setWeapon?(w: import("./weapons").Weapon | null): void;
+  /** The held weapon's steel, when it is a swapped weapon (parry-stance glow). */
+  readonly weaponSteel?: THREE.MeshStandardMaterial | null;
   /** Deathblows (skinned bodies): drive the blade into this live point during the plunge; null clears. */
   plungeInto?(target: THREE.Vector3 | null): void;
   step(dt: number, wind: THREE.Vector3, t: number): void;

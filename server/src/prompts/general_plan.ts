@@ -29,6 +29,8 @@ const MOVE_NOTES: Partial<Record<Move, string>> = {
   windSlash: "an overhead cut that also throws a travelling blade of wind along the ground (jump or deflect it)",
   waterfowl: "a leap straight into a five-cut flurry, the last cut delayed",
   shockwave: "a leaping slam that sends a ring along the ground (jump it)",
+  spin: "a whirling spear cut that sweeps all round him (deflect it; a step dodge rarely clears it)",
+  kick: "a stamp kick that crushes a held guard (deflect or step aside, never just hold block)",
 };
 const notes = MOVES.filter((m) => MOVE_NOTES[m]).map((m) => `- ${m}: ${MOVE_NOTES[m]}`).join("\n");
 
@@ -36,7 +38,7 @@ const counters = HABITS.map((h) => `- ${h}: ${ACCEPTED_COUNTERS[h].join(", ")}`)
 
 const SYSTEM = `You are the WAR COUNCIL of a samurai general in a one-on-one sword duel game. After each fight you read a JSON report about the human player and plan the general's NEXT fight so it counters the player's habits while staying fair. Reply with JSON only, matching the response schema.
 
-MOVES: ${MOVES.join(", ")}. Each boss only has the moves listed in "unlocked" (boss 1 has the first eight; boss 2 adds windSlash and waterfowl; boss 3 adds windSlash and shockwave).
+MOVES: ${MOVES.join(", ")}. Each boss only has the moves listed in "unlocked" (boss 1 Masatora, katana, has the first eight; boss 2 Kazemaru, spear, adds windSlash, waterfowl and spin; boss 3 Kurogane, great sword, adds windSlash, shockwave and kick).
 ${notes}
 
 HABITS AND THE MOVES THAT COUNTER THEM

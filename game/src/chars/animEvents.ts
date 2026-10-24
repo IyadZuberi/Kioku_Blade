@@ -260,6 +260,9 @@ export const MIXAMO_BOSS: EventTable = {
   sweep: { norm: true, hits: [{ start: 0.4, end: 0.5, contact: 0.44 }], track: [[0, 0.32]], lunge: [[0.32, 0.44]] },
   grab: { norm: true, tuned: true, hits: [{ start: 0.32, end: 0.42, contact: 0.36 }], track: [[0, 0.28]], lunge: [[0.25, 0.38]], cue: { clamp: 0.36 } },
   grab_throw: { norm: true, cue: { slam: 0.4 }, end: 1 },
+  // Windows from the blade-tip speed curve (tools/anim-inspect.mjs): one fast spin, a late stamp.
+  spin_attack: { norm: true, hits: [{ start: 0.31, end: 0.37, contact: 0.341 }], windupPeak: [0.221], track: [[0, 0.26]], lunge: [[0.2, 0.34]], end: 0.62 },
+  kick: { norm: true, hits: [{ start: 0.78, end: 0.9, contact: 0.84 }], windupPeak: [0.509], track: [[0, 0.62]], lunge: [[0.6, 0.8]], end: 1 },
   stumble: { norm: true, end: 1 },
   get_up: { norm: true, end: 1 },
   walk: { norm: true, footsteps: [0, 0.5] },

@@ -155,6 +155,20 @@ export const ATTACKS: Record<string, AttackSpec> = {
  * travelling cut along the ground, shockwave is the leap whose slam sends a ring, waterfowl is the
  * leap that chains straight into the flurry.
  */
+/** Signature moves with their own clips (see bosses.ts for who has them). */
+ATTACKS.spin = {
+  name: "spin",
+  // Kazemaru's whirling cut: one wide heavy blow all round him.
+  hits: [{ dmg: 20, posture: 24, heavy: true }],
+  moves: [{ d: 1.6, stop: 1.5 }],
+};
+ATTACKS.kick = {
+  name: "kick",
+  // Kurogane's stamp kick: light on vitality, crushing on a held guard (deflect it or step aside).
+  hits: [{ dmg: 12, posture: 48, heavy: true }],
+  moves: [{ d: 1.4, stop: 1.1 }],
+};
+
 export const VARIANT: Record<string, string> = { windSlash: "overhead", shockwave: "leap", waterfowl: "leap" };
 
 export function buildAttack(spec: AttackSpec, tl: Timeline): AttackDef {
@@ -700,6 +714,17 @@ export class Boss {
     this.enter("block");
     this.setClip("block", 0.05);
     return "block";
+  }
+
+  /**
+   * The parry stance, 0..1: how likely he is to turn the player's next cut aside right now (his guard
+   * is up and a string of cuts has been met). Shown as a cold glow along his steel.
+   */
+  get parryReady(): number {
+    if (this.state !== "block" && this.state !== "idle" && this.state !== "wait") return 0;
+    const n = this.time - this.lastGuardT > 1.3 ? 1 : this.guardHits + 1;
+    const D = DIFFICULTY.bossDeflect;
+    return D[Math.min(n, D.length - 1)] * (this.phase === 2 ? 0.85 : 1);
   }
 
   /** Answer to a deflected cut: the long string. */

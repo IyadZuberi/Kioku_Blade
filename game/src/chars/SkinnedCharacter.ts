@@ -24,6 +24,7 @@ import type { Character } from "./Character";
 import type { Cloth, Sphere } from "./Cloth";
 import type { Fighter, FighterRig } from "./Fighter";
 import type { ClipSpec, SkinnedConfig, Socket } from "./skinnedConfig";
+import type { Weapon } from "./weapons";
 
 const _v = new THREE.Vector3();
 const _q = new THREE.Quaternion();
@@ -146,6 +147,9 @@ export class SkinnedCharacter implements Fighter {
   private loco = "";
   private seq: Seq | null = null;
   private readonly swordSocket: THREE.Object3D;
+  private katana: { kids: THREE.Object3D[]; tsuba: number; blade: number } | null = null;
+  /** The held weapon's steel (its glow shows the parry stance); null for the stock katana. */
+  weaponSteel: THREE.MeshStandardMaterial | null = null;
   private readonly cloths: { cloth: Cloth; pins: THREE.Object3D[] }[] = [];
   private readonly colliders: Sphere[] = [];
   private readonly simPos = new THREE.Vector3();
@@ -396,6 +400,27 @@ export class SkinnedCharacter implements Fighter {
     o.position.set(s.offset[0] / ws, s.offset[1] / ws, s.offset[2] / ws);
     o.rotation.set(s.rot[0], s.rot[1], s.rot[2]);
     return o;
+  }
+
+  /** Hold another weapon (null: back to the stock katana). The hit segment follows the new blade. */
+  setWeapon(w: Weapon | null): void {
+    const S = this.swordSocket;
+    const d = this.cfg.sword;
+    this.katana ??= { kids: [...S.children], tsuba: d.tsuba, blade: d.blade };
+    for (const c of [...S.children]) S.remove(c);
+    if (!w) {
+      for (const c of this.katana.kids) S.add(c);
+      d.tsuba = this.katana.tsuba;
+      d.blade = this.katana.blade;
+      this.weaponSteel = null;
+      return;
+    }
+    w.group.scale.setScalar(1 / d.scale);
+    w.group.traverse((o) => (o.castShadow = true));
+    S.add(w.group);
+    d.tsuba = w.hilt / d.scale;
+    d.blade = (w.tip - w.hilt) / d.scale;
+    this.weaponSteel = w.steel;
   }
 
   /** `sword.auto`: fit the katana to the fist (pinky → index knuckle axis, edge toward the knuckles). */

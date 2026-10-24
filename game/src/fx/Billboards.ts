@@ -110,11 +110,12 @@ export class PerilGlyph {
   private visible = false;
   active = false;
 
-  constructor() {
-    const c = brushText("!", { size: 200, font: LATIN_FONT, weight: 900, color: "#c8160c", seed: 11, dry: 0.3, splatter: 0.25 });
+  /** `text`: the brush word (red "!" for peril; also used for the general's "Parried" call-out). */
+  constructor(text = "!", color = "#c8160c", widthVh = 17, private readonly hold = 0.45) {
+    const c = brushText(text, { size: text.length > 1 ? 120 : 200, font: LATIN_FONT, weight: 900, color, seed: 11, dry: 0.3, splatter: 0.25, letterSpacing: text.length > 1 ? 0.12 : 0 });
     this.el = document.createElement("div");
     this.el.style.cssText =
-      "position:fixed;left:0;top:0;width:17vh;height:17vh;pointer-events:none;opacity:0;z-index:5;will-change:transform,opacity;" +
+      `position:fixed;left:0;top:0;width:${widthVh}vh;height:${text.length > 1 ? 7 : 17}vh;pointer-events:none;opacity:0;z-index:5;will-change:transform,opacity;` +
       "background:radial-gradient(closest-side, rgba(12,2,2,0.72), rgba(12,2,2,0.45) 55%, rgba(12,2,2,0) 100%);";
     const img = new Image();
     img.src = c.toDataURL();
@@ -137,7 +138,7 @@ export class PerilGlyph {
   update(dt: number, anchor: THREE.Vector3, camera: THREE.Camera): void {
     if (!this.visible) return;
     this.t += dt;
-    if (this.active) this.a = this.t < 0.45 ? 1 : Math.max(0, 1 - (this.t - 0.45) / 0.25);
+    if (this.active) this.a = this.t < this.hold ? 1 : Math.max(0, 1 - (this.t - this.hold) / 0.25);
     else this.a = Math.max(0, this.a - dt * 6);
     const s = 1 + 0.18 * Math.exp(-this.t / 0.05);
     _proj.copy(anchor).project(camera);
