@@ -28,7 +28,9 @@ const CSS = `
 #council .dots::after { content: ""; animation: cdots 1.2s steps(4) infinite; }
 @keyframes cdots { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
 #gr-title { position: absolute; top: 3.2vh; left: 0; right: 0; text-align: center; font-family: ${LATIN_FONT}; color: #e8dfd0; letter-spacing: 0.2em; font-size: 13px; text-transform: uppercase; opacity: 0; transition: opacity 0.6s ease; }
-#gr-title.on { opacity: 0.9; }
+#gr-title.on { opacity: 1; }
+#gr-title::before { content: ""; position: absolute; inset: -3.2vh 0 -2vh 0; z-index: -1; background: linear-gradient(180deg, rgba(12,9,12,0.72) 0%, rgba(12,9,12,0.5) 70%, rgba(12,9,12,0) 100%); }
+#gr-title { z-index: 2; text-shadow: 0 1px 6px rgba(0,0,0,0.85); }
 #gr-title .nick { pointer-events: auto; margin-top: 8px; }
 #gr-title .chapters { display: flex; justify-content: center; gap: 10px; margin-top: 12px; pointer-events: auto; flex-wrap: wrap; padding: 0 12px; }
 #gr-title .chip { cursor: pointer; padding: 7px 16px 8px; border: 1px solid rgba(239,231,218,0.28); background: rgba(14,10,12,0.45); color: #d9cdb9; letter-spacing: 0.14em; font-size: 12px; text-transform: none; transition: border-color 0.2s, background 0.2s; }

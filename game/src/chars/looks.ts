@@ -74,14 +74,10 @@ export function applyBossLook(body: BodyLike, look: BossLook): void {
   restore(root);
   if (look === "ronin") return;
   const mats = new Map<Standardish, { color: THREE.Color; emissive: THREE.Color; ei: number }>();
-  const mul = look === "reed" ? new THREE.Color(0.62, 0.95, 0.9) : new THREE.Color(0.34, 0.4, 0.62);
+  const mul = look === "reed" ? new THREE.Color(0.62, 0.95, 0.9) : new THREE.Color(0.42, 0.46, 0.66);
   for (const m of materials(root)) {
     mats.set(m, { color: m.color.clone(), emissive: m.emissive.clone(), ei: m.emissiveIntensity });
     m.color.multiply(mul);
-    if (look === "hollow") {
-      m.emissive.set(0xffa030);
-      m.emissiveIntensity = Math.max(m.emissiveIntensity, 0.16);
-    }
   }
   const extras: THREE.Object3D[] = [];
   const head = body.bones?.get("Head");

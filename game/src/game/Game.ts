@@ -47,7 +47,7 @@ import { BOSSES, bossKnobs, type BossDef } from "./bosses";
 import { Hazards, RING, WAVE } from "./hazards";
 import { afterFight, fresh, loadProgress, saveProgress, select as selectProgress, unlockAll, type Progress } from "./progress";
 import { RIM, SUN_DIR, installFog } from "../world/materials";
-import { ATTACKS, BOSS_MAX, Boss, OPEN, type HitDef } from "./Boss";
+import { ATTACKS, VARIANT, BOSS_MAX, Boss, OPEN, type HitDef } from "./Boss";
 import { pickQuality, type Quality, type QualitySettings, ResolutionGovernor, settingsFor, withOverrides } from "../render/quality";
 import type { HabitScore } from "@gr/shared";
 import { Council } from "../ui/Council";
@@ -1824,7 +1824,7 @@ export class Game {
   }
 
   forceBossAttack(name: string): void {
-    if (!ATTACKS[name]) return;
+    if (!ATTACKS[name] && !(name in VARIANT)) return;
     this.boss.startAttack(name);
   }
 
