@@ -297,6 +297,12 @@ export class Boss {
     this.setClip("idle", 0);
   }
 
+  /** Opening script from the war council (strings flattened in order). Empty keeps the base script. */
+  setOpening(strings: readonly (readonly string[])[]): void {
+    const q = strings.flat().filter((m) => m in ATTACKS).slice(0, 12);
+    if (q.length) this.queue = q;
+  }
+
   setClip(name: string, fade = 0.15, t0 = 0): void {
     this.clipNow = name;
     this.ch.play(name, fade, t0);

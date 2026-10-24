@@ -42,6 +42,9 @@ import { Arena } from "../world/Arena";
 import { RIM, SUN_DIR, installFog } from "../world/materials";
 import { ATTACKS, BOSS_MAX, Boss, OPEN, type HitDef } from "./Boss";
 import { pickQuality, type Quality, type QualitySettings, settingsFor } from "../render/quality";
+import { applyPlan } from "../learn/planLoader";
+import { getNickname, newFightId, requestPlan, type PlanResult } from "../learn/session";
+import { mark, summarize, type StatsMark } from "../learn/summary";
 import { applyDifficulty, DIFFICULTY, DIFFICULTY_NAMES, type DifficultyName, initialDifficulty, isDifficulty, rememberDifficulty } from "./difficulty";
 import { CameraRig } from "./CameraRig";
 import { KICK_REACH, PLAYER_MAX, Player, vitalityRegen } from "./Player";
@@ -139,6 +142,13 @@ export class Game {
   /** gameTime when the current fight began (victory time for the leaderboard). */
   private fightStartT = 0;
   private fightStartDeaths = 0;
+  /** The learning loop: this fight's id, the plan for the next one, and where the call stands. */
+  learn: { state: "idle" | "pending" | "ready"; fightId: string; result: PlanResult | null } = { state: "idle", fightId: "", result: null };
+  /** Called when a plan arrives (the Council screen listens). */
+  onPlan: ((r: PlanResult) => void) | null = null;
+  private fightMark: StatsMark | null = null;
+  private firstHealT: number | null = null;
+  private fightsPlayed = 0;
   realTime = 0;
   private hitstop = 0;
   private slowT = 1;
@@ -364,6 +374,30 @@ export class Game {
     this.bossBody.resetCloth();
   }
 
+  /** A fight starts: remember where its stats begin and load the war council's plan for it. */
+  private beginLearning(): void {
+    this.learn.fightId = newFightId();
+    this.fightMark = mark(this.stats);
+    this.firstHealT = null;
+    if (this.learn.result) applyPlan(this.learn.result.plan, this.boss);
+  }
+
+  /** A fight ended (victory or true defeat): send the numbers, never wait for the answer. */
+  private endLearning(): void {
+    if (!this.fightMark) return;
+    const summary = summarize(this.stats, this.fightMark, this.gameTime - this.fightStartT, this.firstHealT);
+    this.fightMark = null;
+    this.fightsPlayed++;
+    const fightId = this.learn.fightId;
+    this.learn.state = "pending";
+    void requestPlan({ nickname: getNickname(), fightId, fightNumber: this.fightsPlayed, stats: summary }).then((r) => {
+      if (this.learn.fightId !== fightId) return; // a newer fight already started
+      this.learn.result = r;
+      this.learn.state = "ready";
+      this.onPlan?.(r);
+    });
+  }
+
   private releaseHolds(): void {
     for (const f of this.held) f.setHold(false);
     this.held.clear();
@@ -440,6 +474,7 @@ export class Game {
     applyDifficulty(this.difficulty);
     this.hud.fightDifficulty(this.difficulty);
     this.resetActors();
+    this.beginLearning();
     this.fightStartT = this.gameTime;
     this.fightStartDeaths = this.stats.deaths;
     this.go("fight");
@@ -459,6 +494,7 @@ export class Game {
     applyDifficulty(this.difficulty);
     this.hud.fightDifficulty(this.difficulty);
     this.resetActors();
+    this.beginLearning();
     this.fightStartT = this.gameTime;
     this.fightStartDeaths = this.stats.deaths;
     this.go("fight");
@@ -1180,6 +1216,7 @@ export class Game {
   private trueDeath(): void {
     this.go("defeat");
     this.stats.defeats++;
+    this.endLearning();
     this.hud.showEnd("defeat");
     this.audio.setTaiko(false);
     this.desatTarget = 0.65;
@@ -1346,6 +1383,7 @@ export class Game {
     if (t >= tl.end) {
       this.go("victory");
       this.stats.victory = true;
+      this.endLearning();
       wavedash.submitScore(`victory-${this.difficulty}`, (this.gameTime - this.fightStartT) * 1000);
       wavedash.achieve("VICTORY");
       if (this.difficulty === "hard") wavedash.achieve("VICTORY_HARD");
@@ -1379,6 +1417,7 @@ export class Game {
         if (this.state === "fight" && this.boss.hittable && this.inFront(KICK_REACH + 0.6, Math.PI)) this.kick();
       } else if (e === "drink") {
         this.stats.heals++;
+        if (this.firstHealT === null) this.firstHealT = this.gameTime - this.fightStartT;
         au.drink();
         au.gourdTick();
       } else if (e === "sip") au.sip();

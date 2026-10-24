@@ -58,7 +58,8 @@ function charAssets(): Plugin {
 export default defineConfig({
   base,
   plugins: [charAssets()],
-  server: { port: 5411, strictPort: true, open: false },
-  preview: { port: 5410, strictPort: true, open: false },
+  // /api goes to the general server (pnpm -C server dev); without it the game plays on local rules plans.
+  server: { port: 5411, strictPort: true, open: false, proxy: { "/api": "http://localhost:8787" } },
+  preview: { port: 5410, strictPort: true, open: false, proxy: { "/api": "http://localhost:8787" } },
   build: { target: "es2022", sourcemap: false, chunkSizeWarningLimit: 1200 },
 });

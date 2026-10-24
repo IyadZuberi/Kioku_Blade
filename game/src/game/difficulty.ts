@@ -164,6 +164,11 @@ export function applyDifficulty(name: DifficultyName): void {
   active = name;
 }
 
+/** Overwrite DIFFICULTY in place (plans from the war council); keeps the references Input holds. */
+export function overrideDifficulty(v: DifficultyValues): void {
+  assignInPlace(DIFFICULTY as unknown as Record<string, unknown>, v as unknown as Record<string, unknown>);
+}
+
 /** The preset currently loaded into DIFFICULTY. */
 export function activeDifficulty(): DifficultyName {
   return active;
