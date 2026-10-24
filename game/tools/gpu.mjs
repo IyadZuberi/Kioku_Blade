@@ -9,8 +9,8 @@ export async function launch({ width = 1600, height = 900 } = {}) {
   const view = /^(\d+)x(\d+)$/.exec(process.env.DUEL_VIEW ?? "");
   if (view) [width, height] = [+view[1], +view[2]];
   const browser = await chromium.launch({
-    channel: "chromium",
-    headless: true,
+    channel: process.env.CH ?? "chrome",
+    headless: process.env.HEADED ? false : true,
     args: [
       "--use-angle=d3d11",
       "--use-gl=angle",

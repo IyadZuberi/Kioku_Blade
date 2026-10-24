@@ -12,6 +12,7 @@ import { rng } from "../core/math";
 import type { ParticleKind } from "../fx/Snow";
 import type { QualitySettings } from "../render/quality";
 import { glb, pbr } from "./assets";
+import { forest } from "./trees";
 import { blob, glowSprite, grassField, matVC, merge, piece, terrainGeo, tmerge, tpiece, xf, type SkySpec } from "./kit";
 
 export const ARENA_R = 16.5;
@@ -158,46 +159,6 @@ function shrineHall(): THREE.Group {
   return g;
 }
 
-/** A tall straight Japanese cedar: bark trunk and dark layered crown. */
-function cedars(R: () => number, spots: [number, number, number][]): THREE.Group {
-  const g = new THREE.Group();
-  const trunks: THREE.BufferGeometry[] = [];
-  const crown: THREE.BufferGeometry[] = [];
-  for (const [x, z, s] of spots) {
-    const h = (17 + R() * 8) * s;
-    trunks.push(tpiece(new THREE.CylinderGeometry(0.42 * s, 0.72 * s, h, 8), xf(x, h / 2, z), 3));
-    for (let k = 0; k < 9; k++) {
-      const y = h * (0.2 + k * 0.088);
-      const rr = (3.4 - k * 0.34) * s;
-      crown.push(piece(new THREE.ConeGeometry(rr, h * 0.17, 11), k % 2 ? "#233a28" : "#2b4730", xf(x + (R() - 0.5) * 0.5, y + h * 0.08, z + (R() - 0.5) * 0.5, 0, R() * 6, 0, 1, 0.9 + R() * 0.3, 1), 0.4, R));
-    }
-  }
-  g.add(new THREE.Mesh(tmerge(trunks), pbr("japanese_cedar_bark", { color: 0xb8aca0 })));
-  g.add(new THREE.Mesh(merge(crown), matVC(0.95, { flatShading: false })));
-  return g;
-}
-
-function maples(R: () => number, spots: [number, number, number][]): THREE.Group {
-  const g = new THREE.Group();
-  const bark: THREE.BufferGeometry[] = [];
-  const leaves: THREE.BufferGeometry[] = [];
-  const hues = ["#a8281c", "#c8421c", "#e07a1e", "#b52e20", "#d89322"];
-  for (const [x, z, s] of spots) {
-    const hue = hues[Math.floor(R() * hues.length)];
-    bark.push(tpiece(new THREE.CylinderGeometry(0.16 * s, 0.34 * s, 3.4 * s, 8), xf(x, 1.7 * s, z, 0, R() * 6, 0), 2));
-    bark.push(tpiece(new THREE.CylinderGeometry(0.07 * s, 0.14 * s, 2.2 * s, 6), xf(x + 0.8 * s, 3.6 * s, z, 0, 0, -0.6), 2));
-    bark.push(tpiece(new THREE.CylinderGeometry(0.07 * s, 0.14 * s, 2.0 * s, 6), xf(x - 0.8 * s, 3.5 * s, z + 0.3 * s, 0, 0, 0.6), 2));
-    for (let k = 0; k < 7; k++) {
-      const a = (k / 7) * Math.PI * 2 + R();
-      const rr = k === 0 ? 0 : (1.1 + R() * 0.9) * s;
-      leaves.push(piece(blob((1.5 + R() * 0.8) * s, 2, R, 0.3), hue, xf(x + Math.cos(a) * rr, (4.3 + R() * 1.5) * s, z + Math.sin(a) * rr, 0, 0, 0, 1, 0.72, 1), 0.38, R));
-    }
-  }
-  g.add(new THREE.Mesh(tmerge(bark), pbr("japanese_cedar_bark", { color: 0x7a6a5e })));
-  g.add(new THREE.Mesh(merge(leaves), matVC(0.9, { flatShading: false })));
-  return g;
-}
-
 function buildShrine(): ThemeSpec {
   const R = rng(101);
   const group = new THREE.Group();
@@ -242,8 +203,8 @@ function buildShrine(): ThemeSpec {
     }
     return out;
   };
-  group.add(cedars(R, ringTrees(40, 26, 64, 3.6)));
-  group.add(maples(R, [...ringTrees(14, 23, 36, 3.0), ...[-1, 1].flatMap((s) => [0, 1, 2].map((i): [number, number, number] => [s * (21 + R() * 3), -9 + i * 6 + R() * 2, 0.95 + R() * 0.3]))]));
+  group.add(forest("cedar", ringTrees(30, 32, 66, 3.6), 17));
+  group.add(forest("maple", [...ringTrees(14, 30, 44, 3.0), ...[-1, 1].flatMap((s) => [0, 1].map((i): [number, number, number] => [s * (25 + R() * 3), -14 + i * 7 + R() * 2, 1.0 + R() * 0.3]))], 23));
   scatter(group, "rock_moss_set_01", [
     { x: -17.5, z: -5, s: 1.6, ry: 1 },
     { x: 18.8, z: -8, s: 1.9, ry: 3 },
@@ -280,22 +241,6 @@ function buildShrine(): ThemeSpec {
 
 // ============================================================================ 2: coastal pampas
 
-function lonePine(R: () => number): THREE.Group {
-  const g = new THREE.Group();
-  const bark: THREE.BufferGeometry[] = [
-    tpiece(new THREE.CylinderGeometry(0.42, 0.75, 4.2, 9), xf(0, 2.1, 0, 0, 0, 0.08), 2.4),
-    tpiece(new THREE.CylinderGeometry(0.3, 0.46, 3.6, 8), xf(0.5, 5.6, 0, 0, 0, -0.32), 2.4),
-    tpiece(new THREE.CylinderGeometry(0.22, 0.32, 3.2, 7), xf(1.9, 7.9, 0.2, 0, 0, 0.5), 2.4),
-    tpiece(new THREE.CylinderGeometry(0.16, 0.24, 2.6, 7), xf(-1.2, 6.3, 0.3, 0, 0, 1.0), 2.4),
-  ];
-  g.add(new THREE.Mesh(tmerge(bark), pbr("japanese_cedar_bark", { color: 0x8a7a6c })));
-  const crown: THREE.BufferGeometry[] = [];
-  for (const [x, y, z, s] of [[2.4, 9.3, 0, 2.3], [-0.2, 8.1, 0.3, 2.0], [-3.1, 7.2, 0.4, 1.7], [4.2, 8.2, -0.5, 1.5], [1.0, 10.4, 0.2, 1.6]] as const)
-    crown.push(piece(blob(s, 1, R, 0.3), R() < 0.5 ? "#2f4a30" : "#3a5736", xf(x, y, z, 0, 0, 0, 1.5, 0.45, 1.2), 0.3, R));
-  g.add(new THREE.Mesh(merge(crown), matVC(0.9)));
-  return g;
-}
-
 function jizo(R: () => number): THREE.Group {
   const g = new THREE.Group();
   g.add(
@@ -320,10 +265,8 @@ function buildPampas(q: QualitySettings): ThemeSpec {
   groundPlates(group, pbr("withered_grass", { color: 0xb9a878, normal: 1.0 }), pbr("withered_grass", { color: 0xa89a68, normal: 0.8 }), 3.4, 6, 4.2, 21);
   const n = q.shadowMap >= 4096 ? 12000 : 7000;
   group.add(grassField({ count: n, rMin: 13.0, rMax: 62, hMin: 0.7, hMax: 1.9, low: 0x8a8438, high: 0xd0b45a, tip: 0xf6e8b4, seed: 3, hole: 13.8 }, uniforms));
-  group.add(grassField({ count: 5400, rMin: 1.0, rMax: 15.5, hMin: 0.08, hMax: 0.28, low: 0x8a8a3c, high: 0xc4b468, tip: 0xe8d8a0, seed: 8 }, uniforms));
-  const pine = lonePine(R);
-  pine.position.set(16, 0, -17);
-  group.add(pine);
+  group.add(grassField({ count: 15000, rMin: 1.0, rMax: 24, hMin: 0.25, hMax: 0.7, low: 0x8a8a3c, high: 0xc4b468, tip: 0xe8d8a0, seed: 8 }, uniforms));
+  group.add(forest("pine", [[16, -17, 1.5], [-24, -20, 1.2], [25, -8, 1.0]], 29));
   for (let i = 0; i < 3; i++) {
     const j = jizo(R);
     j.position.set(-13.5 - i * 1.3, 0, -9 + i * 0.9);
@@ -353,15 +296,6 @@ function buildPampas(q: QualitySettings): ThemeSpec {
     { x: -64, y: -1.0, z: -34, s: 1.3, ry: 1.0 },
   ], 0xd8cfbc);
   scatter(group, "dead_tree_trunk", [{ x: -19, z: 6, s: 1.4, ry: 2, tilt: 0 }], 0xbdb2a2);
-  // weathered fence along the cliff path
-  const fence: THREE.BufferGeometry[] = [];
-  for (let i = 0; i < 26; i++) {
-    const a = Math.PI * 1.1 + (i / 25) * Math.PI * 0.8;
-    const x = Math.cos(a) * 21, z = Math.sin(a) * 21 - 2;
-    fence.push(tpiece(new THREE.BoxGeometry(0.22, 1.5 + R() * 0.3, 0.22), xf(x, 0.75, z, 0, -a, 0.06), 1.2));
-    if (i % 2 === 0) fence.push(tpiece(new THREE.BoxGeometry(3.1, 0.16, 0.14), xf(Math.cos(a + 0.06) * 21, 1.15, Math.sin(a + 0.06) * 21 - 2, 0, -a - Math.PI / 2, 0), 1.2));
-  }
-  group.add(new THREE.Mesh(tmerge(fence), pbr("japanese_cedar_planks", { color: 0x8a7a68 })));
   return {
     id: 2,
     name: "Coastal Pampas",
@@ -402,38 +336,77 @@ function stoneBase(w: number, d: number, h: number, x: number, z: number, ry: nu
   return parts;
 }
 
+/** A sloped ishigaki wall run of length `len`, curving in from a wide base to a narrower top, along local X. */
+function ishigaki(len: number, h: number, x: number, z: number, ry: number, base = 2.4, top = 1.25): THREE.BufferGeometry {
+  const shape = new THREE.Shape();
+  const half = (y: number) => top + (base - top) * Math.pow(1 - y / h, 2.3);
+  const n = 8;
+  shape.moveTo(-base, 0);
+  for (let i = 1; i <= n; i++) shape.lineTo(-half((i / n) * h), (i / n) * h);
+  for (let i = n; i >= 0; i--) shape.lineTo(half((i / n) * h), (i / n) * h);
+  const g = new THREE.ExtrudeGeometry(shape, { depth: len, bevelEnabled: false, steps: 1 });
+  g.translate(0, 0, -len / 2);
+  g.rotateY(Math.PI / 2); // extrude axis -> X
+  return tpiece(g, xf(x, 0, z, 0, ry, 0), 2.6);
+}
+
+/** Plaster parapet (dobei) with a tiled cap that sits on top of a wall run. */
+function parapet(len: number, x: number, y: number, z: number, ry: number, plaster: THREE.BufferGeometry[], roofs: THREE.BufferGeometry[], R: () => number): void {
+  plaster.push(piece(new THREE.BoxGeometry(len, 1.9, 0.62), "#dcd5c4", xf(x, y + 0.95, z, 0, ry, 0), 0.06, R));
+  roofs.push(tpiece(new THREE.BoxGeometry(len + 0.2, 0.22, 1.5), xf(x, y + 2.05, z, 0, ry, 0), 1.6));
+  roofs.push(tpiece(new THREE.BoxGeometry(len + 0.2, 0.24, 0.5), xf(x, y + 2.25, z, 0, ry, 0), 1.6));
+}
+
 function ruinedCastle(R: () => number): THREE.Group {
   const g = new THREE.Group();
   const stone: THREE.BufferGeometry[] = [];
-  // fallen curtain walls round the back and sides (never in front of the camera)
-  for (let i = 0; i < 11; i++) {
-    const a = Math.PI * 0.55 + (i / 10) * Math.PI * 0.9 + (R() - 0.5) * 0.12;
-    const r = 24 + R() * 3;
-    const x = Math.cos(a) * r, z = -Math.sin(a) * r;
-    stone.push(...stoneBase(7 + R() * 2, 3.2, 3.5 + R() * 4.5, x, z, -a + Math.PI / 2, R));
+  const plaster: THREE.BufferGeometry[] = [];
+  const roofs: THREE.BufferGeometry[] = [];
+  // curtain walls on a wide arc behind the ring; some runs are whole (parapet on top), some are broken stumps
+  const runs = 10;
+  for (let i = 0; i < runs; i++) {
+    if (i % 3 === 1) continue; // gaps where the wall has gone
+    const a0 = Math.PI * 0.1 + (i / runs) * Math.PI * 0.8;
+    const r = 40 + (i % 2) * 2.5;
+    const len = (2 * Math.PI * r * 0.8) / runs * 0.8;
+    const x = Math.cos(a0) * r, z = -Math.sin(a0) * r;
+    const ry = a0 - Math.PI / 2;
+    const broken = R() < 0.5;
+    const h = broken ? 2.2 + R() * 2.6 : 6.4;
+    stone.push(ishigaki(len, h, x, z, ry, 2.4, broken ? 1.5 : 1.25));
+    if (!broken) parapet(len, x, h, z, ry, plaster, roofs, R);
   }
-  // gatehouse base at the back with a broken opening
-  stone.push(...stoneBase(7, 4.4, 9, -8, -32, 0.05, R), ...stoneBase(7, 4.4, 6.5, 8, -32, -0.06, R));
+  // gatehouse at the back: two stone piers and a plaster gate tower bridging them
+  const gx = 0, gz = -46;
+  stone.push(ishigaki(8, 8.4, gx - 7, gz, 0, 3, 1.8), ishigaki(8, 8.4, gx + 7, gz, 0, 3, 1.8));
+  plaster.push(piece(new THREE.BoxGeometry(22, 5.2, 5.4), "#dcd5c4", xf(gx, 8.4 + 2.6 + 1.4, gz), 0.05, R));
+  roofs.push(tpiece(new THREE.BoxGeometry(25, 0.5, 8.4), xf(gx, 8.4 + 5.6 + 1.4 + 0.2, gz), 2.4));
+  roofs.push(tpiece(new THREE.BoxGeometry(23, 1.4, 6.0), xf(gx, 8.4 + 5.6 + 1.4 + 1.0, gz), 2.4));
+  roofs.push(tpiece(new THREE.BoxGeometry(24, 0.3, 1.2), xf(gx, 8.4 + 5.6 + 1.4 + 1.85, gz), 2.4));
+  // dark opening, a wooden lintel and the gate leaves
+  stone.push(tpiece(new THREE.BoxGeometry(6, 0.9, 4.6), xf(gx, 8.4 + 0.45, gz), 2.6));
   const rubble: THREE.BufferGeometry[] = [];
   for (let i = 0; i < 46; i++) rubble.push(tpiece(blob(0.35 + R() * 0.7, 0, R, 0.4), xf((R() - 0.5) * 60, 0.15, -6 - R() * 38, R(), R(), R(), 1, 0.65, 1), 1.6));
   g.add(new THREE.Mesh(tmerge(stone), pbr("japanese_stone_wall", { color: 0xb9b4a8 })));
+  g.add(new THREE.Mesh(merge(plaster), matVC(0.95)));
+  g.add(new THREE.Mesh(tmerge(roofs), pbr("grey_roof_tiles", { color: 0x5c5d63 })));
   g.add(new THREE.Mesh(tmerge(rubble), pbr("mossy_stone_wall", { color: 0xaaa597 })));
-  // the keep, far off in the mist: tiered stone base, plaster storeys, dark roofs
+  // the keep, far off in the mist: tiered stone base, kplaster storeys, dark kroofs
   const keep = new THREE.Group();
   const base = tmerge(stoneBase(34, 34, 14, 0, 0, 0, () => 0.05));
   keep.add(new THREE.Mesh(base, pbr("japanese_stone_wall", { color: 0xb0aca0 })));
-  const plaster: THREE.BufferGeometry[] = [];
-  const roofs: THREE.BufferGeometry[] = [];
+  const kplaster: THREE.BufferGeometry[] = [];
+  const kroofs: THREE.BufferGeometry[] = [];
   let y = 14;
   for (let k = 0; k < 4; k++) {
     const w = 22 - k * 4;
-    plaster.push(piece(new THREE.BoxGeometry(w, 5.2, w * 0.8), "#d9d3c2", xf(0, y + 2.6, 0), 0.05, R));
-    roofs.push(tpiece(new THREE.BoxGeometry(w + 6, 0.9, w * 0.8 + 6), xf(0, y + 5.7, 0), 2.4));
-    roofs.push(tpiece(new THREE.BoxGeometry(w + 2, 1.4, w * 0.8 + 2), xf(0, y + 6.7, 0), 2.4));
+    kplaster.push(piece(new THREE.BoxGeometry(w, 5.2, w * 0.8), "#d9d3c2", xf(0, y + 2.6, 0), 0.05, R));
+    kroofs.push(tpiece(new THREE.BoxGeometry(w + 6, 0.9, w * 0.8 + 6), xf(0, y + 5.7, 0), 2.4));
+    kroofs.push(tpiece(new THREE.BoxGeometry(w + 2, 1.4, w * 0.8 + 2), xf(0, y + 6.7, 0), 2.4));
     y += 6.2;
   }
-  keep.add(new THREE.Mesh(merge(plaster), matVC(0.95)));
-  keep.add(new THREE.Mesh(tmerge(roofs), pbr("grey_roof_tiles", { color: 0x55565c })));
+  keep.add(new THREE.Mesh(merge(kplaster), matVC(0.95)));
+  keep.add(new THREE.Mesh(tmerge(kroofs), pbr("grey_roof_tiles", { color: 0x55565c })));
   keep.position.set(-14, 0, -112);
   keep.scale.setScalar(1.15);
   g.add(keep);
@@ -459,35 +432,6 @@ function banners(R: () => number): { group: THREE.Group; cloth: THREE.Mesh[] } {
   return { group, cloth };
 }
 
-function oldGinkgo(R: () => number): THREE.Group {
-  const group = new THREE.Group();
-  const bark: THREE.BufferGeometry[] = [];
-  const tips: THREE.Vector3[] = [];
-  const branch = (from: THREE.Vector3, dir: THREE.Vector3, len: number, rad: number, depth: number) => {
-    const to = from.clone().addScaledVector(dir, len);
-    const mid = from.clone().lerp(to, 0.5);
-    const axis = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.clone().normalize());
-    bark.push(tpiece(new THREE.CylinderGeometry(rad * 0.62, rad, len, 7), new THREE.Matrix4().compose(mid, axis, new THREE.Vector3(1, 1, 1)), 5));
-    if (depth === 0) {
-      tips.push(to);
-      return;
-    }
-    const n = depth > 2 ? 2 : 3;
-    for (let i = 0; i < n; i++) {
-      const d = dir.clone().add(new THREE.Vector3((R() - 0.5) * 1.1, 0.35 + R() * 0.45, (R() - 0.5) * 0.8)).normalize();
-      branch(to, d, len * (0.72 + R() * 0.12), rad * 0.66, depth - 1);
-    }
-  };
-  branch(new THREE.Vector3(0, -3, 0), new THREE.Vector3(0.1, 1, 0).normalize(), 15, 2.6, 5);
-  group.add(new THREE.Mesh(tmerge(bark), pbr("japanese_cedar_bark", { color: 0x5a4c42 })));
-  const leaves: THREE.BufferGeometry[] = [];
-  for (const t of tips)
-    for (let i = 0; i < 3; i++) leaves.push(piece(blob(2.4 + R() * 1.6, 1, R, 0.3), R() < 0.5 ? "#e0a82a" : "#caa032", xf(t.x + (R() - 0.5) * 3, t.y + (R() - 0.3) * 2, t.z + (R() - 0.5) * 3, 0, 0, 0, 1, 0.55, 1), 0.3, R));
-  const canopy = new THREE.Mesh(merge(leaves), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9, emissive: new THREE.Color(0.9, 0.55, 0.12), emissiveIntensity: 0.55, flatShading: true }));
-  group.add(canopy);
-  return group;
-}
-
 function buildCastle(): ThemeSpec {
   const R = rng(303);
   const group = new THREE.Group();
@@ -495,10 +439,7 @@ function buildCastle(): ThemeSpec {
   group.add(ruinedCastle(R));
   const flags = banners(R);
   group.add(flags.group);
-  const tree = oldGinkgo(R);
-  tree.position.set(-95, 0, -150);
-  tree.scale.setScalar(1.15);
-  group.add(tree);
+  group.add(forest("ginkgo", [[-95, -150, 3.2], [-60, -60, 1.3], [38, -70, 1.5]], 31, { glow: 0.35 }));
   const halo = glowSprite("rgba(255,196,96,1)", 120, 0.28);
   halo.position.set(-95, 24, -150);
   group.add(halo);
