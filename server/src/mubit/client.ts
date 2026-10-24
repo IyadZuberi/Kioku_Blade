@@ -79,8 +79,11 @@ export async function callTask<I, O>(
             { role: "user", content: JSON.stringify(input) }, // EVERYTHING variable goes here
           ],
           response_format,
-          metadata: { session_id: opts.sessionId },
-          temperature: 0,
+          // No `metadata`: on this route the provider refuses it ("only allowed when 'store' is enabled",
+          // even with store: true). Mubit then gives each call the session of its conversation start
+          // (instructions + first user message), and every fight report is a different user message,
+          // so each call is still its own session. opts.sessionId is kept for our own log.
+          // no temperature: gpt-6-luna only accepts its default (1). The enum-only schema keeps plans stable.
         },
         { headers: opts.store ? {} : { "x-middleware-store": "false" }, timeout: timeoutMs },
       )

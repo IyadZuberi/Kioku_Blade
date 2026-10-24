@@ -74,11 +74,12 @@ describe("callTask", () => {
     await callTask(task, { a: 1 }, { sessionId: "s", store: true, client: b.client });
     expect(b.calls[0].opts.headers?.["x-middleware-store"]).toBeUndefined();
   });
-  it("session id lands in metadata.session_id; input is the user message JSON; system is the frozen text", async () => {
+  it("no metadata or temperature (the provider refuses both on this route); input is the user message JSON; system is the frozen text", async () => {
     const { client, calls } = fake(() => JSON.stringify({ ok: true }));
     await callTask(task, { a: 7 }, { sessionId: "gr-live-x-1", store: true, client });
     const b = calls[0].body;
-    expect(b.metadata.session_id).toBe("gr-live-x-1");
+    expect(b.metadata).toBeUndefined();
+    expect(b.temperature).toBeUndefined();
     expect(b.messages[0]).toEqual({ role: "system", content: "sys" });
     expect(JSON.parse(b.messages[1].content)).toEqual({ a: 7 });
     expect(b.model).toBe("m");
