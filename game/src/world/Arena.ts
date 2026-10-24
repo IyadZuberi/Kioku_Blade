@@ -155,6 +155,12 @@ export class Arena {
     pmrem.dispose();
   }
 
+  setShadowMap(size: number): void {
+    this.sun.shadow.mapSize.set(size, size);
+    this.sun.shadow.map?.dispose();
+    this.sun.shadow.map = null;
+  }
+
   setTheme(id: ThemeId): ThemeSpec {
     if (this.spec) this.group.remove(this.spec.group);
     let s = this.cache.get(id);

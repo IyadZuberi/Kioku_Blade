@@ -24,6 +24,7 @@
  * blade through the touch point, sparks spawn exactly there, and a stopped swing rebounds
  * instead of following through the defender's body.
  */
+import { stableShadowDepth } from "../render/shadowDepth";
 import * as THREE from "three";
 import { GameAudio } from "../audio/Audio";
 import { cueOf, type Timeline } from "../chars/animEvents";
@@ -49,7 +50,7 @@ import { Gate } from "./Gate";
 import { afterFight, fresh, loadProgress, saveProgress, select as selectProgress, unlockAll, type Progress } from "./progress";
 import { RIM, SUN_DIR, installFog } from "../world/materials";
 import { ATTACKS, VARIANT, BOSS_MAX, Boss, OPEN, type HitDef } from "./Boss";
-import { pickQuality, type Quality, type QualitySettings, ResolutionGovernor, settingsFor, withOverrides } from "../render/quality";
+import { pickQuality, type Quality, type QualityStep, type QualitySettings, QualityGovernor, settingsFor, withOverrides } from "../render/quality";
 import type { HabitScore } from "@gr/shared";
 import { Council } from "../ui/Council";
 import { assistKnobs } from "../input/assist";
@@ -241,7 +242,7 @@ export class Game {
   rendererName = "unknown";
   quality: Quality = "high";
   private qs: QualitySettings = settingsFor("high");
-  private governor = new ResolutionGovernor(1.5);
+  private governor!: QualityGovernor;
   private paused = false;
 
   constructor(canvas: HTMLCanvasElement, hudRoot: HTMLElement) {
@@ -257,7 +258,7 @@ export class Game {
     this.quality = pickQuality(this.rendererName, location.search);
     this.qs = withOverrides(settingsFor(this.quality), location.search);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, this.qs.pixelRatio));
-    this.governor = new ResolutionGovernor(this.renderer.getPixelRatio());
+    this.governor = new QualityGovernor({ ...this.qs, pixelRatio: this.renderer.getPixelRatio() });
 
     this.arena = new Arena(this.scene, this.qs);
     // Dusk reflections for steel and lacquer: bake the world (before the fighters exist).
@@ -295,6 +296,7 @@ export class Game {
     this.toTitle();
     // Warm up shaders and GPU buffers so the first deflect/finisher never hitches. The combat fx
     // start hidden and hidden objects are skipped, so show everything for one render.
+    stableShadowDepth(this.scene);
     const hidden: THREE.Object3D[] = [];
     this.scene.traverse((o) => {
       if (!o.visible) {
@@ -493,6 +495,7 @@ export class Game {
     const me = this.playerBody.active as unknown as Parameters<typeof applyPlayerLook>[0];
     if (this.bossBody.active !== this.bossBody.procedural) applyBossLook(boss, this.bossDef.look);
     if (this.playerBody.active !== this.playerBody.procedural) applyPlayerLook(me);
+    stableShadowDepth(this.scene);
   }
 
   /** Wind cuts and slam rings: same guard, deflect and damage rules as a blade. */
@@ -1833,11 +1836,18 @@ export class Game {
       this.frames = 0;
       this.fpsT = 0;
       // Keep it smooth: shed resolution on a slow machine (not while loading or paused).
-      const r = this.realTime > 6 && !this.paused ? this.governor.update(this.fps) : null;
-      if (r !== null) {
-        this.renderer.setPixelRatio(r);
-        this.resize();
-      }
+      const step = this.realTime > 6 && !this.paused ? this.governor.update(this.fps) : null;
+      if (step) this.shedQuality(step);
+    }
+  }
+
+  private shedQuality(step: QualityStep): void {
+    if (step.kind === "ao") this.post.setAO(false);
+    else if (step.kind === "msaa") this.post.setMultisampling(0);
+    else if (step.kind === "shadow") this.arena.setShadowMap(step.value);
+    else {
+      this.renderer.setPixelRatio(step.value);
+      this.resize();
     }
   }
 

@@ -17,6 +17,8 @@ export class Cloth {
   private readonly pos: Float32Array;
   private readonly prev: Float32Array;
   private readonly geo: THREE.BufferGeometry;
+  private readonly nor: Float32Array;
+  private readonly idx: Uint16Array;
   private readonly sx: number;
   private readonly sy: number;
   private readonly anchors: THREE.Vector3[];
@@ -50,7 +52,10 @@ export class Cloth {
     const geo = new THREE.BufferGeometry();
     geo.setAttribute("position", new THREE.BufferAttribute(this.pos, 3).setUsage(THREE.DynamicDrawUsage));
     geo.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2));
-    geo.setIndex(idx);
+    this.idx = new Uint16Array(idx);
+    geo.setIndex(new THREE.BufferAttribute(this.idx, 1));
+    this.nor = new Float32Array(w * h * 3);
+    geo.setAttribute("normal", new THREE.BufferAttribute(this.nor, 3).setUsage(THREE.DynamicDrawUsage));
     this.geo = geo;
     this.mesh = new THREE.Mesh(geo, material);
     this.mesh.frustumCulled = false;
@@ -203,9 +208,24 @@ export class Cloth {
     }
   }
 
+  /** Upload positions and recompute smooth normals in place (three's computeVertexNormals allocates per call; this runs every frame). */
   updateMesh(): void {
+    const P = this.pos, N = this.nor, I = this.idx;
+    N.fill(0);
+    for (let t = 0; t < I.length; t += 3) {
+      const a = I[t] * 3, b = I[t + 1] * 3, c = I[t + 2] * 3;
+      const e1x = P[b] - P[a], e1y = P[b + 1] - P[a + 1], e1z = P[b + 2] - P[a + 2];
+      const e2x = P[c] - P[a], e2y = P[c + 1] - P[a + 1], e2z = P[c + 2] - P[a + 2];
+      const nx = e1y * e2z - e1z * e2y, ny = e1z * e2x - e1x * e2z, nz = e1x * e2y - e1y * e2x;
+      N[a] += nx; N[a + 1] += ny; N[a + 2] += nz;
+      N[b] += nx; N[b + 1] += ny; N[b + 2] += nz;
+      N[c] += nx; N[c + 1] += ny; N[c + 2] += nz;
+    }
+    for (let k = 0; k < N.length; k += 3) {
+      const l = Math.sqrt(N[k] * N[k] + N[k + 1] * N[k + 1] + N[k + 2] * N[k + 2]) || 1;
+      N[k] /= l; N[k + 1] /= l; N[k + 2] /= l;
+    }
     this.geo.attributes.position.needsUpdate = true;
-    this.geo.computeVertexNormals();
-    this.geo.computeBoundingSphere();
+    this.geo.attributes.normal.needsUpdate = true;
   }
 }

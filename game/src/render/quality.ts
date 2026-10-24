@@ -50,25 +50,32 @@ export function withOverrides(s: QualitySettings, search: string): QualitySettin
   };
 }
 
-/**
- * Dynamic resolution: if the frame rate stays low for three readings in a row, lower the pixel
- * ratio by 0.15 (down to a floor). It never raises it again, so the picture cannot flicker.
- * Returns the new ratio when it changes, otherwise null. A reading of 0 (paused) is ignored.
- */
-export class ResolutionGovernor {
-  private low = 0;
-  constructor(
-    private ratio: number,
-    private readonly floor = 0.6,
-    private readonly minFps = 28,
-  ) {}
+export type QualityStep = { kind: "ao" } | { kind: "msaa" } | { kind: "shadow"; value: number } | { kind: "pr"; value: number };
 
-  update(fps: number): number | null {
+/**
+ * Keeps the frame rate smooth on whatever machine runs it: when the frame rate stays under 50 for three
+ * readings in a row, it sheds the next most expensive thing, in order: AO, MSAA, a 4096 shadow map
+ * (to 2048), then pixel ratio in 0.15 steps down to 0.7. It never raises anything again, so the
+ * picture cannot flicker between settings. A reading of 0 (paused) is ignored.
+ */
+export class QualityGovernor {
+  private low = 0;
+  private readonly ladder: QualityStep[] = [];
+  constructor(s: QualitySettings, private readonly minFps = 50) {
+    if (s.ao) this.ladder.push({ kind: "ao" });
+    if (s.msaa > 0) this.ladder.push({ kind: "msaa" });
+    if (s.shadowMap > 2048) this.ladder.push({ kind: "shadow", value: 2048 });
+    for (let r = s.pixelRatio; r > 0.7 + 1e-6; ) {
+      r = Math.max(0.7, Math.round((r - 0.15) * 100) / 100);
+      this.ladder.push({ kind: "pr", value: r });
+    }
+  }
+
+  update(fps: number): QualityStep | null {
     if (fps <= 0) return null;
     this.low = fps < this.minFps ? this.low + 1 : 0;
-    if (this.low < 3 || this.ratio <= this.floor) return null;
+    if (this.low < 3 || !this.ladder.length) return null;
     this.low = 0;
-    this.ratio = Math.max(this.floor, Math.round((this.ratio - 0.15) * 100) / 100);
-    return this.ratio;
+    return this.ladder.shift()!;
   }
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ResolutionGovernor, pickQuality, settingsFor, withOverrides } from "../src/render/quality";
+import { QualityGovernor, pickQuality, settingsFor, withOverrides } from "../src/render/quality";
 
 describe("quality", () => {
   it("picks low for Intel integrated GPUs", () => {
@@ -29,24 +29,51 @@ describe("quality", () => {
   });
 });
 
-describe("ResolutionGovernor", () => {
-  it("drops the pixel ratio by 0.15 after 3 low readings in a row", () => {
-    const g = new ResolutionGovernor(1, 0.6);
-    expect([g.update(20), g.update(20), g.update(20)]).toEqual([null, null, 0.85]);
+describe("QualityGovernor", () => {
+  const hi = { ...settingsFor("high"), pixelRatio: 1.5 };
+  it("sheds AO first, after 3 slow readings in a row (below 50 fps)", () => {
+    const g = new QualityGovernor(hi);
+    expect([g.update(45), g.update(45), g.update(45)]).toEqual([null, null, { kind: "ao" }]);
+  });
+  it("then MSAA, then halves the shadow map down to 2048, then lowers the pixel ratio to a 0.7 floor", () => {
+    const g = new QualityGovernor(hi);
+    const steps = [];
+    for (let i = 0; i < 60; i++) {
+      const s = g.update(30);
+      if (s) steps.push(s);
+    }
+    expect(steps).toEqual([
+      { kind: "ao" },
+      { kind: "msaa" },
+      { kind: "shadow", value: 2048 },
+      { kind: "pr", value: 1.35 },
+      { kind: "pr", value: 1.2 },
+      { kind: "pr", value: 1.05 },
+      { kind: "pr", value: 0.9 },
+      { kind: "pr", value: 0.75 },
+      { kind: "pr", value: 0.7 },
+    ]);
+  });
+  it("skips what the low preset already has off", () => {
+    const g = new QualityGovernor(settingsFor("low"));
+    const steps = [];
+    for (let i = 0; i < 30; i++) {
+      const s = g.update(30);
+      if (s) steps.push(s);
+    }
+    expect(steps).toEqual([{ kind: "pr", value: 0.85 }, { kind: "pr", value: 0.7 }]);
   });
   it("a single dip, or a recovery in between, does nothing", () => {
-    const g = new ResolutionGovernor(1, 0.6);
-    expect([g.update(20), g.update(20), g.update(45), g.update(20), g.update(20)]).toEqual([null, null, null, null, null]);
+    const g = new QualityGovernor(hi);
+    expect([g.update(40), g.update(40), g.update(58), g.update(40), g.update(40)]).toEqual([null, null, null, null, null]);
   });
-  it("never goes below the floor and never raises the ratio again", () => {
-    const g = new ResolutionGovernor(0.7, 0.6);
-    const out: (number | null)[] = [];
-    for (let i = 0; i < 12; i++) out.push(g.update(15));
-    expect(out.filter((x) => x !== null)).toEqual([0.6]);
-    for (let i = 0; i < 12; i++) expect(g.update(60)).toBeNull();
+  it("waits for the change to settle before judging again", () => {
+    const g = new QualityGovernor(hi);
+    [g.update(40), g.update(40), g.update(40)];
+    expect([g.update(40), g.update(40)]).toEqual([null, null]);
   });
   it("ignores a 0 reading (paused or not rendering)", () => {
-    const g = new ResolutionGovernor(1, 0.6);
+    const g = new QualityGovernor(hi);
     expect([g.update(0), g.update(0), g.update(0), g.update(0)]).toEqual([null, null, null, null]);
   });
 });

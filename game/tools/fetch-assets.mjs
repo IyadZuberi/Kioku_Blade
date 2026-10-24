@@ -6,7 +6,6 @@ import { dirname, join } from "node:path";
 const OUT = new URL("../public/assets/ph/", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
 const UA = { "User-Agent": "kioku-game-dev" };
 const HDRI = ["autumn_hill_view", "plains_sunset", "kloofendal_misty_morning"];
-const TEX = ["leaf_scattered_gravel", "raked_dirt", "stone_pathway", "japanese_stone_wall", "japanese_cedar_planks", "hinoki_planks", "grey_roof_tiles", "clay_roof_tiles_02", "japanese_cedar_bark", "withered_grass", "rocky_trail", "mossy_cobblestone", "castle_wall_slates", "mossy_stone_wall", "rock_pitted_mossy"];
 const MODELS = ["pine_tree_01", "boulder_01", "rock_moss_set_01", "coastal_cliff_01", "coastal_cliff_02", "namaqualand_boulder_02", "stone_01", "dead_tree_trunk", "tree_stump_01"];
 
 const j = (u) => fetch(u, { headers: UA }).then((r) => r.json());

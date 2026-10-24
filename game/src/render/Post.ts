@@ -182,6 +182,14 @@ export class Post {
   }
 
   /** Per-arena look: exposure, bloom strength, god-ray strength and the highlight tint. */
+  setAO(on: boolean): void {
+    this.ao.enabled = on;
+  }
+
+  setMultisampling(n: number): void {
+    this.composer.multisampling = n;
+  }
+
   setLook(look: { exposure: number; bloom: number; rays: number; gain: [number, number, number] }): void {
     const g = this.grade;
     g.u("uExposure").value = GRADE.exposure * look.exposure;
