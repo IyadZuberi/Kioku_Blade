@@ -1,10 +1,10 @@
 /**
  * Post pipeline (pmndrs/postprocessing):
- *   scene (HDR half-float, MSAA) → N8AO contact shadows → god rays + mipmap bloom (sparks, lanterns,
- *   sun) → grade: exposure, hue-preserving filmic curve, then in display space a cold-lift /
+ *   scene (HDR half-float, MSAA) â†’ N8AO contact shadows â†’ god rays + mipmap bloom (sparks, lanterns,
+ *   sun) â†’ grade: exposure, hue-preserving filmic curve, then in display space a cold-lift /
  *   warm-gain split tone, luminance-keyed saturation (muted mid-tones, hot highlights keep their
  *   colour), soft S-curve, paper grain (the painterly touch), hit flash, finisher desaturation,
- *   cinematic bars → chromatic aberration (pulses on hits) + vignette.
+ *   cinematic bars â†’ chromatic aberration (pulses on hits) + vignette.
  */
 import * as THREE from "three";
 import {
@@ -177,6 +177,18 @@ export class Post {
     this.vignette = new VignetteEffect({ offset: 0.3, darkness: 0.55 });
     this.vignette.blendMode.blendFunction = BlendFunction.NORMAL;
     this.composer.addPass(new EffectPass(camera, this.ca, this.vignette));
+  }
+
+  /** "tsushima": golden-hour grade (warm gain, richer colour). "snow" keeps the base's cold dusk. */
+  setTheme(theme: "snow" | "tsushima"): void {
+    const g = this.grade;
+    const t = theme === "tsushima";
+    g.u("uSatLow").value = t ? 1.0 : GRADE.satLow;
+    g.u("uSatHigh").value = t ? 1.2 : GRADE.satHigh;
+    const gain = t ? [1.12, 0.98, 0.78] : GRADE.gain;
+    const lift = t ? [0.03, 0.02, 0.018] : GRADE.lift;
+    (g.u("uGain").value as THREE.Vector3).set(gain[0], gain[1], gain[2]);
+    (g.u("uLift").value as THREE.Vector3).set(lift[0], lift[1], lift[2]);
   }
 
   hitFlash(amount: number, color?: THREE.ColorRepresentation): void {

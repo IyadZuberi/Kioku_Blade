@@ -125,7 +125,9 @@ export class Game {
   readonly camera = new THREE.PerspectiveCamera(52, 16 / 9, 0.1, 3000);
   readonly post: Post;
   readonly arena: Arena;
-  readonly snow = new Snow(9000);
+  /** ?theme=snow keeps the base's snowy dusk; the default is the golden-hour leaf theme. */
+  readonly theme: "snow" | "tsushima" = new URLSearchParams(location.search).get("theme") === "snow" ? "snow" : "tsushima";
+  readonly snow = new Snow(9000, this.theme === "tsushima");
   readonly fx: Fx;
   /** Procedural bodies (default + fallback); the slots may swap them for skinned ones. */
   readonly shinobi = new Shinobi();
@@ -253,6 +255,7 @@ export class Game {
     this.boss = new Boss(this.bossBody);
     this.cam = new CameraRig(this.camera);
     this.post = new Post(this.renderer, this.scene, this.camera, this.arena.surround.sunMesh, this.qs);
+    this.post.setTheme(this.theme);
     this.hud = new Hud(hudRoot);
     this.council = new Council(hudRoot);
     this.input = new Input(canvas);

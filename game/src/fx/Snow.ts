@@ -10,7 +10,9 @@ export class Snow {
   readonly points: THREE.Points;
   private readonly mat: THREE.ShaderMaterial;
 
-  constructor(count = 9000) {
+  /** leaves: drifting maple leaves and petals in autumn colours instead of snow (the Tsushima theme). */
+  constructor(count = 9000, leaves = false) {
+    if (leaves) count = Math.min(count, 1400);
     const R = rng(42);
     const pos = new Float32Array(count * 3);
     const seed = new Float32Array(count);
@@ -30,16 +32,19 @@ export class Snow {
         uWind: { value: new THREE.Vector3(-1.4, 0, 0.6) },
         uSun: { value: SUN_DIR.clone() },
         uScale: { value: 600 },
+        uLeaf: { value: leaves ? 1 : 0 },
       },
       vertexShader: /* glsl */ `
         attribute float aSeed;
+        uniform float uLeaf;
         uniform float uTime; uniform vec3 uCam; uniform vec3 uWind; uniform float uScale; uniform vec3 uSun;
-        varying float vA; varying float vGlint;
+        varying float vA; varying float vGlint; varying float vS;
         void main() {
+          vS = aSeed;
           vec3 box = vec3(60.0, 26.0, 60.0);
           vec3 p = position;
-          float fall = 0.7 + aSeed * 0.9;
-          p += uWind * uTime * (0.6 + aSeed * 0.6);
+          float fall = mix(0.7 + aSeed * 0.9, 0.3 + aSeed * 0.45, uLeaf);
+          p += uWind * uTime * (0.6 + aSeed * 0.6) * mix(1.0, 1.9, uLeaf);
           p.y -= uTime * fall;
           p.x += sin(uTime * (0.8 + aSeed) + aSeed * 40.0) * 0.4;
           p.z += cos(uTime * (0.6 + aSeed * 0.7) + aSeed * 23.0) * 0.4;
@@ -48,7 +53,7 @@ export class Snow {
           p = mod(p - origin, box) + origin;
           vec4 mv = viewMatrix * vec4(p, 1.0);
           gl_Position = projectionMatrix * mv;
-          float size = 0.028 + aSeed * 0.035;
+          float size = mix(0.028 + aSeed * 0.035, 0.1 + aSeed * 0.12, uLeaf);
           gl_PointSize = clamp(size * uScale / -mv.z, 1.0, 14.0);
           vec3 d = normalize(p - cameraPosition);
           vGlint = pow(max(dot(d, uSun), 0.0), 6.0);
@@ -56,12 +61,19 @@ export class Snow {
           vA = smoothstep(0.3, 1.2, dist) * (1.0 - smoothstep(22.0, 32.0, dist));
         }`,
       fragmentShader: /* glsl */ `
-        varying float vA; varying float vGlint;
+        uniform float uLeaf;
+        varying float vA; varying float vGlint; varying float vS;
         void main() {
           vec2 c = gl_PointCoord - 0.5;
           float d = length(c);
           float a = (1.0 - smoothstep(0.1, 0.5, d)) * vA;
           vec3 col = mix(vec3(0.62, 0.68, 0.86), vec3(3.8, 1.75, 0.8), vGlint);
+          if (uLeaf > 0.5) {
+            // maple red, amber, gold: picked by seed, lit warmer toward the sun
+            vec3 pal = vS < 0.35 ? vec3(1.1, 0.22, 0.08) : (vS < 0.7 ? vec3(1.2, 0.55, 0.1) : vec3(1.25, 0.85, 0.25));
+            col = mix(pal, pal * 2.6, vGlint);
+            a *= 0.85;
+          }
           gl_FragColor = vec4(col * a, a * 0.9);
         }`,
       transparent: true,
