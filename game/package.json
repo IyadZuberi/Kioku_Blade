@@ -13,13 +13,16 @@
     "shoot": "node tools/shoot.mjs",
     "bot": "node tools/bot.mjs",
     "arena:pack": "node tools/blender/pack_arena.mjs",
-    "test": "vitest run"
+    "test": "vitest run",
+    "predev": "node tools/copy-mediapipe.mjs",
+    "prebuild": "node tools/copy-mediapipe.mjs"
   },
   "dependencies": {
+    "@gr/shared": "workspace:*",
+    "@mediapipe/tasks-vision": "^1.1.1",
     "n8ao": "^2.0.1",
     "postprocessing": "^6.39.5",
-    "three": "^0.186.0",
-    "@gr/shared": "workspace:*"
+    "three": "^0.186.0"
   },
   "devDependencies": {
     "@gltf-transform/core": "^4.5.0",

@@ -6,3 +6,4 @@ data/calls.csv
 data/eval/
 *.log
 
+game/public/mediapipe

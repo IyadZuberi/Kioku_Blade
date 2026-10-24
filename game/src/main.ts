@@ -12,6 +12,27 @@ wavedash.progress(0.2);
 const game = new Game(canvas, hud);
 game.start();
 wavedash.ready();
+// Optional hand gestures: ?gestures=1 or the G key. Mouse and keyboard always work.
+let gestures: { stop(): void } | null = null;
+async function toggleGestures(): Promise<void> {
+  if (gestures) {
+    gestures.stop();
+    gestures = null;
+    game.gestureAssist = false;
+    return;
+  }
+  try {
+    const { startGestures } = await import("./input/gestures");
+    gestures = await startGestures(game.input);
+    game.gestureAssist = true;
+  } catch (e) {
+    console.warn("gestures unavailable:", e);
+  }
+}
+window.addEventListener("keydown", (e) => {
+  if (e.code === "KeyG" && !e.repeat && !(e.target instanceof HTMLInputElement)) void toggleGestures();
+});
+if (new URLSearchParams(location.search).get("gestures") === "1") void toggleGestures();
 const bodies = loadBodies({ player: game.shinobi, boss: game.general }, (who, body) => game.useBody(who, body));
 if (new URLSearchParams(location.search).get("debug") === "anim") void import("./debug/AnimDebug").then((m) => m.mountAnimDebug(game));
 

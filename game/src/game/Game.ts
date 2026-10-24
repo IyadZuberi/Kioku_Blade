@@ -44,10 +44,11 @@ import { ATTACKS, BOSS_MAX, Boss, OPEN, type HitDef } from "./Boss";
 import { pickQuality, type Quality, type QualitySettings, settingsFor } from "../render/quality";
 import type { HabitScore } from "@gr/shared";
 import { Council } from "../ui/Council";
+import { assistKnobs } from "../input/assist";
 import { applyPlan } from "../learn/planLoader";
 import { fetchGlobal, getNickname, newFightId, requestPlan, type PlanResult } from "../learn/session";
 import { mark, summarize, type StatsMark } from "../learn/summary";
-import { applyDifficulty, DIFFICULTY, DIFFICULTY_NAMES, type DifficultyName, initialDifficulty, isDifficulty, rememberDifficulty } from "./difficulty";
+import { applyDifficulty, DIFFICULTY, DIFFICULTY_NAMES, type DifficultyName, initialDifficulty, isDifficulty, overrideDifficulty, rememberDifficulty } from "./difficulty";
 import { CameraRig } from "./CameraRig";
 import { KICK_REACH, PLAYER_MAX, Player, vitalityRegen } from "./Player";
 import { wavedash } from "../wavedash";
@@ -150,6 +151,8 @@ export class Game {
   learn: { state: "idle" | "pending" | "ready"; fightId: string; result: PlanResult | null } = { state: "idle", fightId: "", result: null };
   /** Called when a plan arrives (the Council screen listens). */
   onPlan: ((r: PlanResult) => void) | null = null;
+  /** Set by main.ts when hand gestures are on. */
+  gestureAssist = false;
   private fightMark: StatsMark | null = null;
   private firstHealT: number | null = null;
   private fightsPlayed = 0;
@@ -387,6 +390,8 @@ export class Game {
     this.fightMark = mark(this.stats);
     this.firstHealT = null;
     if (this.learn.result) applyPlan(this.learn.result.plan, this.boss);
+    // Gesture mode: webcam latency eats the deflect window, so widen it (never tighten).
+    if (this.gestureAssist) overrideDifficulty(assistKnobs(structuredClone(DIFFICULTY)));
   }
 
   /** A fight ended (victory or true defeat): send the numbers, never wait for the answer. */
