@@ -45,6 +45,7 @@ import { ChapterCard } from "../ui/ChapterCard";
 import { bossOf, type BossId } from "@gr/shared";
 import { BOSSES, bossKnobs, type BossDef } from "./bosses";
 import { Hazards, RING, WAVE } from "./hazards";
+import { Gate } from "./Gate";
 import { afterFight, fresh, loadProgress, saveProgress, select as selectProgress, unlockAll, type Progress } from "./progress";
 import { RIM, SUN_DIR, installFog } from "../world/materials";
 import { ATTACKS, VARIANT, BOSS_MAX, Boss, OPEN, type HitDef } from "./Boss";
@@ -76,7 +77,7 @@ export function deflectPosture(h: HitDef, chain: number): number {
   return DIFFICULTY.deflectPosture * (1 + 0.12 * Math.min(chain, 4)) * (h.heavy ? 1.15 : 1);
 }
 
-type GState = "title" | "fight" | "deathblow" | "finisher" | "victory" | "dying" | "defeat";
+type GState = "title" | "fight" | "deathblow" | "finisher" | "victory" | "dying" | "defeat" | "gate";
 
 const _a = new THREE.Vector3();
 const _b = new THREE.Vector3();
@@ -161,9 +162,11 @@ export class Game {
   bossDef: BossDef = BOSSES[1];
   private progressFor = "";
   private cardFor = 0;
+  private gateT = 0;
   private advancedTo: BossId | null = null;
   readonly chapterCard: ChapterCard;
   private readonly hazards = new Hazards(this.scene);
+  private readonly gate = new Gate(this.scene);
   /** Called when a plan arrives (the Council screen listens). */
   onPlan: ((r: PlanResult) => void) | null = null;
   /** Set by main.ts when hand gestures are on. */
@@ -547,6 +550,52 @@ export class Game {
     this.held.add(f);
   }
 
+  /**
+   * After a victory that opens the next chapter: a vermilion gate rises ahead of the shinobi, who
+   * walks through its light while the camera follows; then the chapter card and the next general.
+   */
+  private beginGate(): void {
+    const p = this.player;
+    this.go("gate");
+    this.advancedTo = null;
+    this.hud.hideEnd();
+    this.hud.showFight(false);
+    this.council.hide();
+    this.desatTarget = 0;
+    this.audio.setDuck(0.2);
+    this.gateT = 0;
+    p.enter("move");
+    p.unbounded = true;
+    p.yaw = Math.PI;
+    this.gate.place(p.pos.x, p.pos.z - 15);
+    this.cam.setMode("victory");
+  }
+
+  private gateWalk(dt: number, g: number, prompt: string | null): void {
+    const p = this.player;
+    this.gateT += dt;
+    const t = this.gateT;
+    this.input.setAnalog("gate", 0, t > 1.2 ? 1 : 0);
+    p.update(g, this.input, Math.PI, this.boss.pos, false);
+    this.boss.update(g, p.pos, true);
+    const through = p.pos.z < this.gate.z + 0.4;
+    this.gate.update(this.gameTime, Math.min(1, t / 2.2));
+    // Camera: behind and a little above the walker, drifting toward the gate, then past it.
+    this.cam.override = {
+      pos: new THREE.Vector3(p.pos.x + Math.sin(t * 0.3) * 0.8, 1.55 + Math.min(t, 6) * 0.05, p.pos.z + 3.6),
+      look: new THREE.Vector3(this.gate.group.position.x, 3.2, this.gate.z - 1.5),
+    };
+    if (through || t > 14 || (prompt && t > 1.5)) {
+      this.input.setAnalog("gate", 0, 0);
+      this.cam.override = null;
+      this.gate.hide();
+      this.player.unbounded = false;
+      this.audio.setDuck(0);
+      this.cardFor = 0; // the next chapter always gets its card
+      this.beginIntro();
+    }
+  }
+
   toTitle(): void {
     this.go("title");
     if (this.progressFor !== getNickname()) this.loadChapter();
@@ -686,6 +735,9 @@ export class Game {
       case "dying":
         this.dying(g, prompt);
         break;
+      case "gate":
+        this.gateWalk(dt, g, prompt);
+        break;
       case "defeat":
       case "victory":
         this.endT += dt;
@@ -699,7 +751,8 @@ export class Game {
           this.input.armPrompt("menu", 0.25);
         }
         if (prompt && this.promptShown) {
-          if (this.state === "victory" || prompt === "back") this.toTitle();
+          if (this.state === "victory" && this.advancedTo) this.beginGate();
+          else if (this.state === "victory" || prompt === "back") this.toTitle();
           else this.beginIntro();
         }
         break;

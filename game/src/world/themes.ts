@@ -109,7 +109,7 @@ function toro(R: () => number): { group: THREE.Group; glow: THREE.MeshStandardMa
   return { group, glow };
 }
 
-function torii(R: () => number, aged = 0): THREE.Group {
+export function torii(R: () => number, aged = 0): THREE.Group {
   const red = aged ? "#9c3a26" : "#c0341f", black = "#17110f";
   const parts = [
     piece(new THREE.CylinderGeometry(0.3, 0.36, 6.4, 12), red, xf(-3.1, 3.2, 0), 0.04, R),

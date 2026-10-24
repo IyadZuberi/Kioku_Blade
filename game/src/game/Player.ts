@@ -139,7 +139,11 @@ export class Player {
     ch.rig.onStep = (_f, sp) => this.events.push(sp > 4.5 ? "stepRun" : "step");
   }
 
+  /** The walk to the next chapter's gate leaves the duel ring. */
+  unbounded = false;
+
   reset(): void {
+    this.unbounded = false;
     this.pos.set(0, 0, 4);
     this.vel.set(0, 0, 0);
     this.yaw = Math.PI;
@@ -471,8 +475,10 @@ export class Player {
   }
 
   confine(): void {
-    this.pos.x = clamp(this.pos.x, -ARENA_HALF, ARENA_HALF);
-    this.pos.z = clamp(this.pos.z, RIDGE_Z + 1.3, ARENA_HALF);
+    if (!this.unbounded) {
+      this.pos.x = clamp(this.pos.x, -ARENA_HALF, ARENA_HALF);
+      this.pos.z = clamp(this.pos.z, RIDGE_Z + 1.3, ARENA_HALF);
+    }
   }
 
   private startJump(): void {
