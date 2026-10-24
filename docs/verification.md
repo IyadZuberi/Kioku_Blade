@@ -34,3 +34,7 @@ Everything below was run in this session; nothing is inferred. "NOT verified" li
 - Habit labels in the held-out set come from our own habit table, so the rules baseline scores 100% by construction. The Mubit rows are only meaningful as agreement with the provider model and as latency/cost numbers.
 - The `H` host override uses `window.prompt`.
 - Gesture mode covers combat only; movement and the gourd stay on the keyboard.
+## Update 24 Oct (second pass)
+- QA via in-page auto-player on the production build: easy/medium/hard each go fight>deathblow>finisher>victory (26 s / 26 s / 38 s), end screen 'victory' shown, 0 errors. Defeat path: death prompt (resurrect) > rise at 50% hp > second death > defeat screen > plan ready > Council shown > back to title cleans both. 0 errors.
+- Loading: dev build ~10-13 s to ready (unbundled), production build ~5 s to ready on this laptop; the page was blank until then. Added a static loading screen (docs/notes/boot-screen.png).
+- Gestures: swipe threshold lowered 6 -> 3.5 hand-lengths/s, tracks survive dropped frames, ?gdebug=1 shows live speed. NOT yet re-tested with a real hand.
