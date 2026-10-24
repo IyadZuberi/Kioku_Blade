@@ -163,6 +163,8 @@ export class Game {
   private progressFor = "";
   private cardFor = 0;
   private gateT = 0;
+  private poseDt = 0;
+  private poseTick = 0;
   private advancedTo: BossId | null = null;
   readonly chapterCard: ChapterCard;
   private readonly hazards = new Hazards(this.scene);
@@ -758,8 +760,13 @@ export class Game {
         break;
     }
 
-    p.step(g, this.wind, this.gameTime);
-    b.step(g, this.wind, this.gameTime);
+    // The skeleton (animation, IK, cloth, trails) is the costly part of a tick: pose it at 60 Hz, every second 120 Hz logic tick.
+    this.poseDt += g;
+    if ((this.poseTick ^= 1) === 0) {
+      p.step(this.poseDt, this.wind, this.gameTime);
+      b.step(this.poseDt, this.wind, this.gameTime);
+      this.poseDt = 0;
+    }
     if (this.state === "fight") {
       this.contacts();
       this.updateHazards(g);
