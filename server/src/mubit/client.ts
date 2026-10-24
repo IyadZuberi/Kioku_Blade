@@ -41,7 +41,7 @@ function defaultClient(): OpenAILike {
   if (process.env.MUBIT_LIVE !== "1") throw new Error("MUBIT_LIVE is not 1: no Mubit call made");
   const apiKey = process.env.MUBIT_API_KEY;
   if (!apiKey) throw new Error("MUBIT_API_KEY not set (no Mubit call made)");
-  shared ??= new OpenAI({ baseURL: process.env.MUBIT_BASE_URL ?? "https://api.mubit.ai/openai/v1", apiKey }) as unknown as OpenAILike;
+  shared ??= new OpenAI({ baseURL: process.env.MUBIT_BASE_URL ?? "https://api.mubit.ai/compat/groq/v1", apiKey }) as unknown as OpenAILike;
   return shared;
 }
 

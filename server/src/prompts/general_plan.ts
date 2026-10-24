@@ -57,7 +57,7 @@ const KEYS = ["focus_habit", "opening_strings", "emphasis", "tempo_step", "gap_s
 
 export const generalPlanTask: TaskDef<PlanInput, Plan> = {
   name: "general_plan",
-  model: process.env.MUBIT_MODEL ?? "gpt-6-luna",
+  model: process.env.MUBIT_MODEL ?? "openai/gpt-oss-120b",
   system: SYSTEM,
   schema: PLAN_SCHEMA,
   // Shape check only; the route runs validatePlan with the real per-level limits.
