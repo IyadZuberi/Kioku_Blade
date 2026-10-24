@@ -1,56 +1,15 @@
-// Reference frames from a YouTube search's first result → shinobi-duel/research/ (delete after).
-// Usage: node tools/frames.mjs "<query>" <prefix> <startSec> <count> <everySec>
-import { mkdirSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+// Frame-time sequence in real Chrome (uncapped): shows jank patterns.
 import { chromium } from "playwright";
-
-const [q, prefix, start = "30", count = "6", every = "1"] = process.argv.slice(2);
-const out = join(dirname(fileURLToPath(import.meta.url)), "..", "research");
-mkdirSync(out, { recursive: true });
-const browser = await chromium.launch({
-  channel: "chromium",
-  headless: true,
-  args: ["--use-angle=d3d11", "--enable-gpu", "--mute-audio", "--autoplay-policy=no-user-gesture-required"],
-});
-const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, locale: "en-US" });
-const page = await ctx.newPage();
-await page.goto(`https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`, { waitUntil: "domcontentloaded" });
-await page.waitForTimeout(3000);
-for (const label of ["Reject all", "Accept all"]) {
-  const b = page.getByRole("button", { name: label }).first();
-  if (await b.isVisible().catch(() => false)) {
-    await b.click();
-    await page.waitForTimeout(2000);
-    break;
-  }
-}
-const href = await page.locator("a#video-title").first().getAttribute("href");
-console.log("video:", href);
-const id = new URL(href, "https://www.youtube.com").searchParams.get("v");
-await page.goto(`https://www.youtube.com/watch?v=${id}&t=${start}s`, { waitUntil: "domcontentloaded" });
-await page.waitForTimeout(6000);
-// Skip ads if present.
-for (let i = 0; i < 6; i++) {
-  const skip = page.locator(".ytp-skip-ad-button, .ytp-ad-skip-button-modern").first();
-  if (await skip.isVisible().catch(() => false)) await skip.click().catch(() => {});
-  const ad = await page.locator(".ad-showing").count();
-  if (!ad) break;
-  await page.waitForTimeout(3000);
-}
-await page.evaluate((s) => {
-  const v = document.querySelector("video");
-  if (v) {
-    v.currentTime = s;
-    v.play();
-  }
-}, +start);
-await page.waitForTimeout(1500);
-const player = page.locator("#movie_player");
-for (let i = 0; i < +count; i++) {
-  const t = await page.evaluate(() => document.querySelector("video")?.currentTime ?? -1);
-  await player.screenshot({ path: join(out, `${prefix}_${i}.png`) });
-  console.log(prefix, i, t.toFixed(2));
-  await page.waitForTimeout(+every * 1000);
-}
+const BASE = process.env.PERF_URL ?? "http://localhost:5410/";
+const browser = await chromium.launch({ channel: "chrome", headless: false, args: ["--disable-renderer-backgrounding", "--disable-backgrounding-occluded-windows", "--disable-features=CalculateNativeWinOcclusion", "--ignore-gpu-blocklist", "--disable-gpu-vsync", "--disable-frame-rate-limit", "--mute-audio"] });
+const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+await page.goto(`${BASE}?quality=low&name=Frames&${process.argv[2] ?? ""}`, { waitUntil: "load" });
+await page.waitForFunction(() => window.__duel && window.__duel.ready, null, { timeout: 90000 });
+await page.evaluate(() => { const g = window.__duel.game; g.startFight(); g.boss.passive = true; if (window.__duel.autoPlay && new URLSearchParams(location.search).get("play") === "1") window.__duel.autoPlay(true); });
+await page.waitForTimeout(4000);
+const dts = await page.evaluate(() => new Promise((res) => { const ts = []; const tick = (t) => { ts.push(t); if (ts.length < 360) requestAnimationFrame(tick); else res(ts.slice(1).map((x, i) => +(x - ts[i]).toFixed(1))); }; requestAnimationFrame(tick); }));
+console.log(dts.slice(0, 120).join(" "));
+const sorted = [...dts].sort((a, b) => a - b);
+const long = dts.map((d, i) => [d, i]).filter(([d]) => d > 24).map(([d, i]) => `${i}:${d}`);
+console.log("p50", sorted[sorted.length >> 1], "p90", sorted[Math.floor(sorted.length * 0.9)], "p99", sorted[Math.floor(sorted.length * 0.99)], "long(>24ms) idx:ms", long.join(" "));
 await browser.close();

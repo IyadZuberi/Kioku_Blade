@@ -39,9 +39,10 @@ import { Snow } from "../fx/Snow";
 import { Post } from "../render/Post";
 import { Hud } from "../ui/Hud";
 import { Arena } from "../world/Arena";
+import type { ThemeId } from "../world/themes";
 import { RIM, SUN_DIR, installFog } from "../world/materials";
 import { ATTACKS, BOSS_MAX, Boss, OPEN, type HitDef } from "./Boss";
-import { pickQuality, type Quality, type QualitySettings, ResolutionGovernor, settingsFor } from "../render/quality";
+import { pickQuality, type Quality, type QualitySettings, ResolutionGovernor, settingsFor, withOverrides } from "../render/quality";
 import type { HabitScore } from "@gr/shared";
 import { Council } from "../ui/Council";
 import { assistKnobs } from "../input/assist";
@@ -125,9 +126,7 @@ export class Game {
   readonly camera = new THREE.PerspectiveCamera(52, 16 / 9, 0.1, 3000);
   readonly post: Post;
   readonly arena: Arena;
-  /** ?theme=snow keeps the base's snowy dusk; the default is the golden-hour leaf theme. */
-  readonly theme: "snow" | "tsushima" = new URLSearchParams(location.search).get("theme") === "snow" ? "snow" : "tsushima";
-  readonly snow = new Snow(9000, this.theme === "tsushima");
+  readonly snow = new Snow(1800, "maple");
   readonly fx: Fx;
   /** Procedural bodies (default + fallback); the slots may swap them for skinned ones. */
   readonly shinobi = new Shinobi();
@@ -237,11 +236,11 @@ export class Game {
     const dbg = gl.getExtension("WEBGL_debug_renderer_info");
     this.rendererName = dbg ? String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)) : String(gl.getParameter(gl.RENDERER));
     this.quality = pickQuality(this.rendererName, location.search);
-    this.qs = settingsFor(this.quality);
+    this.qs = withOverrides(settingsFor(this.quality), location.search);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, this.qs.pixelRatio));
     this.governor = new ResolutionGovernor(this.renderer.getPixelRatio());
 
-    this.arena = new Arena(this.scene);
+    this.arena = new Arena(this.scene, this.qs);
     // Dusk reflections for steel and lacquer: bake the world (before the fighters exist).
     const pmrem = new THREE.PMREMGenerator(this.renderer);
     const envRT = pmrem.fromScene(this.scene, 0.02, 0.1, 2000);
@@ -257,7 +256,7 @@ export class Game {
     this.boss = new Boss(this.bossBody);
     this.cam = new CameraRig(this.camera);
     this.post = new Post(this.renderer, this.scene, this.camera, this.arena.surround.sunMesh, this.qs);
-    this.post.setTheme(this.theme);
+    this.setArena(this.arena.spec?.id ?? 1);
     this.hud = new Hud(hudRoot);
     this.council = new Council(hudRoot);
     this.input = new Input(canvas);
@@ -353,6 +352,13 @@ export class Game {
     this.endT = 0;
     this.promptShown = false;
     this.input.disarmPrompt();
+  }
+
+  /** Switch the stage (one per boss): scenery, lights, sky, particles and the post-process look. */
+  setArena(id: ThemeId): void {
+    const s = this.arena.setTheme(id);
+    this.snow.setKind(s.particles);
+    this.post.setLook(s.look);
   }
 
   private resetActors(): void {

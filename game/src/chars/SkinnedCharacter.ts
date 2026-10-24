@@ -123,6 +123,9 @@ interface Seq {
   holdDone: boolean;
 }
 
+/** Blade-steering IK budget (CCD passes). Tuned for speed: the hottest loop in the game. Mutable for the perf probe. */
+export const IK_TUNE = { arm: 6, assist: 3, stopAngle: 1e-7, stopDist2: 6.25e-6 };
+
 export class SkinnedCharacter implements Fighter {
   readonly kind = "skinned" as const;
   readonly rig: SkinnedRig;
@@ -910,7 +913,7 @@ export class SkinnedCharacter implements Fighter {
     const hand = this.bones.get(this.cfg.sword.bone);
     const d = this.cfg.sword;
     const rh = ref.rig;
-    for (let it = 0; it < 3; it++) {
+    for (let it = 0; it < IK_TUNE.assist; it++) {
       this.armIK(rh.hiltW, w, 0, 0, true);
       if (!hand) break;
       this.rig.root.updateMatrixWorld(true);
@@ -918,6 +921,7 @@ export class SkinnedCharacter implements Fighter {
       const tip = _g1.set(0, d.tsuba + d.blade, 0).applyMatrix4(this.swordSocket.matrixWorld);
       _gq.setFromUnitVectors(_g2.subVectors(tip, hilt).normalize(), _g3.subVectors(rh.tipW, rh.hiltW).normalize());
       _gq.slerp(_gi, 1 - w);
+      if (1 - Math.abs(_gq.w) < IK_TUNE.stopAngle) break; // blade already lined up: nothing left to correct
       const pw = hand.parent!.getWorldQuaternion(_gpq);
       const bw = hand.getWorldQuaternion(_gbq);
       hand.quaternion.copy(pw.invert().multiply(_gq).multiply(bw));
@@ -963,7 +967,19 @@ export class SkinnedCharacter implements Fighter {
     const chain = spine ? K.full : K.arms;
     const d = this.cfg.sword;
     this.rig.root.updateMatrixWorld(true);
-    for (let it = 0; it < 6; it++)
+    for (let it = 0; it < IK_TUNE.arm; it++) {
+      let maxTurn = 0;
+      // Converged (blade within 2.5 mm of the target): every further CCD pass would be a no-op that
+      // still re-poses the arm. This is the hottest loop in the game (it runs every fixed step).
+      this.swordSocket.updateWorldMatrix(true, false);
+      {
+        const h0 = _g0.set(0, d.tsuba, 0).applyMatrix4(this.swordSocket.matrixWorld);
+        const t0 = _g1.set(0, d.tsuba + d.blade, 0).applyMatrix4(this.swordSocket.matrixWorld);
+        const ab0 = _g2.subVectors(t0, h0);
+        const u0c = THREE.MathUtils.clamp(_g3.subVectors(T, h0).dot(ab0) / ab0.lengthSq(), u0, u1);
+        const p0 = _g4.copy(h0).addScaledVector(ab0, u0c);
+        if (p0.distanceToSquared(T) < IK_TUNE.stopDist2) break;
+      }
       for (const b of chain) {
         // (turn() keeps every rotated bone's subtree up to date, so no full-rig update in the loop.)
         this.swordSocket.updateWorldMatrix(true, false);
@@ -976,9 +992,12 @@ export class SkinnedCharacter implements Fighter {
         _gq.setFromUnitVectors(_g5.subVectors(P, S).normalize(), _g6.subVectors(T, S).normalize());
         // The trunk only leans a share of the way (and less per bone) so the arms do most of it.
         _gq.slerp(_gi, 1 - w * (K.trunk.has(b) ? 0.5 : 1));
+        maxTurn = Math.max(maxTurn, 1 - Math.abs(_gq.w));
         turnBone(b, _gq);
         if (b === K.arm && K.left) turnBone(K.left, _gq);
       }
+      if (maxTurn < IK_TUNE.stopAngle) break; // the whole pass barely moved a bone: settled
+    }
   }
 
 

@@ -69,6 +69,9 @@ window.addEventListener("keydown", (e) => {
     else game.council.flash("Rule saved. Mubit is off or unreachable, so nothing was re-sent.");
   });
 });
+// ?arena=1|2|3 starts in that arena (each boss has its own).
+const arenaParam = Number(new URLSearchParams(location.search).get("arena"));
+if (arenaParam === 1 || arenaParam === 2 || arenaParam === 3) game.setArena(arenaParam);
 const bodies = loadBodies({ player: game.shinobi, boss: game.general }, (who, body) => game.useBody(who, body));
 if (new URLSearchParams(location.search).get("debug") === "anim") void import("./debug/AnimDebug").then((m) => m.mountAnimDebug(game));
 
@@ -224,6 +227,7 @@ window.__duel = {
   pause: () => game.pause(),
   resume: () => game.resume(),
   startFight: () => game.startFight(),
+  arena: (n: 1 | 2 | 3) => game.setArena(n),
   toTitle: () => game.toTitle(),
   forceBossAttack: (n: string) => game.forceBossAttack(n),
   autoDeflect: (on: boolean) => {
@@ -266,7 +270,16 @@ game.arena
   .then(() => bodies.catch(() => undefined))
   // Lighting agent: rim-tag the fighters' armour before the warm-up so it compiles with everything else.
   .then(() => game.arena.tagCharacterRim())
-  .then(warmArena)
+  .then(async () => {
+    // Compile every arena's shaders now (behind the loading screen) so a chapter change never hitches.
+    await warmArena();
+    const start = game.arena.spec?.id ?? 1;
+    for (const id of [2, 3] as const) {
+      game.setArena(id);
+      await warmArena();
+    }
+    game.setArena(start);
+  })
   .catch((e: unknown) => console.error("[arena] failed to load", e))
   .finally(() => {
     const boot = document.getElementById("boot");

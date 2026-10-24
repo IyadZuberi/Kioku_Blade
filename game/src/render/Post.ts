@@ -119,6 +119,7 @@ export class Post {
   private readonly ca: ChromaticAberrationEffect;
   private readonly vignette: VignetteEffect;
   private readonly ao: N8AOPostPass;
+  private rays?: GodRaysEffect;
 
   /** Transient intensities, decayed each frame (real time). */
   flash = 0;
@@ -150,7 +151,7 @@ export class Post {
       luminanceSmoothing: 0.35,
       intensity: 0.95,
       radius: 0.72,
-      levels: 8,
+      levels: quality.bloomLevels,
     });
     this.grade = new GradeEffect();
     const rays = sun
@@ -160,13 +161,14 @@ export class Post {
             decay: 0.93,
             weight: 0.26,
             exposure: 0.3,
-            samples: 60,
+            samples: quality.raySamples,
             clampMax: 1.0,
             kernelSize: KernelSize.SMALL,
             blur: true,
           }),
         ]
       : [];
+    this.rays = rays[0];
     this.composer.addPass(new EffectPass(camera, ...rays, this.bloom, this.grade));
 
     this.ca = new ChromaticAberrationEffect({
@@ -179,16 +181,13 @@ export class Post {
     this.composer.addPass(new EffectPass(camera, this.ca, this.vignette));
   }
 
-  /** "tsushima": golden-hour grade (warm gain, richer colour). "snow" keeps the base's cold dusk. */
-  setTheme(theme: "snow" | "tsushima"): void {
+  /** Per-arena look: exposure, bloom strength, god-ray strength and the highlight tint. */
+  setLook(look: { exposure: number; bloom: number; rays: number; gain: [number, number, number] }): void {
     const g = this.grade;
-    const t = theme === "tsushima";
-    g.u("uSatLow").value = t ? 1.0 : GRADE.satLow;
-    g.u("uSatHigh").value = t ? 1.2 : GRADE.satHigh;
-    const gain = t ? [1.12, 0.98, 0.78] : GRADE.gain;
-    const lift = t ? [0.03, 0.02, 0.018] : GRADE.lift;
-    (g.u("uGain").value as THREE.Vector3).set(gain[0], gain[1], gain[2]);
-    (g.u("uLift").value as THREE.Vector3).set(lift[0], lift[1], lift[2]);
+    g.u("uExposure").value = GRADE.exposure * look.exposure;
+    (g.u("uGain").value as THREE.Vector3).set(look.gain[0], look.gain[1], look.gain[2]);
+    this.bloom.intensity = look.bloom;
+    if (this.rays) this.rays.godRaysMaterial.exposure = look.rays;
   }
 
   hitFlash(amount: number, color?: THREE.ColorRepresentation): void {

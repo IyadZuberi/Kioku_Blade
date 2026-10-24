@@ -7,9 +7,9 @@
  */
 import * as THREE from "three";
 
-export const SUN_DIR = new THREE.Vector3(-0.3, 0.075, -1).normalize();
+export const SUN_DIR = new THREE.Vector3(-0.86, 0.14, -0.49).normalize();
 /** Light direction is a little higher than the visible sun so shadows stay readable. */
-export const LIGHT_DIR = new THREE.Vector3(-0.72, 0.3, -0.62).normalize();
+export const LIGHT_DIR = new THREE.Vector3(-0.7, 0.42, -0.25).normalize();
 
 const v3 = (v: THREE.Vector3) => `vec3(${v.x.toFixed(4)}, ${v.y.toFixed(4)}, ${v.z.toFixed(4)})`;
 

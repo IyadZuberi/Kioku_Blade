@@ -9,6 +9,14 @@ export interface QualitySettings {
   pixelRatio: number;
   ao: boolean;
   msaa: number;
+  /** Sun shadow map size (texels per side). */
+  shadowMap: number;
+  /** How many lantern point lights are created (each one costs every lit pixel). */
+  pointLights: number;
+  /** God-ray samples per pixel. */
+  raySamples: number;
+  /** Mip levels in the bloom chain. */
+  bloomLevels: number;
 }
 
 export function pickQuality(rendererName: string, search: string): Quality {
@@ -18,7 +26,28 @@ export function pickQuality(rendererName: string, search: string): Quality {
 }
 
 export function settingsFor(q: Quality): QualitySettings {
-  return q === "low" ? { pixelRatio: 1, ao: false, msaa: 0 } : { pixelRatio: 1.5, ao: true, msaa: 4 };
+  return q === "low"
+    ? { pixelRatio: 1, ao: false, msaa: 0, shadowMap: 2048, pointLights: 3, raySamples: 24, bloomLevels: 5 }
+    : { pixelRatio: 1.5, ao: true, msaa: 4, shadowMap: 4096, pointLights: 99, raySamples: 60, bloomLevels: 8 };
+}
+
+/** Tuning knobs for a real machine: ?pr= ?shadow= ?lights= ?rays= ?bloom= (junk and out-of-range values are ignored). */
+export function withOverrides(s: QualitySettings, search: string): QualitySettings {
+  const p = new URLSearchParams(search);
+  const num = (k: string, lo: number, hi: number): number | undefined => {
+    const v = p.get(k);
+    if (v === null || v.trim() === "") return undefined;
+    const n = Number(v);
+    return Number.isFinite(n) && n >= lo && n <= hi ? n : undefined;
+  };
+  return {
+    ...s,
+    pixelRatio: num("pr", 0.4, 2) ?? s.pixelRatio,
+    shadowMap: num("shadow", 256, 4096) ?? s.shadowMap,
+    pointLights: num("lights", 0, 99) ?? s.pointLights,
+    raySamples: num("rays", 1, 120) ?? s.raySamples,
+    bloomLevels: num("bloom", 1, 8) ?? s.bloomLevels,
+  };
 }
 
 /**
