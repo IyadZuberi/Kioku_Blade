@@ -237,11 +237,6 @@ window.__duel = {
 
 // The rooftop (arena.glb + sky HDRI) streams in behind the title; `ready` waits for it and for its
 // shaders, so the first fight never compiles programs.
-const loading = document.createElement("div");
-loading.textContent = "the castle rises from the mist…";
-loading.style.cssText =
-  "position:fixed;left:0;right:0;bottom:5%;text-align:center;font:italic 15px Georgia,serif;letter-spacing:.12em;color:rgba(236,226,214,.72);pointer-events:none;transition:opacity .6s";
-document.body.append(loading);
 /**
  * The arena adds materials and lantern lights (which changes every program's light hash), so compile
  * the whole scene again, hidden combat fx included, the way the composer draws it: into a linear
@@ -274,8 +269,9 @@ game.arena
   .then(warmArena)
   .catch((e: unknown) => console.error("[arena] failed to load", e))
   .finally(() => {
-    loading.style.opacity = "0";
-    setTimeout(() => loading.remove(), 700);
+    const boot = document.getElementById("boot");
+    boot?.classList.add("done");
+    setTimeout(() => boot?.remove(), 800);
     window.__duel.ready = true;
   });
 

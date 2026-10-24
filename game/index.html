@@ -3,34 +3,52 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Shinobi Duel — Snow Blade</title>
-    <meta name="description" content="A Sekiro-inspired sword duel in the browser: a kunoichi against a samurai general on a snowy castle rooftop at dusk. Deflect, break his posture, land the deathblow." />
+    <title>Kioku - Blades That Remember</title>
+    <meta name="description" content="A samurai duel in the browser where the general remembers how you fight. Deflect his blade, break his posture, land the deathblow, then face the version of him you taught." />
     <meta name="theme-color" content="#120d0f" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Shinobi Duel" />
-    <meta property="og:title" content="Shinobi Duel — Snow Blade" />
-    <meta property="og:description" content="A Sekiro-inspired sword duel in the browser: a kunoichi against a samurai general on a snowy castle rooftop at dusk. Deflect, break his posture, land the deathblow." />
-    <meta property="og:url" content="https://starknightt.github.io/shinobi-duel/" />
-    <meta property="og:image" content="https://starknightt.github.io/shinobi-duel/og.jpg" />
-    <meta property="og:image:type" content="image/jpeg" />
-    <meta property="og:image:width" content="1280" />
-    <meta property="og:image:height" content="640" />
-    <meta property="og:image:alt" content="A kunoichi deflects a samurai general's blade in a burst of sparks on a snowy castle rooftop at dusk, under the brush title 雪刃 Shinobi Duel" />
+    <meta property="og:site_name" content="Kioku" />
+    <meta property="og:title" content="Kioku - Blades That Remember" />
+    <meta property="og:description" content="A samurai duel where the general remembers how you fight." />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Shinobi Duel — Snow Blade" />
-    <meta name="twitter:description" content="A Sekiro-inspired sword duel in the browser: a kunoichi against a samurai general on a snowy castle rooftop at dusk." />
-    <meta name="twitter:image" content="https://starknightt.github.io/shinobi-duel/og.jpg" />
-    <meta name="twitter:image:alt" content="A kunoichi deflects a samurai general's blade in a burst of sparks on a snowy castle rooftop at dusk, under the brush title 雪刃 Shinobi Duel" />
+    <meta name="twitter:title" content="Kioku - Blades That Remember" />
+    <meta name="twitter:description" content="A samurai duel where the general remembers how you fight." />
     <style>
       html, body { margin: 0; height: 100%; overflow: hidden; background: #0d0c10; }
       #game { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; }
       body.fighting #game { cursor: none; }
     </style>
-  </head>
+    <style>
+      #boot { position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.4vmin;
+        background: radial-gradient(120% 90% at 50% 105%, #7a3b2a 0%, #2a1a22 38%, #0d0c10 72%); color: #efe7da; overflow: hidden; transition: opacity 0.7s ease; }
+      #boot.done { opacity: 0; pointer-events: none; }
+      #boot .sun { position: absolute; left: 50%; bottom: 8vh; width: 46vmin; height: 46vmin; margin-left: -23vmin; border-radius: 50%;
+        background: radial-gradient(circle at 50% 45%, #fbe3c4 0%, #f2b27d 45%, #d9683f 100%); box-shadow: 0 0 12vmin 3vmin rgba(240,150,90,0.35);
+        transform: translateY(0); animation: sunrise 7s cubic-bezier(.2,.7,.2,1) both; }
+      #boot .kanji, #boot .name, #boot .stroke, #boot .msg, #boot .late { position: relative; margin: 0; }
+      #boot .kanji { font: 700 17vmin/1 "Yu Mincho","YuMincho","Hiragino Mincho ProN","MS Mincho","Noto Serif JP",serif; letter-spacing: 0.06em; text-shadow: 0 0 3vmin rgba(0,0,0,0.55); }
+      #boot .name { font: 600 3.2vmin/1 "Palatino Linotype","Book Antiqua",Georgia,serif; letter-spacing: 0.7em; margin-right: -0.7em; color: #ece3d4; }
+      #boot .stroke { width: min(46vw, 420px); height: 3px; background: rgba(236,226,214,0.16); overflow: hidden; margin-top: 2vmin; }
+      #boot .stroke i { display: block; width: 36%; height: 100%; background: #c4372a; animation: sweep 1.6s ease-in-out infinite; }
+      #boot .msg { font: italic 2.1vmin/1.4 Georgia,serif; color: #d9cdb9; text-shadow: 0 1px 6px rgba(0,0,0,0.6); }
+      #boot .late { font: 1.9vmin/1.4 Georgia,serif; color: #e7b9a8; opacity: 0; max-width: 60ch; text-align: center; padding: 0 6vw; animation: fadein 0.6s ease 25s forwards; }
+      @keyframes sunrise { from { transform: translateY(46vmin); } to { transform: translateY(0); } }
+      @keyframes sweep { from { transform: translateX(-100%); } to { transform: translateX(280%); } }
+      @keyframes fadein { to { opacity: 1; } }
+      @media (prefers-reduced-motion: reduce) { #boot .sun, #boot .stroke i { animation: none; } #boot .stroke i { width: 100%; } }
+    </style>  </head>
   <body>
     <canvas id="game"></canvas>
+    <div id="boot" role="status" aria-live="polite">
+      <div class="sun" aria-hidden="true"></div>
+      <h1 class="kanji" lang="ja">記憶</h1>
+      <p class="name">Kioku</p>
+      <div class="stroke" aria-hidden="true"><i></i></div>
+      <p class="msg">Loading the rooftop and both fighters.</p>
+      <p class="late">Still loading. This game needs a desktop browser with WebGL and about 25 MB of data.</p>
+    </div>
     <div id="hud"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>

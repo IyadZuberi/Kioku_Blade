@@ -236,7 +236,7 @@ export class Hud {
     // ---------------------------------------------------------------- title
     this.title = el("div", "layer", root);
     this.title.id = "title";
-    const tk = brushText("雪刃", { size: 260, color: "#f1ebe0", seed: 21, dry: 0.7, splatter: 0.6, glow: "rgba(255,120,40,0.25)" });
+    const tk = brushText("記憶", { size: 260, color: "#f1ebe0", seed: 21, dry: 0.7, splatter: 0.6, glow: "rgba(255,120,40,0.25)" });
     const tkImg = new Image();
     tkImg.src = tk.toDataURL();
     tkImg.className = "t-kanji";
@@ -246,7 +246,7 @@ export class Hud {
     stImg.src = st.toDataURL();
     stImg.className = "t-stroke";
     this.title.appendChild(stImg);
-    const tl = brushText("SHINOBI DUEL", { size: 64, font: LATIN_FONT, weight: 700, color: "#efe7da", seed: 4, dry: 0.35, splatter: 0.1, letterSpacing: 0.28 });
+    const tl = brushText("KIOKU", { size: 64, font: LATIN_FONT, weight: 700, color: "#efe7da", seed: 4, dry: 0.35, splatter: 0.1, letterSpacing: 0.28 });
     const tlImg = new Image();
     tlImg.src = tl.toDataURL();
     tlImg.className = "t-latin";
