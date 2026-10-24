@@ -79,6 +79,13 @@ export class Council {
     this.box.classList.remove("on");
   }
 
+  /** A short host-only message under the council text (rule learned, etc.). */
+  flash(text: string): void {
+    const f = el("div", "c-src", this.box, text);
+    f.style.color = "#e7b9a8";
+    setTimeout(() => f.remove(), 6000);
+  }
+
   /** The call is in flight: say so, never block. */
   thinking(): void {
     this.box.replaceChildren();

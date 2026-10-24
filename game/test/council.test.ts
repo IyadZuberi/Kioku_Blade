@@ -53,5 +53,6 @@ describe("highMoves / sourceLine", () => {
     expect(sourceLine({ source: "mubit", latencyMs: 412, requestId: "mreq_abc", valid: true })).toContain("mreq_abc");
     expect(sourceLine({ source: "rules", latencyMs: 0, valid: false })).toMatch(/rules/);
     expect(sourceLine({ source: "local", latencyMs: 6000, valid: false })).toMatch(/offline/i);
+    expect(sourceLine({ source: "replay", latencyMs: 0, valid: true })).toMatch(/replay/i);
   });
 });

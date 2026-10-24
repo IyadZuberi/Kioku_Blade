@@ -17,5 +17,8 @@ export function openDb(path: string): DatabaseSync {
     CREATE TABLE IF NOT EXISTS global (key TEXT PRIMARY KEY, value TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS rules (id INTEGER PRIMARY KEY AUTOINCREMENT, text TEXT NOT NULL UNIQUE COLLATE NOCASE, ts TEXT NOT NULL);
   `);
+  // Older files lack the stored prompt input (needed to re-send a fight with a new rule).
+  const cols = db.prepare("PRAGMA table_info(fights)").all() as { name: string }[];
+  if (!cols.some((c) => c.name === "input")) db.exec("ALTER TABLE fights ADD COLUMN input TEXT");
   return db;
 }

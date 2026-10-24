@@ -1,6 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { rulesPlan } from "@gr/shared";
-import { requestPlan } from "../src/learn/session";
+import { requestPlan, resetReplay, sendOverride } from "../src/learn/session";
 
 const stats = { fightSeconds: 60, deflects: 2, lateDeflects: 0, blocks: 14, hitsTaken: 4, dodged: 1, playerHits: 5, sweepsJumped: 0, grabbed: 0, grabsEvaded: 0, heals: 0, firstHealAtSeconds: null, medianDeflectTiming: null, victory: false, deaths: 1, hitsByMove: { combo: 3 } };
 const args = { nickname: "Kenji", fightId: "f1", fightNumber: 1, stats };
@@ -33,5 +33,44 @@ describe("requestPlan", () => {
   it("an idle fight still produces a plan locally", async () => {
     const r = await requestPlan({ ...args, stats: { ...stats, blocks: 0, deflects: 0, hitsTaken: 0, playerHits: 0, fightSeconds: 0 } }, { fetchFn: async () => { throw new Error("x"); } });
     expect(r.plan.focus_habit).toBe("none");
+  });
+});
+describe("replay mode", () => {
+  beforeEach(resetReplay);
+  const stored = (focus: string) => ({ ...okBody(), source: "replay", plan: { ...okBody().plan, focus_habit: focus } });
+  it("serves stored plans round-robin, labelled replay, without posting a fight", async () => {
+    const urls: string[] = [];
+    const fetchFn = (async (u: string) => {
+      urls.push(u);
+      return new Response(JSON.stringify({ plans: [stored("passive"), stored("dodge_spammer")] }), { status: 200 });
+    }) as any;
+    const a = await requestPlan(args, { fetchFn, replay: true });
+    const b = await requestPlan(args, { fetchFn, replay: true });
+    const c = await requestPlan(args, { fetchFn, replay: true });
+    expect([a.plan.focus_habit, b.plan.focus_habit, c.plan.focus_habit]).toEqual(["passive", "dodge_spammer", "passive"]);
+    expect(a.source).toBe("replay");
+    expect(urls.every((u) => u.includes("/api/replay"))).toBe(true);
+  });
+  it("falls back to a local plan when there is nothing to replay", async () => {
+    const r = await requestPlan(args, { fetchFn: (async () => new Response(JSON.stringify({ plans: [] }), { status: 200 })) as any, replay: true });
+    expect(r.source).toBe("local");
+  });
+});
+
+describe("sendOverride", () => {
+  it("posts fightId and rule and returns the server answer", async () => {
+    let body: any;
+    const r = await sendOverride("f1", "Prefer flurry.", async (_u: any, init: any) => {
+      body = JSON.parse(init.body);
+      return new Response(JSON.stringify({ ok: true }), { status: 200 }) as any;
+    });
+    expect(body).toEqual({ fightId: "f1", rule: "Prefer flurry." });
+    expect(r.ok).toBe(true);
+  });
+  it("never throws: an offline server is ok:false", async () => {
+    const r = await sendOverride("f1", "x rule", async () => {
+      throw new Error("offline");
+    });
+    expect(r.ok).toBe(false);
   });
 });

@@ -2,7 +2,8 @@ import express, { type Request, type Response } from "express";
 import type { DatabaseSync } from "node:sqlite";
 import { MOVES, computeHabits, limitsForLevel, rulesPlan, validatePlan, type HabitScore, type Plan, type StatsSummary } from "@gr/shared";
 import { bossLevel } from "./bossLevel";
-import { designerRules, getPlayer, getTotalFights, globalMemory, recordGlobal, updatePlayer } from "./memory";
+import { randomUUID } from "node:crypto";
+import { addRule, designerRules, getPlayer, getTotalFights, globalMemory, recordGlobal, updatePlayer } from "./memory";
 import type { PlanInput } from "./prompts/general_plan";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -114,8 +115,8 @@ export function createApp(deps: Deps) {
       intelLines: intelLines(habits),
       habits,
     };
-    db.prepare("INSERT INTO fights(fight_id, nickname, ts, stats, source, valid, latency_ms, request_id, boss_level, response) VALUES(?,?,?,?,?,?,?,?,?,?)").run(
-      fightId, nickname, new Date().toISOString(), JSON.stringify(stats), source, valid ? 1 : 0, res.latencyMs, res.requestId ?? null, level, JSON.stringify(res),
+    db.prepare("INSERT INTO fights(fight_id, nickname, ts, stats, source, valid, latency_ms, request_id, boss_level, response, input) VALUES(?,?,?,?,?,?,?,?,?,?,?)").run(
+      fightId, nickname, new Date().toISOString(), JSON.stringify(stats), source, valid ? 1 : 0, res.latencyMs, res.requestId ?? null, level, JSON.stringify(res), JSON.stringify(input),
     );
     recordGlobal(db, habits, stats);
     return res;
@@ -178,6 +179,43 @@ export function createApp(deps: Deps) {
     } catch (e) {
       res.status(500).json({ error: "internal", detail: e instanceof Error ? e.message : String(e) });
     }
+  });
+
+  // Operator correction: a designer rule is added and the same fight is re-sent with it under a new session id,
+  // so the corrected answer is what Mubit records (there is no feedback API).
+  app.post("/api/override", async (req: Request, res: Response) => {
+    const b = (req.body ?? {}) as Record<string, unknown>;
+    const fightId = typeof b.fightId === "string" ? b.fightId : "";
+    const row = FIGHT_ID.test(fightId) ? (db.prepare("SELECT input FROM fights WHERE fight_id = ?").get(fightId) as { input: string | null } | undefined) : undefined;
+    if (!row?.input) {
+      res.status(404).json({ error: "unknown fight" });
+      return;
+    }
+    const rule = typeof b.rule === "string" ? b.rule.replace(/\s+/g, " ").trim() : "";
+    if (!rule || rule.length > 200) {
+      res.status(400).json({ error: "rule must be 1-200 characters" });
+      return;
+    }
+    addRule(db, rule);
+    const input = { ...(JSON.parse(row.input) as PlanInput), designerRules: designerRules(db) };
+    let call: PlanCall;
+    try {
+      call = await deps.callPlan(input, `gr-fix-${randomUUID()}`);
+    } catch (e) {
+      call = { out: undefined, ok: false, latencyMs: 0, error: e instanceof Error ? e.message : String(e) };
+    }
+    if (!call.ok) {
+      res.json({ ok: false, error: call.error ?? "call failed" });
+      return;
+    }
+    const v = validatePlan(call.out, input.limits, rulesPlan(input.habits, input.bossLevel));
+    res.json({ ok: true, plan: v.plan, valid: v.valid, requestId: call.requestId });
+  });
+
+  // Stored real plans for demo fallback (Wi-Fi or Mubit down). Always labelled "replay".
+  app.get("/api/replay", (_req: Request, res: Response) => {
+    const rows = db.prepare("SELECT response FROM fights ORDER BY rowid DESC LIMIT 20").all() as { response: string }[];
+    res.json({ plans: rows.map((r) => ({ ...JSON.parse(r.response), source: "replay" })) });
   });
 
   // Malformed JSON and other body errors: a JSON 400, not an HTML page.

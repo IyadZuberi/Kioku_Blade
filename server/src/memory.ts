@@ -74,3 +74,10 @@ export function globalMemory(db: DatabaseSync) {
 export function designerRules(db: DatabaseSync, max = 15): string[] {
   return (db.prepare("SELECT text FROM rules ORDER BY id DESC LIMIT ?").all(max) as { text: string }[]).map((r) => r.text).reverse();
 }
+
+/** Add a designer rule (case-insensitive dedupe). Only the newest 15 are kept. Returns false for a duplicate. */
+export function addRule(db: DatabaseSync, text: string, keep = 15): boolean {
+  const r = db.prepare("INSERT OR IGNORE INTO rules(text, ts) VALUES(?, ?)").run(text, new Date().toISOString());
+  db.prepare("DELETE FROM rules WHERE id NOT IN (SELECT id FROM rules ORDER BY id DESC LIMIT ?)").run(keep);
+  return Number(r.changes) > 0;
+}

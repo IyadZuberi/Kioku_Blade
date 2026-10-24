@@ -3,7 +3,7 @@ import { computeHabits, rulesPlan, type HabitScore, type Plan, type StatsSummary
 export interface PlanResult {
   plan: Plan;
   /** "local" = the server was unreachable or slow; the plan came from the same rules code the server uses. */
-  source: "mubit" | "rules" | "local";
+  source: "mubit" | "rules" | "local" | "replay";
   valid: boolean;
   bossLevel: number;
   grudge: number;
@@ -65,13 +65,57 @@ export function setNickname(n: string): void {
 const isPlanResponse = (j: any): j is PlanResult =>
   !!j && typeof j === "object" && !!j.plan && typeof j.plan === "object" && typeof j.plan.focus_habit === "string" && Array.isArray(j.plan.opening_strings);
 
+const replayFromUrl = (): boolean => {
+  try {
+    return new URLSearchParams(location.search).get("replay") === "1";
+  } catch {
+    return false;
+  }
+};
+let replayPlans: PlanResult[] | null = null;
+let replayAt = 0;
+
+/** Stored real plans, round-robin. null when there are none (the caller falls back to a local plan). */
+async function nextReplay(f: typeof fetch, signal: AbortSignal): Promise<PlanResult | null> {
+  let plans = replayPlans;
+  if (!plans) {
+    const res = await f(`${API}/api/replay`, { signal });
+    const j = res.ok ? await res.json() : null;
+    const got: PlanResult[] = Array.isArray(j?.plans) ? j.plans.filter(isPlanResponse).map((p: PlanResult) => ({ ...p, habits: Array.isArray(p.habits) ? p.habits : [], source: "replay" as const })) : [];
+    plans = replayPlans = got;
+  }
+  return plans.length ? plans[replayAt++ % plans.length] : null;
+}
+
+/** Forget the fetched replay plans (tests, and after the host reseeds). */
+export function resetReplay(): void {
+  replayPlans = null;
+  replayAt = 0;
+}
+
+/** Operator correction: a designer rule, re-sent with the stored fight. Never throws. */
+export async function sendOverride(fightId: string, rule: string, fetchFn: typeof fetch = globalThis.fetch.bind(globalThis)): Promise<{ ok: boolean }> {
+  try {
+    const res = await fetchFn(`${API}/api/override`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ fightId, rule }) });
+    const j = await res.json();
+    return { ok: !!j?.ok };
+  } catch {
+    return { ok: false };
+  }
+}
+
 /** Never rejects and never takes longer than timeoutMs: any failure yields a local rules plan. */
-export async function requestPlan(req: PlanRequest, o: { fetchFn?: typeof fetch; timeoutMs?: number } = {}): Promise<PlanResult> {
+export async function requestPlan(req: PlanRequest, o: { fetchFn?: typeof fetch; timeoutMs?: number; replay?: boolean } = {}): Promise<PlanResult> {
   const t0 = performance.now();
   const f = o.fetchFn ?? globalThis.fetch.bind(globalThis);
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), o.timeoutMs ?? 6000);
   try {
+    if (o.replay ?? replayFromUrl()) {
+      const r = await nextReplay(f, ctrl.signal);
+      if (r) return r;
+      throw new Error("nothing to replay");
+    }
     const res = await f(`${API}/api/fight-end`, {
       method: "POST",
       headers: { "content-type": "application/json" },

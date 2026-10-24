@@ -5,6 +5,7 @@ import { Input } from "./core/Input";
 import { deflectPosture, Game, KICK_HEAD_POSTURE, MIKIRI_POSTURE } from "./game/Game";
 import { GOURD, REZ } from "./game/Player";
 import { wavedash } from "./wavedash";
+import { sendOverride } from "./learn/session";
 
 const canvas = document.getElementById("game") as HTMLCanvasElement;
 const hud = document.getElementById("hud") as HTMLElement;
@@ -33,6 +34,17 @@ window.addEventListener("keydown", (e) => {
   if (e.code === "KeyG" && !e.repeat && !(e.target instanceof HTMLInputElement)) void toggleGestures();
 });
 if (new URLSearchParams(location.search).get("gestures") === "1") void toggleGestures();
+
+// Host-only: H on the end screen teaches the General a rule and re-sends that fight with it.
+window.addEventListener("keydown", (e) => {
+  if (e.code !== "KeyH" || e.repeat || e.target instanceof HTMLInputElement) return;
+  if (game.state !== "defeat" && game.state !== "victory") return;
+  const rule = window.prompt("Teach the General a rule (host only). Example: When the player blocks often, field thrust.");
+  if (!rule?.trim()) return;
+  void sendOverride(game.learn.fightId, rule.trim()).then((r) =>
+    game.council.flash(r.ok ? "Rule learned: the General re-planned this fight." : "Rule saved. Mubit is off or unreachable, so nothing was re-sent."),
+  );
+});
 const bodies = loadBodies({ player: game.shinobi, boss: game.general }, (who, body) => game.useBody(who, body));
 if (new URLSearchParams(location.search).get("debug") === "anim") void import("./debug/AnimDebug").then((m) => m.mountAnimDebug(game));
 
