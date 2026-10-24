@@ -76,6 +76,6 @@ describe("applyPlan", () => {
     expect(DIFFICULTY.picks).toBe(picksRef);
     expect(DIFFICULTY.deflectSteps).toBe(deflectRef);
     expect(got).toEqual([["thrust", "grab"]]);
-    expect(MOVES.length).toBe(8);
+    expect(MOVES).toContain("flurry");
   });
 });

@@ -17,7 +17,7 @@ export type PromptKey = "confirm" | "back";
  * Keys that never count as "any key": mute (M), the title's difficulty keys (A / D, arrows,
  * 1-3), modifiers, OS / lock keys, function keys.
  */
-const NOT_ANY = /^(KeyM|Key[ADG]|Arrow(Left|Right)|(Digit|Numpad)[1-3]|Shift(Left|Right)|Control(Left|Right)|Alt(Left|Right)|Meta(Left|Right)|OS(Left|Right)|CapsLock|NumLock|ScrollLock|ContextMenu|Tab|PrintScreen|F\d+)$/;
+const NOT_ANY = /^(KeyM|Key[ADG]|Bracket(Left|Right)|Arrow(Left|Right)|(Digit|Numpad)[1-3]|Shift(Left|Right)|Control(Left|Right)|Alt(Left|Right)|Meta(Left|Right)|OS(Left|Right)|CapsLock|NumLock|ScrollLock|ContextMenu|Tab|PrintScreen|F\d+)$/;
 const MOUSE_ACTION: Record<number, Action | undefined> = { 0: "attack", 1: "lock", 2: "block" };
 
 export class Input {

@@ -150,6 +150,13 @@ export const ATTACKS: Record<string, AttackSpec> = {
   },
 };
 
+/**
+ * Variants reuse a base clip and add gameplay: windSlash is the overhead that also throws a
+ * travelling cut along the ground, shockwave is the leap whose slam sends a ring, waterfowl is the
+ * leap that chains straight into the flurry.
+ */
+export const VARIANT: Record<string, string> = { windSlash: "overhead", shockwave: "leap", waterfowl: "leap" };
+
 export function buildAttack(spec: AttackSpec, tl: Timeline): AttackDef {
   const n = Math.min(spec.hits.length, tl.hits.length);
   return {
@@ -264,6 +271,13 @@ export class Boss {
   readonly events: string[] = [];
   /** Freeze the brain (title screen, scripted shots). */
   passive = false;
+  /** Set by the running variant; the game reads it to spawn the matching effect. */
+  variant: "windSlash" | "shockwave" | null = null;
+  /** The move as the plan names it (windSlash, waterfowl...), for stats and the hit log. */
+  moveName = "";
+  /** This boss may throw wind cuts from range. */
+  canWind = false;
+  private fxDone = false;
 
   constructor(readonly ch: Fighter) {
     ch.rig.onStep = () => this.events.push("step");
@@ -291,6 +305,9 @@ export class Boss {
     this.punishedHeal = false;
     this.tempo = 1;
     this.queue = ["leap", "combo", "thrust", "comboDelay", "overhead", "sweep"];
+    this.variant = null;
+    this.moveName = "";
+    this.fxDone = false;
     this.R = rng(9);
     this.events.length = 0;
     this.clipNow = "";
@@ -299,7 +316,7 @@ export class Boss {
 
   /** Opening script from the war council (strings flattened in order). Empty keeps the base script. */
   setOpening(strings: readonly (readonly string[])[]): void {
-    const q = strings.flat().filter((m) => m in ATTACKS).slice(0, 12);
+    const q = strings.flat().filter((m) => m in ATTACKS || m in VARIANT).slice(0, 12);
     if (q.length) this.queue = q;
   }
 
@@ -349,13 +366,17 @@ export class Boss {
 
   startAttack(name: string, t0 = 0): void {
     this.pendingCounter = null;
-    const a = buildAttack(ATTACKS[name], this.ch.timeline(name));
+    const real = VARIANT[name] ?? name;
+    this.variant = name === "windSlash" || name === "shockwave" ? name : null;
+    this.moveName = name;
+    this.fxDone = false;
+    const a = buildAttack(ATTACKS[real], this.ch.timeline(real));
     this.serial++;
     this.attack = a;
     this.hitDone = a.hits.map(() => false);
     this.moveAllow = a.moves.map(() => -1);
     this.guarded = false;
-    this.follow = this.pickFollow(name);
+    this.follow = name === "waterfowl" ? "flurry" : this.pickFollow(real);
     this.followAt = this.follow && a.hits.length ? a.hits[a.hits.length - 1].t1 + 0.4 : Infinity;
     this.enter("attack");
     this.stateT = t0;
@@ -384,16 +405,17 @@ export class Boss {
   private choose(dist: number): string | null {
     const q = this.queue.shift();
     if (q) {
-      if (q === "leap" && dist < 4.5) return "combo";
-      if (q !== "leap" && q !== "thrust" && dist > 4.4) return dist > 6 ? "leap" : "thrust";
+      const leapish = q === "leap" || q === "shockwave" || q === "waterfowl";
+      if (leapish && dist < 4.5) return "combo";
+      if (!leapish && q !== "thrust" && q !== "windSlash" && dist > 4.4) return dist > 6 ? "leap" : "thrust";
       return q;
     }
     const r = this.R();
     const p2 = this.phase === 2;
     const peril = (n: string) => n === "thrust" || n === "sweep" || n === "grab";
     let pick: string | null;
-    if (dist > 6.5) pick = r < 0.6 ? "leap" : r < 0.85 ? "thrust" : null;
-    else if (dist > 4.4) pick = r < 0.4 ? "thrust" : r < 0.7 ? "leap" : p2 && r < 0.85 ? "grab" : null;
+    if (dist > 6.5) pick = this.canWind && r < 0.3 ? "windSlash" : r < 0.6 ? "leap" : r < 0.85 ? "thrust" : null;
+    else if (dist > 4.4) pick = this.canWind && r < 0.25 ? "windSlash" : r < 0.4 ? "thrust" : r < 0.7 ? "leap" : p2 && r < 0.85 ? "grab" : null;
     else if (!p2) {
       pick = weighted(DIFFICULTY.picks.p1, r);
     } else {
@@ -489,6 +511,10 @@ export class Boss {
         const tracking = a.track.some(([s, e]) => t >= s && t <= e);
         if (tracking) this.yaw = approachAngle(this.yaw, face, dt * 6);
         for (const g of a.glints) if (prevT < g && t >= g) this.events.push("glint");
+        if (this.variant === "windSlash" && !this.fxDone && a.hits.length && t >= a.hits[0].contact) {
+          this.fxDone = true;
+          this.events.push("windCast");
+        }
         for (let i = 0; i < a.whoosh.length; i++) {
           if (prevT < a.whoosh[i] && t >= a.whoosh[i] && a.perilous !== "grab") this.events.push(a.hits[i].heavy ? "whooshHeavy" : "whoosh");
         }
@@ -525,6 +551,7 @@ export class Boss {
           if (prevT < land && t >= land) {
             this.pos.y = 0;
             this.events.push("slam");
+            if (this.variant === "shockwave") this.events.push("ring");
           }
         }
         if (lunging) this.vel.copy(want);

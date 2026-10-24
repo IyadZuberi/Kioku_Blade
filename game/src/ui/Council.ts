@@ -6,6 +6,9 @@ import type { HabitScore } from "@gr/shared";
 import { LATIN_FONT } from "./brush";
 import { formatIntel, habitBars, HABIT_LABEL, highMoves, sourceLine } from "./councilText";
 import { getNickname, setNickname, type PlanResult } from "../learn/session";
+import { BOSSES } from "../game/bosses";
+import type { Progress } from "../game/progress";
+import { BOSS_IDS, type BossId } from "@gr/shared";
 
 const CSS = `
 #council { position: absolute; left: 50%; top: 54vh; transform: translateX(-50%); width: min(80vw, 840px); box-sizing: border-box;
@@ -27,6 +30,13 @@ const CSS = `
 #gr-title { position: absolute; top: 3.2vh; left: 0; right: 0; text-align: center; font-family: ${LATIN_FONT}; color: #e8dfd0; letter-spacing: 0.2em; font-size: 13px; text-transform: uppercase; opacity: 0; transition: opacity 0.6s ease; }
 #gr-title.on { opacity: 0.9; }
 #gr-title .nick { pointer-events: auto; margin-top: 8px; }
+#gr-title .chapters { display: flex; justify-content: center; gap: 10px; margin-top: 12px; pointer-events: auto; flex-wrap: wrap; padding: 0 12px; }
+#gr-title .chip { cursor: pointer; padding: 7px 16px 8px; border: 1px solid rgba(239,231,218,0.28); background: rgba(14,10,12,0.45); color: #d9cdb9; letter-spacing: 0.14em; font-size: 12px; text-transform: none; transition: border-color 0.2s, background 0.2s; }
+#gr-title .chip b { color: #e1a58f; font-weight: 600; margin-right: 8px; letter-spacing: 0.2em; }
+#gr-title .chip:hover:not(.locked) { border-color: rgba(239,231,218,0.7); }
+#gr-title .chip.cur { border-color: #c4372a; background: rgba(60,18,14,0.6); color: #fff3e4; }
+#gr-title .chip.locked { cursor: default; opacity: 0.45; }
+#gr-title .streak { margin-top: 8px; font-size: 12px; letter-spacing: 0.12em; color: #cdbfa9; text-transform: none; }
 #gr-title input { background: transparent; border: 0; border-bottom: 1px solid #8f8472; color: #efe7da; font: inherit; letter-spacing: 0.12em; text-align: center; width: 190px; outline: none; text-transform: none; }
 #gr-title input:focus { border-bottom-color: #b3261a; }
 `;
@@ -43,6 +53,8 @@ export class Council {
   private readonly box: HTMLElement;
   private readonly title: HTMLElement;
   private readonly bannerEl: HTMLElement;
+  private readonly chaptersEl: HTMLElement;
+  private readonly streakEl: HTMLElement;
 
   constructor(root: HTMLElement) {
     const style = document.createElement("style");
@@ -53,6 +65,10 @@ export class Council {
     this.title = el("div", "", root);
     this.title.id = "gr-title";
     this.bannerEl = el("div", "", this.title);
+    this.chaptersEl = el("div", "chapters", this.title);
+    this.streakEl = el("div", "streak", this.title);
+    // chips must never start the fight the way an ordinary click would
+    for (const t of ["mousedown", "mouseup", "click"]) this.chaptersEl.addEventListener(t, (e) => e.stopPropagation());
     const nick = el("div", "nick", this.title);
     const input = el("input", "", nick);
     input.maxLength = 20;
@@ -69,6 +85,22 @@ export class Council {
   /** Title screen extras (banner, name field) on or off. */
   titleMode(on: boolean): void {
     this.title.classList.toggle("on", on);
+  }
+
+  /** Chapter chips on the title: unlocked ones can be picked, locked ones say what unlocks them. */
+  setChapters(p: Progress, pick: (b: BossId) => void): void {
+    this.chaptersEl.replaceChildren();
+    for (const id of BOSS_IDS) {
+      const d = BOSSES[id];
+      const locked = id > p.unlocked;
+      const chip = el("div", `chip${id === p.boss ? " cur" : ""}${locked ? " locked" : ""}`, this.chaptersEl);
+      el("b", "", chip, d.chapter);
+      chip.append(document.createTextNode(d.latin));
+      if (locked) chip.title = `Beat ${BOSSES[(id - 1) as BossId].latin} ${BOSSES[(id - 1) as BossId].gate} times in a row to unlock`;
+      else chip.addEventListener("click", () => pick(id));
+    }
+    const d = BOSSES[p.boss];
+    this.streakEl.textContent = d.gate > 0 ? `Win streak ${p.streak} of ${d.gate} against ${d.latin}. A defeat resets it.` : p.cleared ? `You have beaten every general. Streak ${p.streak}.` : `The last duel. A defeat resets nothing here, but he remembers.`;
   }
 
   banner(text: string): void {

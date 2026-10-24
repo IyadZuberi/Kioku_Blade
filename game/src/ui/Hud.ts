@@ -225,6 +225,8 @@ export class Hud {
   private readonly diffEls = new Map<DifficultyName, HTMLElement>();
   private readonly diffMarks = new Map<DifficultyName, string>();
   private readonly diffMark: HTMLImageElement;
+  private bossNameImg!: HTMLImageElement;
+  private bossLatinImg!: HTMLImageElement;
   /** A difficulty clicked on the title. */
   onDifficultyPick: ((d: DifficultyName) => void) | null = null;
 
@@ -306,7 +308,9 @@ export class Hud {
     nImg.src = nameC.toDataURL();
     nImg.className = "name";
     nameWrap.appendChild(nImg);
+    this.bossNameImg = nImg;
     const lImg = new Image();
+    this.bossLatinImg = lImg;
     lImg.src = latinC.toDataURL();
     lImg.style.cssText = "height:34px;width:auto;opacity:0.85;filter:drop-shadow(0 2px 5px rgba(0,0,0,0.9))";
     nameWrap.appendChild(lImg);
@@ -397,6 +401,12 @@ export class Hud {
       this.latinCache.set(text, u);
     }
     return u;
+  }
+
+  /** The boss bar shows the current general's name (brush lettering, drawn once per boss). */
+  setBoss(jp: string, latin: string): void {
+    this.bossNameImg.src = brushText(jp, { size: 70, color: "#f3ece0", seed: 8, dry: 0.55, splatter: 0.25, letterSpacing: 0.05 }).toDataURL();
+    this.bossLatinImg.src = brushText(latin, { size: 34, font: LATIN_FONT, weight: 600, color: "#e9e0d2", seed: 12, dry: 0.25, splatter: 0, letterSpacing: 0.12 }).toDataURL();
   }
 
   showTitle(on: boolean): void {

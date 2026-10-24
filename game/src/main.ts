@@ -35,6 +35,13 @@ window.addEventListener("keydown", (e) => {
 });
 if (new URLSearchParams(location.search).get("gestures") === "1") void toggleGestures();
 
+// [ and ] step through the unlocked chapters on the title.
+window.addEventListener("keydown", (e) => {
+  if ((e.code !== "BracketLeft" && e.code !== "BracketRight") || e.repeat || e.target instanceof HTMLInputElement || game.state !== "title") return;
+  const next = game.progress.boss + (e.code === "BracketRight" ? 1 : -1);
+  if (next >= 1 && next <= 3) game.selectBoss(next as 1 | 2 | 3);
+});
+
 // Host-only: H on the end screen teaches the General a rule and re-sends that fight with it.
 window.addEventListener("keydown", (e) => {
   if (e.code !== "KeyH" || e.repeat || e.target instanceof HTMLInputElement) return;

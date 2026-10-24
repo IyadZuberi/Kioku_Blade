@@ -18,6 +18,8 @@ export interface PlanRequest {
   fightId: string;
   fightNumber: number;
   stats: StatsSummary;
+  boss?: 1 | 2 | 3;
+  bossStreak?: number;
 }
 
 const API = (import.meta as { env?: { VITE_API?: string } }).env?.VITE_API ?? "";

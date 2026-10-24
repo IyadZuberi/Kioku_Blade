@@ -40,6 +40,12 @@ import { Post } from "../render/Post";
 import { Hud } from "../ui/Hud";
 import { Arena } from "../world/Arena";
 import type { ThemeId } from "../world/themes";
+import { applyBossLook, applyPlayerLook } from "../chars/looks";
+import { ChapterCard } from "../ui/ChapterCard";
+import { bossOf, type BossId } from "@gr/shared";
+import { BOSSES, bossKnobs, type BossDef } from "./bosses";
+import { Hazards, RING, WAVE } from "./hazards";
+import { afterFight, fresh, loadProgress, saveProgress, select as selectProgress, unlockAll, type Progress } from "./progress";
 import { RIM, SUN_DIR, installFog } from "../world/materials";
 import { ATTACKS, BOSS_MAX, Boss, OPEN, type HitDef } from "./Boss";
 import { pickQuality, type Quality, type QualitySettings, ResolutionGovernor, settingsFor, withOverrides } from "../render/quality";
@@ -149,7 +155,15 @@ export class Game {
   private fightStartT = 0;
   private fightStartDeaths = 0;
   /** The learning loop: this fight's id, the plan for the next one, and where the call stands. */
-  learn: { state: "idle" | "pending" | "ready"; fightId: string; result: PlanResult | null } = { state: "idle", fightId: "", result: null };
+  learn: { state: "idle" | "pending" | "ready"; fightId: string; result: PlanResult | null; boss: BossId } = { state: "idle", fightId: "", result: null, boss: 1 };
+  /** Chapter progress (which general, win streak, what is unlocked) for the current player. */
+  progress: Progress = fresh();
+  bossDef: BossDef = BOSSES[1];
+  private progressFor = "";
+  private cardFor = 0;
+  private advancedTo: BossId | null = null;
+  readonly chapterCard: ChapterCard;
+  private readonly hazards = new Hazards(this.scene);
   /** Called when a plan arrives (the Council screen listens). */
   onPlan: ((r: PlanResult) => void) | null = null;
   /** Set by main.ts when hand gestures are on. */
@@ -259,6 +273,7 @@ export class Game {
     this.setArena(this.arena.spec?.id ?? 1);
     this.hud = new Hud(hudRoot);
     this.council = new Council(hudRoot);
+    this.chapterCard = new ChapterCard(hudRoot);
     this.input = new Input(canvas);
     this.hud.setDifficulty(this.difficulty);
     this.hud.onDifficultyPick = (d) => {
@@ -271,6 +286,7 @@ export class Game {
     );
     window.addEventListener("resize", () => this.resize());
     this.resize();
+    this.loadChapter();
     this.toTitle();
     // Warm up shaders and GPU buffers so the first deflect/finisher never hitches. The combat fx
     // start hidden and hidden objects are skipped, so show everything for one render.
@@ -364,6 +380,8 @@ export class Game {
   private resetActors(): void {
     this.council.hide();
     this.applyBodies();
+    this.hazards.clear();
+    this.applyLooks();
     this.player.reset();
     this.boss.reset();
     this.fx.clear();
@@ -400,7 +418,10 @@ export class Game {
     this.learn.fightId = newFightId();
     this.fightMark = mark(this.stats);
     this.firstHealT = null;
-    if (this.learn.result) applyPlan(this.learn.result.plan, this.boss);
+    // The boss's own tuning first, then the war council's plan for THIS boss on top of it.
+    overrideDifficulty(bossKnobs(this.bossDef, structuredClone(DIFFICULTY)));
+    this.boss.canWind = this.bossDef.moves.includes("windSlash");
+    if (this.learn.result && this.learn.boss === this.bossDef.id) applyPlan(this.learn.result.plan, this.boss);
     // Gesture mode: webcam latency eats the deflect window, so widen it (never tighten).
     if (this.gestureAssist) overrideDifficulty(assistKnobs(structuredClone(DIFFICULTY)));
   }
@@ -412,16 +433,86 @@ export class Game {
     this.fightMark = null;
     this.fightsPlayed++;
     const fightId = this.learn.fightId;
+    const boss = this.bossDef.id;
+    const streak = summary.victory ? this.progress.streak + 1 : 0;
+    const { next, advanced } = afterFight(this.progress, summary.victory);
+    this.progress = next;
+    saveProgress(getNickname(), next);
+    this.advancedTo = advanced ? next.boss : null;
     this.learn.state = "pending";
     this.council.thinking();
-    void requestPlan({ nickname: getNickname(), fightId, fightNumber: this.fightsPlayed, stats: summary }).then((r) => {
+    void requestPlan({ nickname: getNickname(), fightId, fightNumber: this.fightsPlayed, stats: summary, boss, bossStreak: streak }).then((r) => {
       if (this.learn.fightId !== fightId) return; // a newer fight already started
       this.learn.result = r;
+      this.learn.boss = boss;
       this.learn.state = "ready";
-      if (this.state === "defeat" || this.state === "victory") this.council.show(r, this.prevHabits);
+      if (this.state === "defeat" || this.state === "victory") {
+        this.council.show(r, this.prevHabits);
+        if (this.advancedTo) this.council.flash(`Chapter ${BOSSES[this.advancedTo].chapter} unlocked: ${BOSSES[this.advancedTo].latin}, ${BOSSES[this.advancedTo].epithet}.`);
+        else if (summary.victory && this.bossDef.gate > 0) this.council.flash(`Streak ${this.progress.streak} of ${this.bossDef.gate} against ${this.bossDef.latin}.`);
+      }
       this.prevHabits = r.habits;
       this.onPlan?.(r);
     });
+  }
+
+  /** Load this player's chapter progress (and honour ?boss= for demos and the host). */
+  private loadChapter(): void {
+    const nick = getNickname();
+    this.progressFor = nick;
+    this.progress = loadProgress(nick);
+    const q = Number(new URLSearchParams(location.search).get("boss"));
+    if (q === 1 || q === 2 || q === 3) this.progress = selectProgress(unlockAll(this.progress), q);
+  }
+
+  /** Make `id` the current general: his arena, name bar, look and the title chips. */
+  setBoss(id: BossId): void {
+    this.bossDef = BOSSES[bossOf(id)];
+    this.setArena(this.bossDef.arena);
+    this.hud.setBoss(this.bossDef.jp, this.bossDef.latin);
+    this.applyLooks();
+  }
+
+  /** The title's chapter chips (or the host): pick an unlocked general. */
+  selectBoss(id: BossId): void {
+    this.progress = selectProgress(this.progress, id);
+    saveProgress(getNickname(), this.progress);
+    if (this.state === "title") {
+      this.setBoss(this.progress.boss);
+      this.council.setChapters(this.progress, (b) => this.selectBoss(b));
+    }
+  }
+
+  private applyLooks(): void {
+    const boss = this.bossBody.active as unknown as Parameters<typeof applyBossLook>[0];
+    const me = this.playerBody.active as unknown as Parameters<typeof applyPlayerLook>[0];
+    if (this.bossBody.active !== this.bossBody.procedural) applyBossLook(boss, this.bossDef.look);
+    if (this.playerBody.active !== this.playerBody.procedural) applyPlayerLook(me);
+  }
+
+  /** Wind cuts and slam rings: same guard, deflect and damage rules as a blade. */
+  private updateHazards(dt: number): void {
+    const p = this.player;
+    this.hazards.update(
+      dt,
+      p.pos,
+      p.invulnerable,
+      (kind, at) => {
+        if (p.state === "dead" || p.state === "revive") return;
+        this.contact.copy(at);
+        if (kind === "wave") {
+          const h = { dmg: WAVE.dmg, posture: WAVE.posture, t0: 0, t1: 0, contact: 0 } as HitDef;
+          this.resolveBossHit(h);
+        } else {
+          const h = { dmg: RING.dmg, posture: RING.posture, t0: 0, t1: 0, contact: 0, perilous: "sweep" } as HitDef;
+          this.damage(h);
+        }
+      },
+      (kind) => {
+        this.stats.dodged++;
+        this.nearMiss(kind === "ring");
+      },
+    );
   }
 
   private releaseHolds(): void {
@@ -458,6 +549,9 @@ export class Game {
 
   toTitle(): void {
     this.go("title");
+    if (this.progressFor !== getNickname()) this.loadChapter();
+    this.setBoss(this.progress.boss);
+    this.council.setChapters(this.progress, (id) => this.selectBoss(id));
     void fetchGlobal().then((g) => {
       if (g) this.council.banner(g.totalFights ? `The General has fought ${g.totalFights} ${g.totalFights === 1 ? "duel" : "duels"} · Boss level ${g.bossLevel}` : "The General is waiting for his first duel");
     });
@@ -497,6 +591,14 @@ export class Game {
 
   /** Title / defeat → the fight, opening with the general's leap straight off the keypress. */
   private beginIntro(): void {
+    // A new general (or the first fight of the session): the chapter card covers the arena swap.
+    if (this.cardFor !== this.progress.boss) {
+      this.cardFor = this.progress.boss;
+      const def = BOSSES[this.progress.boss];
+      this.input.disarmPrompt();
+      this.chapterCard.show(def, () => this.setBoss(def.id), () => this.beginIntro());
+      return;
+    }
     this.fightsStarted++;
     this.audio.start();
     this.audio.uiStart();
@@ -605,7 +707,10 @@ export class Game {
 
     p.step(g, this.wind, this.gameTime);
     b.step(g, this.wind, this.gameTime);
-    if (this.state === "fight") this.contacts();
+    if (this.state === "fight") {
+      this.contacts();
+      this.updateHazards(g);
+    }
     this.fx.updateGame(g);
     this.drainEvents();
   }
@@ -1069,7 +1174,7 @@ export class Game {
     const p = this.player;
     this.stats.hitsTaken++;
     const pt = this.input.peekPressTime("block");
-    this.stats.hitLog.push(`${p.state}@${p.stateT.toFixed(2)} ${this.boss.attack?.name ?? "?"} press-${pt === undefined ? "none" : (this.gameTime - pt).toFixed(3)} win=${this.input.deflectWindow.toFixed(3)}`);
+    this.stats.hitLog.push(`${p.state}@${p.stateT.toFixed(2)} ${this.boss.moveName || this.boss.attack?.name || "?"} press-${pt === undefined ? "none" : (this.gameTime - pt).toFixed(3)} win=${this.input.deflectWindow.toFixed(3)}`);
     // A broken posture leaves him wide open: hits land harder.
     const k = p.state === "guardbreak" ? 1.5 : 1;
     p.health = Math.max(0, p.health - h.dmg * k * DIFFICULTY.playerDamage);
@@ -1473,7 +1578,14 @@ export class Game {
       } else if (e === "whoosh") au.whoosh(false, "boss"); // [audio hook]
       else if (e === "whooshHeavy") au.whoosh(true, "boss"); // [audio hook]
       else if (e === "leapOff") au.dodge();
-      else if (e === "slam") {
+      else if (e === "windCast") {
+        this.hazards.addWave(this.boss.ch.rig.chestW.clone().setY(0), this.player.pos);
+        au.whoosh(true, "boss");
+        this.cam.shake(0.12);
+      } else if (e === "ring") {
+        this.hazards.addRing(this.boss.pos);
+        this.cam.shake(0.3);
+      } else if (e === "slam") {
         this.fx.slam(this.boss.pos);
         au.slam();
         const d = this.boss.pos.distanceTo(this.player.pos);
