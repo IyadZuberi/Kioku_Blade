@@ -1,4 +1,5 @@
 // Writes data/seed.json (80 synthetic fights for training). No network, no Mubit.
+import "../src/envAuto";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { buildSeed } from "../src/sim/sets";
 

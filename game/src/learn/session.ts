@@ -48,7 +48,12 @@ export function getNickname(): string {
   try {
     const q = new URLSearchParams(location.search).get("name");
     if (q) return q.slice(0, 20);
-    return localStorage.getItem("gr.nickname") || "Wanderer";
+    // Each browser gets its own default name, so two judges at one booth never share a player row.
+    const saved = localStorage.getItem("gr.nickname");
+    if (saved) return saved;
+    const fresh = `Wanderer-${Math.floor(Math.random() * 0x10000).toString(16).padStart(4, "0")}`;
+    localStorage.setItem("gr.nickname", fresh);
+    return fresh;
   } catch {
     return "Wanderer";
   }
@@ -94,11 +99,11 @@ export function resetReplay(): void {
 }
 
 /** Operator correction: a designer rule, re-sent with the stored fight. Never throws. */
-export async function sendOverride(fightId: string, rule: string, hostToken: string, fetchFn: typeof fetch = globalThis.fetch.bind(globalThis)): Promise<{ ok: boolean }> {
+export async function sendOverride(fightId: string, rule: string, hostToken: string, fetchFn: typeof fetch = globalThis.fetch.bind(globalThis)): Promise<{ ok: boolean; status?: number }> {
   try {
     const res = await fetchFn(`${API}/api/override`, { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${hostToken}` }, body: JSON.stringify({ fightId, rule }) });
-    const j = await res.json();
-    return { ok: !!j?.ok };
+    const j = await res.json().catch(() => null);
+    return { ok: !!j?.ok, status: res.status };
   } catch {
     return { ok: false };
   }

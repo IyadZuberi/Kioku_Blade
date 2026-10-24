@@ -13,7 +13,7 @@ pnpm -C game dev            # http://localhost:5411  (the game; /api is proxied 
 pnpm test                   # shared + game + server tests
 ```
 
-Node 22+ (uses built-in `node:sqlite`) and pnpm. The game plays without the server: it falls back to the same rules code locally.
+Node 22+ (uses built-in `node:sqlite`) and pnpm. The server listens on 127.0.0.1 only; set `HOST=0.0.0.0` to let phones on the same network reach it (then also keep `MUBIT_LIVE` off or rely on the 30-live-calls-per-minute cap). The server reads `.env` from the repo root. The game plays without the server: it falls back to the same rules code locally.
 
 ## Mubit is OFF by default (credits are limited)
 

@@ -1,4 +1,4 @@
-﻿import { mkdtempSync, readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -94,12 +94,28 @@ describe("callTask", () => {
   });
   it("no API key and no injected client returns the fallback without throwing", async () => {
     const saved = process.env.MUBIT_API_KEY;
+    const savedLive = process.env.MUBIT_LIVE;
+    process.env.MUBIT_LIVE = "1";
     delete process.env.MUBIT_API_KEY;
     const r = await callTask(task, { a: 1 }, { sessionId: "s", store: true });
+    savedLive === undefined ? delete process.env.MUBIT_LIVE : (process.env.MUBIT_LIVE = savedLive);
     process.env.MUBIT_API_KEY = saved;
     if (saved === undefined) delete process.env.MUBIT_API_KEY;
     expect(r.ok).toBe(false);
     expect(r.error).toMatch(/key/i);
+  });
+});
+
+describe("live gate in the client itself", () => {
+  it("with a key present but MUBIT_LIVE unset, the default client path makes no call and says why", async () => {
+    const saved = { k: process.env.MUBIT_API_KEY, l: process.env.MUBIT_LIVE };
+    process.env.MUBIT_API_KEY = "mbt_must_not_be_used";
+    delete process.env.MUBIT_LIVE;
+    const r = await callTask(task, { a: 1 }, { sessionId: "s", store: true });
+    saved.k === undefined ? delete process.env.MUBIT_API_KEY : (process.env.MUBIT_API_KEY = saved.k);
+    saved.l === undefined ? delete process.env.MUBIT_LIVE : (process.env.MUBIT_LIVE = saved.l);
+    expect(r.ok).toBe(false);
+    expect(r.error).toMatch(/MUBIT_LIVE/);
   });
 });
 

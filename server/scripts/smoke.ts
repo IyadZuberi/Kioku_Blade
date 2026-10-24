@@ -1,10 +1,15 @@
-﻿// LIVE Mubit call: ONE request, uses credits. Only run after the user says OK.
-// pnpm -C server exec tsx scripts/smoke.ts   (needs ../.env loaded: node --env-file=../.env)
+// LIVE Mubit call: ONE request, uses credits. Only run after the user says OK.
+// MUBIT_LIVE=1 pnpm -C server exec tsx scripts/smoke.ts --yes-live   (key from ../.env)
+import "../src/envAuto";
 import { MOVES, computeHabits, limitsForLevel, validatePlan, rulesPlan } from "@gr/shared";
 import { callTask, taskHash } from "../src/mubit/client";
 import { logCall } from "../src/mubit/log";
 import { generalPlanTask, type PlanInput } from "../src/prompts/general_plan";
 
+if (process.argv.indexOf("--yes-live") < 0 || process.env.MUBIT_LIVE !== "1") {
+  console.error("This sends ONE call to Mubit and spends a credit. Needs MUBIT_LIVE=1 and --yes-live. Nothing was sent.");
+  process.exit(2);
+}
 const stats = { fightSeconds: 60, deflects: 2, lateDeflects: 0, blocks: 14, hitsTaken: 4, dodged: 1, playerHits: 5, sweepsJumped: 0, grabbed: 0, grabsEvaded: 0, heals: 0, firstHealAtSeconds: null, medianDeflectTiming: null, victory: false, deaths: 1, hitsByMove: { combo: 3 } };
 const habits = computeHabits(stats);
 const input: PlanInput = { fight: 2, bossLevel: 3, stats, habits, playerMemory: {}, globalMemory: {}, unlocked: [...MOVES], designerRules: [], limits: limitsForLevel(3) };

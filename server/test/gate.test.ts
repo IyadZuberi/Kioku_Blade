@@ -1,4 +1,4 @@
-﻿import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { makeCallPlan } from "../src/mubitPlan";
 import { computeHabits, limitsForLevel, MOVES } from "@gr/shared";
 
@@ -20,3 +20,17 @@ describe("live-call gate", () => {
   });
 });
 
+describe("live-call rate limit", () => {
+  it("stops after perMinute live calls and does not call the model for the rest", async () => {
+    process.env.MUBIT_LIVE = "1";
+    let calls = 0;
+    const fake = async () => (calls++, { out: {}, ok: true, latencyMs: 1 });
+    const cp = makeCallPlan({ call: fake as any, perMinute: 2, log: () => {} });
+    const a = await cp(input, "s1");
+    const b = await cp(input, "s2");
+    const c = await cp(input, "s3");
+    expect([a.ok, b.ok, c.ok]).toEqual([true, true, false]);
+    expect(c.error).toMatch(/rate/i);
+    expect(calls).toBe(2);
+  });
+});

@@ -2,6 +2,7 @@
 //   tsx scripts/eval.ts --label baseline                       (local rules table, free)
 //   MUBIT_LIVE=1 tsx scripts/eval.ts --label provider --yes-live --notes "..."   (LIVE: spends Mubit credits)
 // Held-out calls always send x-middleware-store: false (never trained on).
+import "../src/envAuto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { rulesPlan, type Plan } from "@gr/shared";
 import { evalSet, appendSummary, type Runner } from "../src/evalRun";

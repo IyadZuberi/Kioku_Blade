@@ -1,6 +1,6 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { rulesPlan } from "@gr/shared";
-import { requestPlan, resetReplay, sendOverride } from "../src/learn/session";
+import { getNickname, requestPlan, resetReplay, sendOverride } from "../src/learn/session";
 
 const stats = { fightSeconds: 60, deflects: 2, lateDeflects: 0, blocks: 14, hitsTaken: 4, dodged: 1, playerHits: 5, sweepsJumped: 0, grabbed: 0, grabsEvaded: 0, heals: 0, firstHealAtSeconds: null, medianDeflectTiming: null, victory: false, deaths: 1, hitsByMove: { combo: 3 } };
 const args = { nickname: "Kenji", fightId: "f1", fightNumber: 1, stats };
@@ -70,10 +70,28 @@ describe("sendOverride", () => {
     expect(auth).toBe("Bearer tok");
     expect(r.ok).toBe(true);
   });
+  it("reports the HTTP status so the caller can tell a wrong token from a missing fight", async () => {
+    const r = await sendOverride("f1", "x rule", "bad", async () => new Response(JSON.stringify({ error: "forbidden" }), { status: 403 }) as any);
+    expect(r).toEqual({ ok: false, status: 403 });
+  });
   it("never throws: an offline server is ok:false", async () => {
     const r = await sendOverride("f1", "x rule", "tok", async () => {
       throw new Error("offline");
     });
     expect(r.ok).toBe(false);
+  });
+});
+
+describe("getNickname", () => {
+  it("gives each browser its own stable Wanderer-xxxx name when none is set", () => {
+    const store = new Map<string, string>();
+    vi.stubGlobal("localStorage", { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => void store.set(k, v) });
+    vi.stubGlobal("location", { search: "" });
+    const a = getNickname();
+    expect(a).toMatch(/^Wanderer-[0-9a-f]{4}$/);
+    expect(getNickname()).toBe(a);
+    store.set("gr.nickname", "Kenji");
+    expect(getNickname()).toBe("Kenji");
+    vi.unstubAllGlobals();
   });
 });

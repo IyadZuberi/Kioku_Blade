@@ -1,6 +1,7 @@
 // LIVE: sends the 80 seed items to Mubit with storage ON (this is what Mubit trains on). Spends credits.
 //   MUBIT_LIVE=1 tsx scripts/send_seed.ts --yes-live
 // After this, server/src/prompts/general_plan.ts is FROZEN (any edit starts a new, empty Mubit task).
+import "../src/envAuto";
 import { readFileSync } from "node:fs";
 import { validatePlan } from "@gr/shared";
 import { callTask, taskHash } from "../src/mubit/client";

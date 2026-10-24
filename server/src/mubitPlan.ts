@@ -7,11 +7,20 @@ import type { Deps } from "./app";
  * The live path to Mubit. Mubit credits are limited, so NOTHING is sent unless MUBIT_LIVE=1,
  * even if a key is present. Every live call is logged to data/calls.csv.
  */
-export function makeCallPlan(): Deps["callPlan"] {
+export function makeCallPlan(o: { call?: typeof callTask; perMinute?: number; log?: typeof logCall } = {}): Deps["callPlan"] {
+  const call = o.call ?? callTask;
+  const log = o.log ?? logCall;
+  const perMinute = o.perMinute ?? 30;
+  const stamps: number[] = [];
   return async (input, sessionId) => {
     if (process.env.MUBIT_LIVE !== "1") return { out: undefined, ok: false, latencyMs: 0, error: "MUBIT_LIVE is not 1: no Mubit call made" };
-    const r = await callTask(generalPlanTask, input, { sessionId, store: true, timeoutMs: 6000 });
-    logCall({
+    // Anyone on the network can post fights: cap paid calls (rules plans are returned beyond the cap).
+    const now = Date.now();
+    while (stamps.length && now - stamps[0] > 60_000) stamps.shift();
+    if (stamps.length >= perMinute) return { out: undefined, ok: false, latencyMs: 0, error: `rate limit: ${perMinute} live calls per minute` };
+    stamps.push(now);
+    const r = await call(generalPlanTask, input, { sessionId, store: true, timeoutMs: 6000 });
+    log({
       ts: new Date().toISOString(),
       task: generalPlanTask.name,
       task_hash: taskHash(generalPlanTask),

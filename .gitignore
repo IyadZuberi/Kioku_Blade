@@ -7,3 +7,4 @@ data/eval/
 *.log
 
 game/public/mediapipe
+data/*.sqlite*

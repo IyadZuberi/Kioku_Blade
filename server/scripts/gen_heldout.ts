@@ -1,4 +1,5 @@
 // Writes data/heldout.json (60 labelled synthetic fights for evaluation). No network, no Mubit.
+import "../src/envAuto";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { buildHeldout, buildSeed } from "../src/sim/sets";
 

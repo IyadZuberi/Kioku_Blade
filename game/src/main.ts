@@ -56,9 +56,18 @@ window.addEventListener("keydown", (e) => {
   }
   const rule = window.prompt("Teach the General a rule (host only). Example: When the player blocks often, field thrust.");
   if (!rule?.trim()) return;
-  void sendOverride(game.learn.fightId, rule.trim(), token).then((r) =>
-    game.council.flash(r.ok ? "Rule learned: the General re-planned this fight." : "Rule saved. Mubit is off or unreachable, so nothing was re-sent."),
-  );
+  void sendOverride(game.learn.fightId, rule.trim(), token).then((r) => {
+    if (r.status === 403) {
+      try {
+        sessionStorage.removeItem("gr.hostToken");
+      } catch {
+        /* storage unavailable */
+      }
+      game.council.flash("Wrong host token: nothing was saved. Press H to try again.");
+    } else if (r.status === 404) game.council.flash("That fight is not stored on the server (replay or offline): nothing was saved.");
+    else if (r.ok) game.council.flash("Rule saved and the fight was re-sent to Mubit for training.");
+    else game.council.flash("Rule saved. Mubit is off or unreachable, so nothing was re-sent.");
+  });
 });
 const bodies = loadBodies({ player: game.shinobi, boss: game.general }, (who, body) => game.useBody(who, body));
 if (new URLSearchParams(location.search).get("debug") === "anim") void import("./debug/AnimDebug").then((m) => m.mountAnimDebug(game));
