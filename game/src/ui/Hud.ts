@@ -176,14 +176,6 @@ const PROMPTS: Record<EndKind, string> = {
   defeat: "Enter / click  ·  duel again          Esc  ·  title",
   victory: "Enter / click  ·  title",
 };
-const CONTROLS = [
-  "LMB / J  strike   ·   hold  charged cut",
-  "RMB / K  guard   ·   tap as it lands  deflect",
-  "MMB / Q  lock on        mouse  look        WASD  move",
-  "Shift  step   ·   hold  run   ·   into a thrust  mikiri",
-  "Space  jump   ·   again at him  kick        R  gourd",
-  "A / D  ·  1 2 3  ·  click  difficulty",
-];
 const DIFFS: { id: DifficultyName; kanji: string; latin: string }[] = [
   { id: "easy", kanji: "易", latin: "Easy" },
   { id: "medium", kanji: "中", latin: "Medium" },
@@ -257,12 +249,6 @@ export class Hud {
     titlePress.src = this.smallURL("press any key  ·  click to begin");
     titlePress.classList.add("begin");
     this.title.appendChild(titlePress);
-    const keys = el("div", "keys", this.title);
-    CONTROLS.forEach((line, i) => {
-      const img = new Image();
-      img.src = brushText(line, { size: 26, font: LATIN_FONT, weight: 400, color: "#e8dfd0", seed: 40 + i, dry: 0.25, splatter: 0, letterSpacing: 0.08, pad: 4 }).toDataURL();
-      keys.appendChild(img);
-    });
     const diff = el("div", "diff", this.title);
     DIFFS.forEach((d, i) => {
       const opt = el("div", "opt", diff);

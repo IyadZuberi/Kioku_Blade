@@ -9,6 +9,7 @@
  * already held when the prompt was armed is ignored until released.
  */
 import { DIFFICULTY } from "../game/difficulty";
+import { combineAxes, type Axis } from "../input/axes";
 
 export type Action = "attack" | "block" | "dodge" | "jump" | "lock" | "heal";
 export type PromptKey = "confirm" | "back";
@@ -231,6 +232,14 @@ export class Input {
     return this.isHeld(a) ? this.clock - (this.heldSince.get(a) ?? this.clock) : 0;
   }
 
+  private analog = new Map<string, Axis>();
+
+  /** Movement from a source other than the keys (the left hand, a pad stick). Forward is +y. */
+  setAnalog(src: string, x: number, y: number): void {
+    if (x === 0 && y === 0) this.analog.delete(src);
+    else this.analog.set(src, { x, y });
+  }
+
   /** Test bot: overrides the movement keys when set. */
   botAxis: { x: number; y: number } | null = null;
 
@@ -256,12 +265,7 @@ export class Input {
     if (this.keys.has("KeyS") || this.keys.has("ArrowDown")) y -= 1;
     if (this.keys.has("KeyD") || this.keys.has("ArrowRight")) x += 1;
     if (this.keys.has("KeyA") || this.keys.has("ArrowLeft")) x -= 1;
-    const l = Math.hypot(x, y);
-    if (l > 1) {
-      x /= l;
-      y /= l;
-    }
-    return { x, y };
+    return combineAxes([{ x, y }, ...this.analog.values()]);
   }
 
   takeMouse(): { dx: number; dy: number } {

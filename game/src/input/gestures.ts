@@ -47,9 +47,10 @@ export async function startGestures(input: Input, onStatus: (s: string) => void 
         if (e.type === "press") (input.press(e.action, "gesture"), (lastEvent = e.action));
         else input.release(e.action, "gesture");
       }
+      input.setAnalog("hand", tracker.axis.x, tracker.axis.y);
       const d = tracker.debug;
       label.textContent = DEBUG
-        ? `${tracker.status} · hands ${d.hands} · speed ${d.speed.toFixed(1)} · peak ${d.peak.toFixed(1)} · last ${lastEvent}`
+        ? `${tracker.status} · hands ${d.hands} · speed ${d.speed.toFixed(1)} · peak ${d.peak.toFixed(1)} · stick ${tracker.axis.x.toFixed(2)},${tracker.axis.y.toFixed(2)} · last ${lastEvent}`
         : `gestures · ${tracker.status}`;
       onStatus(tracker.status);
     } catch {
@@ -63,6 +64,7 @@ export async function startGestures(input: Input, onStatus: (s: string) => void 
       stopped = true;
       cancelAnimationFrame(raf);
       for (const a of ["block", "attack", "dodge", "jump"] as const) input.release(a, "gesture");
+      input.setAnalog("hand", 0, 0);
       stream.getTracks().forEach((t) => t.stop());
       landmarker.close();
       video.remove();

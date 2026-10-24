@@ -6,6 +6,8 @@ import { deflectPosture, Game, KICK_HEAD_POSTURE, MIKIRI_POSTURE } from "./game/
 import { GOURD, REZ } from "./game/Player";
 import { wavedash } from "./wavedash";
 import { sendOverride } from "./learn/session";
+import { ControlsPanel } from "./ui/ControlsPanel";
+import { startGamepad } from "./input/gamepad";
 
 const canvas = document.getElementById("game") as HTMLCanvasElement;
 const hud = document.getElementById("hud") as HTMLElement;
@@ -13,6 +15,13 @@ wavedash.progress(0.2);
 const game = new Game(canvas, hud);
 game.start();
 wavedash.ready();
+// Controller (any standard pad, picked up automatically) and the Controls window (chip on menus, F1 anywhere).
+startGamepad(game.input);
+const menuState = () => game.state === "title" || game.state === "defeat" || game.state === "victory";
+const controls = new ControlsPanel(hud, menuState);
+setInterval(() => controls.showChip(menuState()), 250);
+window.addEventListener("gamepadconnected", () => game.council.flash("Controller connected"));
+
 // Optional hand gestures: ?gestures=1 or the G key. Mouse and keyboard always work.
 let gestures: { stop(): void } | null = null;
 async function toggleGestures(): Promise<void> {
@@ -26,6 +35,7 @@ async function toggleGestures(): Promise<void> {
     const { startGestures } = await import("./input/gestures");
     gestures = await startGestures(game.input);
     game.gestureAssist = true;
+    controls.select("hands");
   } catch (e) {
     console.warn("gestures unavailable:", e);
   }
