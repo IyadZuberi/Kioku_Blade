@@ -30,7 +30,7 @@
       #boot .kanji { font: 700 17vmin/1 "Yu Mincho","YuMincho","Hiragino Mincho ProN","MS Mincho","Noto Serif JP",serif; letter-spacing: 0.06em; text-shadow: 0 0 3vmin rgba(0,0,0,0.55); }
       #boot .name { font: 600 3.2vmin/1 "Palatino Linotype","Book Antiqua",Georgia,serif; letter-spacing: 0.7em; margin-right: -0.7em; color: #ece3d4; }
       #boot .stroke { width: min(46vw, 420px); height: 3px; background: rgba(236,226,214,0.16); overflow: hidden; margin-top: 2vmin; }
-      #boot .stroke i { display: block; width: 36%; height: 100%; background: #c4372a; animation: sweep 1.6s ease-in-out infinite; }
+      #boot .stroke i { display: block; width: 100%; height: 100%; background: #c4372a; animation: breathe 2.4s ease-in-out infinite; }
       #boot .msg { font: italic 2.1vmin/1.4 Georgia,serif; color: #d9cdb9; text-shadow: 0 1px 6px rgba(0,0,0,0.6); }
       #boot .late { font: 1.9vmin/1.4 Georgia,serif; color: #e7b9a8; opacity: 0; max-width: 60ch; text-align: center; padding: 0 6vw; animation: fadein 0.6s ease 25s forwards; }
       @keyframes sunrise { from { transform: translateY(46vmin); } to { transform: translateY(0); } }
@@ -38,9 +38,9 @@
       /* the sun's light on the haze: a soft gradient disc behind it, not a drop shadow */
       #boot .sun::before { content: ""; position: absolute; inset: -40%; z-index: -1; border-radius: 50%; background: radial-gradient(circle, rgba(240,150,90,0.30) 0%, rgba(240,150,90,0) 62%); }
       #boot .kanji, #boot .name, #boot .stroke, #boot .msg, #boot .late { z-index: 1; }
-      @keyframes sweep { from { transform: translateX(-100%); } to { transform: translateX(280%); } }
+      @keyframes breathe { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
       @keyframes fadein { to { opacity: 1; } }
-      @media (prefers-reduced-motion: reduce) { #boot .sun, #boot .stroke i { animation: none; } #boot .stroke i { width: 100%; } }
+      @media (prefers-reduced-motion: reduce) { #boot .sun, #boot .stroke i { animation: none; } }
     </style>  </head>
   <body>
     <canvas id="game"></canvas>
