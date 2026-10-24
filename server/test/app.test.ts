@@ -44,6 +44,7 @@ describe("POST /api/fight-end", () => {
     expect(j.plan.intel).toBe("Mubit says hi.");
     expect(j.bossLevel).toBe(1);
     expect(j.intelLines.join(" ")).toContain("14");
+    expect(j.habits[0].habit).toBe("block_holder");
     const g: any = await (await fetch(base + "/api/global")).json();
     expect(g.totalFights).toBe(1);
   });
@@ -137,4 +138,5 @@ describe("GET /api/global and health", () => {
     expect(((await (await fetch(base + "/api/health")).json()) as any).ok).toBe(true);
   });
 });
+
 

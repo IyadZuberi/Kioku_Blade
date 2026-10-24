@@ -42,8 +42,10 @@ import { Arena } from "../world/Arena";
 import { RIM, SUN_DIR, installFog } from "../world/materials";
 import { ATTACKS, BOSS_MAX, Boss, OPEN, type HitDef } from "./Boss";
 import { pickQuality, type Quality, type QualitySettings, settingsFor } from "../render/quality";
+import type { HabitScore } from "@gr/shared";
+import { Council } from "../ui/Council";
 import { applyPlan } from "../learn/planLoader";
-import { getNickname, newFightId, requestPlan, type PlanResult } from "../learn/session";
+import { fetchGlobal, getNickname, newFightId, requestPlan, type PlanResult } from "../learn/session";
 import { mark, summarize, type StatsMark } from "../learn/summary";
 import { applyDifficulty, DIFFICULTY, DIFFICULTY_NAMES, type DifficultyName, initialDifficulty, isDifficulty, rememberDifficulty } from "./difficulty";
 import { CameraRig } from "./CameraRig";
@@ -133,6 +135,8 @@ export class Game {
   readonly boss: Boss;
   readonly cam: CameraRig;
   readonly hud: Hud;
+  readonly council: Council;
+  private prevHabits: HabitScore[] = [];
   readonly audio = new GameAudio();
   readonly input: Input;
   readonly loop: Loop;
@@ -247,6 +251,7 @@ export class Game {
     this.cam = new CameraRig(this.camera);
     this.post = new Post(this.renderer, this.scene, this.camera, this.arena.surround.sunMesh, this.qs);
     this.hud = new Hud(hudRoot);
+    this.council = new Council(hudRoot);
     this.input = new Input(canvas);
     this.hud.setDifficulty(this.difficulty);
     this.hud.onDifficultyPick = (d) => {
@@ -330,6 +335,7 @@ export class Game {
    */
   private go(s: GState): void {
     // Pointer lock and the hidden cursor belong to the fight; every menu / overlay frees the mouse.
+    this.council?.titleMode(s === "title");
     const fighting = s === "fight" || s === "deathblow" || s === "finisher";
     this.input.lockable = fighting;
     document.body.classList.toggle("fighting", fighting);
@@ -342,6 +348,7 @@ export class Game {
   }
 
   private resetActors(): void {
+    this.council.hide();
     this.applyBodies();
     this.player.reset();
     this.boss.reset();
@@ -390,10 +397,13 @@ export class Game {
     this.fightsPlayed++;
     const fightId = this.learn.fightId;
     this.learn.state = "pending";
+    this.council.thinking();
     void requestPlan({ nickname: getNickname(), fightId, fightNumber: this.fightsPlayed, stats: summary }).then((r) => {
       if (this.learn.fightId !== fightId) return; // a newer fight already started
       this.learn.result = r;
       this.learn.state = "ready";
+      if (this.state === "defeat" || this.state === "victory") this.council.show(r, this.prevHabits);
+      this.prevHabits = r.habits;
       this.onPlan?.(r);
     });
   }
@@ -432,6 +442,9 @@ export class Game {
 
   toTitle(): void {
     this.go("title");
+    void fetchGlobal().then((g) => {
+      if (g) this.council.banner(g.totalFights ? `The General has fought ${g.totalFights} ${g.totalFights === 1 ? "duel" : "duels"} · Boss level ${g.bossLevel}` : "The General is waiting for his first duel");
+    });
     this.resetActors();
     this.stats.victory = false;
     this.boss.passive = true;
@@ -561,7 +574,8 @@ export class Game {
         p.update(g, null, this.cam.moveYaw, b.pos, false);
         b.sense.down = this.state === "defeat";
         b.update(g, p.pos, true);
-        if (!this.promptShown && this.endT > (this.state === "victory" ? 4.5 : 1.0)) {
+        // The prompt waits for the council's answer (at most 6 s), so the rematch uses the new plan.
+        if (!this.promptShown && this.endT > (this.state === "victory" ? 4.5 : 1.0) && (this.learn.state !== "pending" || this.endT > 6)) {
           this.promptShown = true;
           this.hud.showPrompt();
           this.input.armPrompt("menu", 0.25);

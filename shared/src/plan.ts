@@ -166,7 +166,7 @@ export function rulesPlan(habits: HabitScore[], level: number): Plan {
   const gap = clamp(tempo, 0, lim.maxGapStep);
   const intel = top
     ? words(`You ${top.evidence}. I will answer with ${ACCEPTED_COUNTERS[top.habit].join(" and ")}.`, MAX_INTEL_WORDS)
-    : "I cannot read you yet. Show me how you fight.";
+    : "I could not read a clear pattern yet.";
   return {
     focus_habit: top ? top.habit : "none",
     opening_strings: strings.filter((s) => s.length),

@@ -1,4 +1,4 @@
-import { computeHabits, rulesPlan, type Plan, type StatsSummary } from "@gr/shared";
+import { computeHabits, rulesPlan, type HabitScore, type Plan, type StatsSummary } from "@gr/shared";
 
 export interface PlanResult {
   plan: Plan;
@@ -8,6 +8,7 @@ export interface PlanResult {
   bossLevel: number;
   grudge: number;
   intelLines: string[];
+  habits: HabitScore[];
   latencyMs: number;
   requestId?: string;
 }
@@ -21,6 +22,23 @@ export interface PlanRequest {
 
 const API = (import.meta as { env?: { VITE_API?: string } }).env?.VITE_API ?? "";
 let lastLevel = 1;
+
+export interface GlobalInfo {
+  totalFights: number;
+  bossLevel: number;
+}
+
+/** The crowd banner on the title. null when the server is unreachable (the banner just stays hidden). */
+export async function fetchGlobal(fetchFn: typeof fetch = globalThis.fetch.bind(globalThis)): Promise<GlobalInfo | null> {
+  try {
+    const res = await fetchFn(`${API}/api/global`, { signal: AbortSignal.timeout(3000) });
+    if (!res.ok) return null;
+    const j = await res.json();
+    return typeof j?.totalFights === "number" && typeof j?.bossLevel === "number" ? { totalFights: j.totalFights, bossLevel: j.bossLevel } : null;
+  } catch {
+    return null;
+  }
+}
 
 export function newFightId(): string {
   return globalThis.crypto?.randomUUID?.() ?? `f${Date.now()}${Math.floor(Math.random() * 1e6)}`;
@@ -64,7 +82,7 @@ export async function requestPlan(req: PlanRequest, o: { fetchFn?: typeof fetch;
     const j = await res.json();
     if (!isPlanResponse(j)) throw new Error("not a plan");
     lastLevel = j.bossLevel;
-    return j;
+    return { ...j, habits: Array.isArray(j.habits) ? j.habits : [] };
   } catch {
     const habits = computeHabits(req.stats);
     return {
@@ -73,6 +91,7 @@ export async function requestPlan(req: PlanRequest, o: { fetchFn?: typeof fetch;
       valid: false,
       bossLevel: lastLevel,
       grudge: 0,
+      habits,
       intelLines: habits.length ? habits.map((h) => `You ${h.evidence}.`) : ["I could not read a clear pattern yet."],
       latencyMs: Math.round(performance.now() - t0),
     };

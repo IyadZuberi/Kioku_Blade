@@ -29,6 +29,7 @@ export interface FightEndResponse {
   bossLevel: number;
   grudge: number;
   intelLines: string[];
+  habits: HabitScore[];
 }
 
 const FIGHT_ID = /^[\w-]{1,64}$/;
@@ -104,6 +105,7 @@ export function createApp(deps: Deps) {
       bossLevel: level,
       grudge: player.grudge,
       intelLines: intelLines(habits),
+      habits,
     };
     db.prepare("INSERT INTO fights(fight_id, nickname, ts, stats, source, valid, latency_ms, request_id, boss_level, response) VALUES(?,?,?,?,?,?,?,?,?,?)").run(
       fightId, nickname, new Date().toISOString(), JSON.stringify(stats), source, valid ? 1 : 0, res.latencyMs, res.requestId ?? null, level, JSON.stringify(res),
