@@ -39,6 +39,11 @@ export interface BossDef {
   /** How he opens a fight when the war council has no plan yet: his signature, straight away. */
   opening: readonly string[];
   look: BossLook;
+  /**
+   * Which body he fights in: "armoured" is the code-built o-yoroi general (lamellar armour, mask,
+   * its own key-framed swordplay); "skinned" is the motion-captured body (spear and great-sword styles).
+   */
+  body: "armoured" | "skinned";
   /** Line on the chapter card. */
   line: string;
 }
@@ -62,6 +67,7 @@ export const BOSSES: Record<BossId, BossDef> = {
     opening: ["leap", "combo", "thrust", "comboDelay", "overhead", "sweep"],
     finisher: { name: "Through the Heart", clip: "finisher", plunge: true },
     look: "ronin",
+    body: "armoured",
     line: "Win three duels in a row to meet the next general.",
   },
   2: {
@@ -83,6 +89,7 @@ export const BOSSES: Record<BossId, BossDef> = {
     gapStep: 2,
     lean: { amount: 0.35, knobs: READS_YOU },
     look: "reed",
+    body: "skinned",
     line: "Win six duels in a row to face Kurogane, the Hollow Shogun.",
   },
   3: {
@@ -94,8 +101,8 @@ export const BOSSES: Record<BossId, BossDef> = {
     gate: 0,
     moves: BOSS_MOVES[3],
     opening: ["shockwave", "overhead", "kick", "combo", "grab", "shockwave", "kick"],
-    // she leaps and cleaves down through the great helm; the shogun staggers and topples like his keep
-    finisher: { name: "Fall of the Keep", clip: "jump_attack", plunge: false, fall: [{ clip: "stumble", to: 0.55 }, { clip: "knockdown", from: 0.1 }] },
+    // she leaps and cleaves down through the great helm; the shogun staggers and falls among the petals
+    finisher: { name: "The Last Blossom", clip: "jump_attack", plunge: false, fall: [{ clip: "stumble", to: 0.55 }, { clip: "knockdown", from: 0.1 }] },
     picks: {
       p1: { combo: 0.1, comboDelay: 0.14, overhead: 0.22, thrust: 0.06, sweep: 0.1, grab: 0.1, shockwave: 0.14, windSlash: 0.02, kick: 0.1, idle: 0.02 },
       p2: { flurry: 0.06, combo: 0.06, comboDelay: 0.12, overhead: 0.16, thrust: 0.06, sweep: 0.1, grab: 0.12, shockwave: 0.16, windSlash: 0.04, kick: 0.12, idle: 0 },
@@ -104,6 +111,7 @@ export const BOSSES: Record<BossId, BossDef> = {
     gapStep: 3,
     lean: { amount: 0.6, knobs: IRON },
     look: "hollow",
+    body: "skinned",
     line: "No one has seen the end of this fight.",
   },
 };

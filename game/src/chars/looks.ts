@@ -50,8 +50,9 @@ function sashimono(): THREE.Group {
   // in the plane of the back, beside the pole; the whole banner rides behind the shoulders
   flag.position.set(0.15, 0.7, 0);
   g.add(pole, flag);
-  g.position.z = -0.3;
-  g.rotation.x = 0.12;
+  // measured, not guessed (tools: banner vs chest along his facing): this sits ~0.4 m behind the chest
+  g.position.z = -0.85;
+  g.rotation.x = -0.12;
   g.traverse((o) => (o.castShadow = true));
   return g;
 }
@@ -83,6 +84,7 @@ function restore(root: THREE.Object3D): void {
     m.emissiveIntensity = o.ei;
   }
   for (const e of s.extras) e.removeFromParent();
+  root.scale.setScalar(1);
   saved.delete(root);
 }
 
@@ -129,6 +131,8 @@ export function applyBossLook(body: BodyLike, look: BossLook): void {
   };
   if (look === "reed") attach(head, straw());
   if (look === "hollow") {
+    // the shogun stands a head taller than the others
+    root.scale.setScalar(1.12);
     attach(head, crescent());
     attach(body.bones?.get("Spine2"), sashimono());
   }

@@ -230,6 +230,22 @@ export class Game {
   private endCard = false;
   private gateFlash = false;
   private gateDone = false;
+  private steelOfArmoured: THREE.MeshStandardMaterial | null | undefined;
+  /** The armoured general's katana steel (found once), for the parry-stance glow. */
+  private armouredSteel(): THREE.MeshStandardMaterial | null {
+    if (this.bossBody.active !== this.bossBody.procedural) return null;
+    if (this.steelOfArmoured === undefined) {
+      this.steelOfArmoured = null;
+      this.general.part("sword")?.traverse((o) => {
+        const m = (o as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined;
+        if (m?.isMeshStandardMaterial && m.metalness >= 0.99 && !this.steelOfArmoured) {
+          m.emissive.set(0x5aa8ff);
+          this.steelOfArmoured = m;
+        }
+      });
+    }
+    return this.steelOfArmoured;
+  }
   /** 1 on a fresh parry by the general, fading (drives his steel's flare). */
   private parryFlash = 0;
   private desatTarget = 0;
@@ -510,6 +526,7 @@ export class Game {
     this.bossDef = BOSSES[bossOf(id)];
     this.setArena(this.bossDef.arena);
     this.hud.setBoss(this.bossDef.latin, this.bossDef.epithet);
+    this.applyBodies();
     this.applyLooks();
   }
 
@@ -1914,7 +1931,7 @@ export class Game {
     this.fx.glyph.update(dt, _a.copy(p.ch.rig.headW).add(this.interp.p).setY(p.ch.rig.headW.y + 0.55), this.camera);
     this.fx.parryCue.update(dt, _a.copy(b.ch.rig.headW).add(this.interp.b).setY(b.ch.rig.headW.y + 0.75), this.camera);
     // Parry stance: his steel glows cold blue as his guard readies, and flares when he turns a cut aside.
-    const steel = this.bossBody.active.weaponSteel;
+    const steel = this.bossBody.active.weaponSteel ?? this.armouredSteel();
     if (steel) {
       this.parryFlash = Math.max(0, this.parryFlash - dt * 2.5);
       const want = (this.state === "fight" ? b.parryReady * 2.4 : 0) + this.parryFlash * 9;
@@ -1981,17 +1998,23 @@ export class Game {
 
   /** Put a fighter on another body (a loaded SkinnedCharacter); applied between fights. */
   useBody(who: "player" | "boss", body: Fighter): void {
-    this.nextBody[who] = body;
+    if (who === "boss") this.bossSkinned = body;
+    else this.nextBody[who] = body;
     if (this.state === "title") this.applyBodies();
   }
 
+  /** The motion-captured boss body, once loaded (generals with `body: "skinned"` fight in it). */
+  private bossSkinned: Fighter | null = null;
+
   private applyBodies(): void {
-    for (const who of ["player", "boss"] as const) {
-      const b = this.nextBody[who];
-      if (!b) continue;
-      delete this.nextBody[who];
-      (who === "player" ? this.playerBody : this.bossBody).swap(b);
+    const b = this.nextBody.player;
+    if (b) {
+      delete this.nextBody.player;
+      this.playerBody.swap(b);
     }
+    // each general is his own warrior: the armoured general, or the motion-captured body
+    const want = this.bossDef.body === "skinned" && this.bossSkinned ? this.bossSkinned : this.bossBody.procedural;
+    if (this.bossBody.active !== want) this.bossBody.swap(want);
   }
 
   // ------------------------------------------------------------------ test hooks

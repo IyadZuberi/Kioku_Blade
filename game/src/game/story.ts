@@ -47,12 +47,12 @@ export const MEET: Record<BossId, Line[]> = {
     L("m1-3", "masatora", "Show me your blade. I will learn every cut of it."),
   ],
   2: [
-    L("m2-1", "kazemaru", "Masatora fell to you? Then the wind has carried your name to me."),
-    L("m2-2", "kaede", "Your spear burned our fields, Kazemaru. Today it breaks."),
+    L("m2-1", "kazemaru", "Masatora fell to you? Then the wind has carried your name up to these roofs."),
+    L("m2-2", "kaede", "Your spear burned our fields, Kazemaru. Tonight it breaks, up here, with no one to hear."),
     L("m2-3", "kazemaru", "A sword cannot reach where my spear begins. Come, little ghost."),
   ],
   3: [
-    L("m3-1", "kurogane", "So. The last ember of Kiri walks into my keep."),
+    L("m3-1", "kurogane", "So. The last ember of Kiri comes to die under my cherry trees."),
     L("m3-2", "kaede", "Kurogane. You gave the order. You held the torch."),
     L("m3-3", "kurogane", "I have given a thousand orders, and I remember everyone who knelt. Kneel."),
   ],
@@ -69,7 +69,7 @@ export const AGAIN: Record<BossId, Line> = {
 export const FALL: Record<BossId, Line[]> = {
   1: [L("f1-1", "masatora", "My memory... ends here."), L("f1-2", "kaede", "One.")],
   2: [L("f2-1", "kazemaru", "The wind... stops..."), L("f2-2", "kaede", "Two.")],
-  3: [L("f3-1", "kurogane", "The keep... falls..."), L("f3-2", "kaede", "It is finished. Rest now, Kiri.")],
+  3: [L("f3-1", "kurogane", "The blossoms... fall..."), L("f3-2", "kaede", "It is finished. Rest now, Kiri.")],
 };
 
 /** When she is beaten for good. */
