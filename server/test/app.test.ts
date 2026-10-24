@@ -1,4 +1,4 @@
-﻿import type { AddressInfo } from "node:net";
+import type { AddressInfo } from "node:net";
 import { afterEach, describe, expect, it } from "vitest";
 import { MOVES, rulesPlan, type Plan } from "@gr/shared";
 import { createApp, type Deps } from "../src/app";
@@ -139,4 +139,39 @@ describe("GET /api/global and health", () => {
   });
 });
 
-
+describe("bosses", () => {
+  it("boss defaults to 1 and its unlocked moves are the base eight", async () => {
+    const { post, calls } = boot();
+    await post("/api/fight-end", fe());
+    expect(calls[0].input.boss).toBe(1);
+    expect(calls[0].input.unlocked).toEqual(["leap", "combo", "comboDelay", "overhead", "thrust", "sweep", "grab", "flurry"]);
+  });
+  it("boss 2 gets windSlash and waterfowl; the streak is passed to the prompt input", async () => {
+    const { post, calls } = boot();
+    await post("/api/fight-end", fe({ fightId: "b2", boss: 2, bossStreak: 4 }));
+    expect(calls[0].input.boss).toBe(2);
+    expect(calls[0].input.bossStreak).toBe(4);
+    expect(calls[0].input.unlocked).toEqual(expect.arrayContaining(["windSlash", "waterfowl"]));
+  });
+  it("a move that belongs to another boss is clamped away and reported", async () => {
+    const { post } = boot(async (input) => ({ out: { ...rulesPlan(input.habits, input.bossLevel), opening_strings: [["combo", "shockwave"]] }, ok: true, latencyMs: 1 }));
+    const j: any = await (await post("/api/fight-end", fe({ fightId: "b1", boss: 1 }))).json();
+    expect(j.valid).toBe(false);
+    expect(j.failures).toContain("bad_move");
+    expect(j.plan.opening_strings.flat()).not.toContain("shockwave");
+  });
+  it("junk boss and streak values are normalised", async () => {
+    const { post, calls } = boot();
+    await post("/api/fight-end", fe({ fightId: "j1", boss: "dragon", bossStreak: -5 }));
+    await post("/api/fight-end", fe({ fightId: "j2", boss: 9, bossStreak: 1e9 }));
+    expect(calls[0].input.boss).toBe(1);
+    expect(calls[0].input.bossStreak).toBe(0);
+    expect(calls[1].input.boss).toBe(1);
+    expect(calls[1].input.bossStreak).toBeLessThanOrEqual(99);
+  });
+  it("the rules plan for boss 3 never uses a boss-2 move", async () => {
+    const { post } = boot(async () => ({ out: undefined, ok: false, latencyMs: 0 }));
+    const j: any = await (await post("/api/fight-end", fe({ fightId: "r3", boss: 3, stats: { ...zero, blocks: 0, deflects: 0, dodged: 14, playerHits: 18 } }))).json();
+    expect(j.plan.opening_strings.flat()).not.toContain("waterfowl");
+  });
+});

@@ -1,4 +1,9 @@
-﻿export const MOVES = ["leap", "combo", "comboDelay", "overhead", "thrust", "sweep", "grab", "flurry"] as const;
+/**
+ * The first eight are the base game's attacks. windSlash (overhead that throws a travelling cut),
+ * waterfowl (leap into a flurry) and shockwave (leap slam with a ground ring) are our variants,
+ * built from the same animation clips.
+ */
+export const MOVES = ["leap", "combo", "comboDelay", "overhead", "thrust", "sweep", "grab", "flurry", "windSlash", "waterfowl", "shockwave"] as const;
 export type Move = (typeof MOVES)[number];
 
 export const HABITS = ["block_holder", "deflect_expert", "dodge_spammer", "jump_dependent", "heal_greedy", "passive", "aggressive"] as const;

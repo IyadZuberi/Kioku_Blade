@@ -1,9 +1,10 @@
-﻿import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { HABITS, MOVES } from "@gr/shared";
 import { generalPlanTask, type PlanInput } from "../src/prompts/general_plan";
 import { taskHash } from "../src/mubit/client";
 
 const input: PlanInput = {
+  boss: 1, bossStreak: 0,
   fight: 2, bossLevel: 3,
   stats: { fightSeconds: 60, deflects: 2, lateDeflects: 0, blocks: 14, hitsTaken: 4, dodged: 1, playerHits: 5, sweepsJumped: 0, grabbed: 0, grabsEvaded: 0, heals: 0, firstHealAtSeconds: null, medianDeflectTiming: null, victory: false, deaths: 1, hitsByMove: { combo: 3 } },
   habits: [{ habit: "block_holder", strength: 0.9, evidence: "blocked 14 times, deflected 2" }],

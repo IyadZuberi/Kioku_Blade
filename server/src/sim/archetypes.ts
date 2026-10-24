@@ -1,5 +1,5 @@
 /** Synthetic players: parameterised fight stats for seeding and evaluating the war council (no real data). */
-import { HABITS, MOVES, computeHabits, limitsForLevel, type HabitId, type Move, type StatsSummary } from "@gr/shared";
+import { BOSS_IDS, HABITS, MOVES, computeHabits, limitsForLevel, movesFor, type HabitId, type Move, type StatsSummary } from "@gr/shared";
 import type { PlanInput } from "../prompts/general_plan";
 
 export type Archetype = HabitId | "mixed" | "none";
@@ -93,7 +93,10 @@ export function genInput(a: Archetype, r: Rng, i: number): PlanInput {
   const losses = ri(r, 0, fight);
   const rules = RULE_POOL.filter(() => r() < 0.3).slice(0, 3);
   void i;
+  const boss = BOSS_IDS[ri(r, 0, BOSS_IDS.length - 1)];
   return {
+    boss,
+    bossStreak: ri(r, 0, boss === 1 ? 2 : boss === 2 ? 5 : 3),
     fight,
     bossLevel: level,
     stats,
@@ -110,7 +113,7 @@ export function genInput(a: Archetype, r: Rng, i: number): PlanInput {
       habitPrevalence: Object.fromEntries(HABITS.map((h) => [h, +(r() * 0.4).toFixed(2)])),
       moveHits: Object.fromEntries(MOVES.map((m) => [m, ri(r, 0, 60)])),
     },
-    unlocked: [...MOVES],
+    unlocked: movesFor(boss),
     designerRules: rules,
     limits: limitsForLevel(level),
   };

@@ -12,7 +12,7 @@ if (process.argv.indexOf("--yes-live") < 0 || process.env.MUBIT_LIVE !== "1") {
 }
 const stats = { fightSeconds: 60, deflects: 2, lateDeflects: 0, blocks: 14, hitsTaken: 4, dodged: 1, playerHits: 5, sweepsJumped: 0, grabbed: 0, grabsEvaded: 0, heals: 0, firstHealAtSeconds: null, medianDeflectTiming: null, victory: false, deaths: 1, hitsByMove: { combo: 3 } };
 const habits = computeHabits(stats);
-const input: PlanInput = { fight: 2, bossLevel: 3, stats, habits, playerMemory: {}, globalMemory: {}, unlocked: [...MOVES], designerRules: [], limits: limitsForLevel(3) };
+const input: PlanInput = { boss: 1, bossStreak: 0, fight: 2, bossLevel: 3, stats, habits, playerMemory: {}, globalMemory: {}, unlocked: [...MOVES], designerRules: [], limits: limitsForLevel(3) };
 const hash = taskHash(generalPlanTask);
 console.log("task hash", hash, "model", generalPlanTask.model);
 const r = await callTask(generalPlanTask, input, { sessionId: "gr-smoke-1", store: true });

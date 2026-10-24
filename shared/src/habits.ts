@@ -3,11 +3,11 @@ import type { HabitId, HabitScore, Move, StatsSummary } from "./types";
 /** Moves that count as a correct answer to each habit (used by the grader and the rules plan). */
 export const ACCEPTED_COUNTERS: Record<HabitId, Move[]> = {
   block_holder: ["thrust", "grab", "flurry"],
-  deflect_expert: ["comboDelay", "flurry"],
-  dodge_spammer: ["sweep", "flurry"],
+  deflect_expert: ["comboDelay", "flurry", "windSlash"],
+  dodge_spammer: ["sweep", "flurry", "waterfowl"],
   jump_dependent: ["overhead", "thrust"],
-  heal_greedy: ["leap", "combo"],
-  passive: ["flurry", "leap"],
+  heal_greedy: ["leap", "combo", "windSlash"],
+  passive: ["flurry", "leap", "windSlash"],
   aggressive: ["comboDelay", "thrust"],
 };
 

@@ -1,6 +1,6 @@
 import express, { type Request, type Response } from "express";
 import type { DatabaseSync } from "node:sqlite";
-import { MOVES, computeHabits, limitsForLevel, rulesPlan, validatePlan, type HabitScore, type Plan, type StatsSummary } from "@gr/shared";
+import { bossOf, computeHabits, limitsForLevel, movesFor, rulesPlan, validatePlan, type BossId, type HabitScore, type Plan, type StatsSummary } from "@gr/shared";
 import { bossLevel } from "./bossLevel";
 import { createHash, randomUUID, timingSafeEqual } from "node:crypto";
 import { addRule, designerRules, getPlayer, getTotalFights, globalMemory, recordGlobal, updatePlayer } from "./memory";
@@ -63,22 +63,25 @@ export function createApp(deps: Deps) {
 
   const inflight = new Map<string, Promise<FightEndResponse>>();
 
-  async function fightEnd(fightId: string, nickname: string, stats: StatsSummary): Promise<FightEndResponse> {
+  async function fightEnd(fightId: string, nickname: string, stats: StatsSummary, boss: BossId, bossStreak: number): Promise<FightEndResponse> {
     const habits = computeHabits(stats);
     const level = bossLevel(getTotalFights(db));
     const limits = limitsForLevel(level);
     const player = updatePlayer(db, nickname, habits, stats.victory);
     const gm = globalMemory(db);
-    const fallback = rulesPlan(habits, level);
+    const allowed = movesFor(boss);
+    const fallback = rulesPlan(habits, level, allowed);
 
     const input: PlanInput = {
+      boss,
+      bossStreak,
       fight: player.fights,
       bossLevel: level,
       stats,
       habits,
       playerMemory: { fights: player.fights, wins: player.wins, losses: player.losses, consecutive_losses: player.consecutive_losses, habit_avgs: player.habit_avgs },
       globalMemory: { totalFights: gm.totalFights, habitPrevalence: gm.habitPrevalence, moveHits: gm.moveHits },
-      unlocked: [...MOVES],
+      unlocked: allowed,
       designerRules: designerRules(db),
       limits,
     };
@@ -93,7 +96,7 @@ export function createApp(deps: Deps) {
 
     let plan: Plan, valid: boolean, failures: string[], source: "mubit" | "rules";
     if (call.ok) {
-      const v = validatePlan(call.out, limits, fallback);
+      const v = validatePlan(call.out, limits, fallback, allowed);
       ({ plan, valid, failures } = v);
       source = "mubit";
     } else {
@@ -173,7 +176,9 @@ export function createApp(deps: Deps) {
     }
     let p = inflight.get(fightId);
     if (!p) {
-      p = fightEnd(fightId, nickname, stats).finally(() => inflight.delete(fightId));
+      const boss = bossOf(b.boss);
+      const streak = typeof b.bossStreak === "number" && Number.isFinite(b.bossStreak) ? Math.min(99, Math.max(0, Math.floor(b.bossStreak))) : 0;
+      p = fightEnd(fightId, nickname, stats, boss, streak).finally(() => inflight.delete(fightId));
       inflight.set(fightId, p);
     }
     try {
@@ -222,7 +227,7 @@ export function createApp(deps: Deps) {
       res.json({ ok: false, error: call.error ?? "call failed" });
       return;
     }
-    const v = validatePlan(call.out, input.limits, rulesPlan(input.habits, input.bossLevel));
+    const v = validatePlan(call.out, input.limits, rulesPlan(input.habits, input.bossLevel, input.unlocked), input.unlocked);
     res.json({ ok: true, plan: v.plan, valid: v.valid, requestId: call.requestId });
   });
 

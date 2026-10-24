@@ -54,7 +54,7 @@ function words(s: string, max: number): string {
 }
 
 /** Never throws. `valid` = zero failures before clamping. */
-export function validatePlan(raw: unknown, limits: Limits, fallback?: Plan): { plan: Plan; valid: boolean; failures: string[] } {
+export function validatePlan(raw: unknown, limits: Limits, fallback?: Plan, allowed: readonly Move[] = MOVES): { plan: Plan; valid: boolean; failures: string[] } {
   const fb = fallback ?? rulesPlan([], 1);
   const failures: string[] = [];
   const fail = (c: string) => {
@@ -74,7 +74,7 @@ export function validatePlan(raw: unknown, limits: Limits, fallback?: Plan): { p
         fail("bad_move");
         continue;
       }
-      const moves = s.filter((m): m is Move => (MOVES as readonly unknown[]).includes(m));
+      const moves = s.filter((m): m is Move => (allowed as readonly unknown[]).includes(m));
       if (moves.length !== s.length) fail("bad_move");
       if (moves.length > limits.maxStringLen) fail("string_too_long");
       const cut = moves.slice(0, limits.maxStringLen);
@@ -147,25 +147,29 @@ const TAUNTS: Record<HabitId | "none", string> = {
 const clamp = (x: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, x));
 
 /** Deterministic plan from the habit table. Always valid. */
-export function rulesPlan(habits: HabitScore[], level: number): Plan {
+export function rulesPlan(habits: HabitScore[], level: number, allowed: readonly Move[] = MOVES): Plan {
   const lim = limitsForLevel(level);
   const top = habits[0];
   const emphasis = neutralEmphasis();
-  for (const h of habits.slice(0, 2)) for (const m of ACCEPTED_COUNTERS[h.habit]) emphasis[m] = "high";
+  const counters = (h: HabitId): Move[] => {
+    const c = ACCEPTED_COUNTERS[h].filter((m) => allowed.includes(m));
+    return c.length ? c : (["combo", "overhead"] as Move[]).filter((m) => allowed.includes(m));
+  };
+  for (const h of habits.slice(0, 2)) for (const m of counters(h.habit)) emphasis[m] = "high";
 
   const strings: Move[][] = [];
   if (top) {
-    const c = ACCEPTED_COUNTERS[top.habit];
+    const c = counters(top.habit);
     strings.push(c.slice(0, lim.maxStringLen));
     if (lim.maxStrings >= 2) strings.push([...c].reverse().slice(0, lim.maxStringLen));
     const second = habits[1];
-    if (lim.maxStrings >= 3 && second) strings.push(ACCEPTED_COUNTERS[second.habit].slice(0, lim.maxStringLen));
+    if (lim.maxStrings >= 3 && second) strings.push(counters(second.habit).slice(0, lim.maxStringLen));
   }
 
   const tempo = top ? clamp(Math.round(top.strength * lim.maxTempoStep), 0, lim.maxTempoStep) : 0;
   const gap = clamp(tempo, 0, lim.maxGapStep);
   const intel = top
-    ? words(`You ${top.evidence}. I will answer with ${ACCEPTED_COUNTERS[top.habit].join(" and ")}.`, MAX_INTEL_WORDS)
+    ? words(`You ${top.evidence}. I will answer with ${counters(top.habit).join(" and ")}.`, MAX_INTEL_WORDS)
     : "I could not read a clear pattern yet.";
   return {
     focus_habit: top ? top.habit : "none",
