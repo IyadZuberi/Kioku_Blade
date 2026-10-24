@@ -39,9 +39,24 @@ if (new URLSearchParams(location.search).get("gestures") === "1") void toggleGes
 window.addEventListener("keydown", (e) => {
   if (e.code !== "KeyH" || e.repeat || e.target instanceof HTMLInputElement) return;
   if (game.state !== "defeat" && game.state !== "victory") return;
+  let token = "";
+  try {
+    token = sessionStorage.getItem("gr.hostToken") ?? "";
+  } catch {
+    /* storage unavailable */
+  }
+  if (!token) {
+    token = window.prompt("Host token (HOST_TOKEN on the server):")?.trim() ?? "";
+    if (!token) return;
+    try {
+      sessionStorage.setItem("gr.hostToken", token);
+    } catch {
+      /* storage unavailable */
+    }
+  }
   const rule = window.prompt("Teach the General a rule (host only). Example: When the player blocks often, field thrust.");
   if (!rule?.trim()) return;
-  void sendOverride(game.learn.fightId, rule.trim()).then((r) =>
+  void sendOverride(game.learn.fightId, rule.trim(), token).then((r) =>
     game.council.flash(r.ok ? "Rule learned: the General re-planned this fight." : "Rule saved. Mubit is off or unreachable, so nothing was re-sent."),
   );
 });

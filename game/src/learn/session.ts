@@ -94,9 +94,9 @@ export function resetReplay(): void {
 }
 
 /** Operator correction: a designer rule, re-sent with the stored fight. Never throws. */
-export async function sendOverride(fightId: string, rule: string, fetchFn: typeof fetch = globalThis.fetch.bind(globalThis)): Promise<{ ok: boolean }> {
+export async function sendOverride(fightId: string, rule: string, hostToken: string, fetchFn: typeof fetch = globalThis.fetch.bind(globalThis)): Promise<{ ok: boolean }> {
   try {
-    const res = await fetchFn(`${API}/api/override`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ fightId, rule }) });
+    const res = await fetchFn(`${API}/api/override`, { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${hostToken}` }, body: JSON.stringify({ fightId, rule }) });
     const j = await res.json();
     return { ok: !!j?.ok };
   } catch {

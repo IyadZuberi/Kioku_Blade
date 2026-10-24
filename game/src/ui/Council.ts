@@ -9,7 +9,7 @@ import { getNickname, setNickname, type PlanResult } from "../learn/session";
 
 const CSS = `
 #council { position: absolute; left: 50%; top: 54vh; transform: translateX(-50%); width: min(80vw, 840px); box-sizing: border-box;
-  padding: 18px 26px 14px; background: linear-gradient(90deg, rgba(14,10,12,0.78), rgba(14,10,12,0.55)); border-left: 3px solid #b3261a;
+  padding: 18px 26px 14px; background: linear-gradient(90deg, rgba(14,10,12,0.78), rgba(14,10,12,0.55)); border-top: 1px solid rgba(179,38,26,0.85);
   color: #efe7da; font-family: ${LATIN_FONT}; opacity: 0; transition: opacity 0.5s ease; pointer-events: none; }
 #council.on { opacity: 1; }
 #council .c-head { display: flex; justify-content: space-between; align-items: baseline; letter-spacing: 0.28em; font-size: 12px; text-transform: uppercase; color: #cdbfa9; }

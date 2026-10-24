@@ -2,7 +2,7 @@ import express, { type Request, type Response } from "express";
 import type { DatabaseSync } from "node:sqlite";
 import { MOVES, computeHabits, limitsForLevel, rulesPlan, validatePlan, type HabitScore, type Plan, type StatsSummary } from "@gr/shared";
 import { bossLevel } from "./bossLevel";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID, timingSafeEqual } from "node:crypto";
 import { addRule, designerRules, getPlayer, getTotalFights, globalMemory, recordGlobal, updatePlayer } from "./memory";
 import type { PlanInput } from "./prompts/general_plan";
 import { existsSync, readFileSync } from "node:fs";
@@ -25,6 +25,8 @@ export interface Deps {
   callPlan: (input: PlanInput, sessionId: string) => Promise<PlanCall>;
   /** Where data/calls.csv and data/eval/summary.csv live (default ../data). */
   dataDir?: string;
+  /** Secret for the host-only /api/override (default env HOST_TOKEN). Unset = the endpoint is disabled. */
+  hostToken?: string;
 }
 
 export interface FightEndResponse {
@@ -183,7 +185,19 @@ export function createApp(deps: Deps) {
 
   // Operator correction: a designer rule is added and the same fight is re-sent with it under a new session id,
   // so the corrected answer is what Mubit records (there is no feedback API).
+  const hostToken = deps.hostToken ?? process.env.HOST_TOKEN ?? "";
+  const sha = (s: string) => createHash("sha256").update(s).digest();
+  const isHost = (req: Request): boolean => {
+    const m = /^Bearer (.+)$/.exec(req.get("authorization") ?? "");
+    return !!hostToken && !!m && timingSafeEqual(sha(m[1]), sha(hostToken));
+  };
+
   app.post("/api/override", async (req: Request, res: Response) => {
+    // Host only: a rule edits the shared prompt for every player and can trigger a paid model call.
+    if (!isHost(req)) {
+      res.status(403).json({ error: "forbidden" });
+      return;
+    }
     const b = (req.body ?? {}) as Record<string, unknown>;
     const fightId = typeof b.fightId === "string" ? b.fightId : "";
     const row = FIGHT_ID.test(fightId) ? (db.prepare("SELECT input FROM fights WHERE fight_id = ?").get(fightId) as { input: string | null } | undefined) : undefined;

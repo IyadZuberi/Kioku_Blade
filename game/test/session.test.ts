@@ -60,15 +60,18 @@ describe("replay mode", () => {
 describe("sendOverride", () => {
   it("posts fightId and rule and returns the server answer", async () => {
     let body: any;
-    const r = await sendOverride("f1", "Prefer flurry.", async (_u: any, init: any) => {
+    let auth = "";
+    const r = await sendOverride("f1", "Prefer flurry.", "tok", async (_u: any, init: any) => {
       body = JSON.parse(init.body);
+      auth = init.headers.authorization;
       return new Response(JSON.stringify({ ok: true }), { status: 200 }) as any;
     });
     expect(body).toEqual({ fightId: "f1", rule: "Prefer flurry." });
+    expect(auth).toBe("Bearer tok");
     expect(r.ok).toBe(true);
   });
   it("never throws: an offline server is ok:false", async () => {
-    const r = await sendOverride("f1", "x rule", async () => {
+    const r = await sendOverride("f1", "x rule", "tok", async () => {
       throw new Error("offline");
     });
     expect(r.ok).toBe(false);

@@ -41,7 +41,7 @@ Optional hand gestures (`G`, or `?gestures=1`): a fist is the guard, a fast side
 
 URL options: `?name=` player name, `?quality=low|high`, `?theme=snow` (original look), `?replay=1` (serve stored plans, labelled replay), `?gestures=1`, `?difficulty=easy|medium|hard`.
 
-Host key: `H` on the end screen teaches the General a rule and re-sends that fight with it.
+Host key: `H` on the end screen teaches the General a rule and re-sends that fight with it. It needs `HOST_TOKEN` set on the server (the game asks for it once per tab); without a token the endpoint is disabled.
 
 ## What is where
 

@@ -15,6 +15,7 @@ function boot(callPlan?: Deps["callPlan"]) {
   const calls: { input: PlanInput; sessionId: string }[] = [];
   const dep: Deps = {
     db,
+    hostToken: "s3cret",
     callPlan:
       callPlan ??
       (async (input, sessionId) => {
@@ -24,7 +25,7 @@ function boot(callPlan?: Deps["callPlan"]) {
   };
   server = createApp(dep).listen(0);
   const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
-  const post = (path: string, body: unknown) => fetch(base + path, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+  const post = (path: string, body: unknown) => fetch(base + path, { method: "POST", headers: { "content-type": "application/json", authorization: "Bearer s3cret" }, body: JSON.stringify(body) });
   return { db, base, post, calls };
 }
 const fight = (id: string) => ({ fightId: id, nickname: "K", fightNumber: 1, stats });
@@ -80,6 +81,27 @@ describe("POST /api/override", () => {
     await post("/api/override", { fightId: "f1", rule: "Prefer flurry." });
     await post("/api/fight-end", fight("f2"));
     expect(calls[calls.length - 1].input.designerRules).toContain("Prefer flurry.");
+  });
+});
+
+describe("override authorization", () => {
+  const raw = (base: string, headers: Record<string, string>) => fetch(base + "/api/override", { method: "POST", headers: { "content-type": "application/json", ...headers }, body: JSON.stringify({ fightId: "f1", rule: "Prefer flurry." }) });
+  it("without the host token: 403, no rule stored, no model call", async () => {
+    const { post, base, calls, db } = boot();
+    await post("/api/fight-end", fight("f1"));
+    const before = calls.length;
+    expect((await raw(base, {})).status).toBe(403);
+    expect((await raw(base, { authorization: "Bearer wrong" })).status).toBe(403);
+    expect((await raw(base, { authorization: "s3cret" })).status).toBe(403);
+    expect(designerRules(db)).toEqual([]);
+    expect(calls.length).toBe(before);
+  });
+  it("with no host token configured the endpoint is disabled even for a matching header", async () => {
+    const db = openDb(":memory:");
+    server = createApp({ db, callPlan: async () => ({ out: undefined, ok: false, latencyMs: 0 }) }).listen(0);
+    const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+    expect((await raw(base, { authorization: "Bearer undefined" })).status).toBe(403);
+    expect((await raw(base, { authorization: "Bearer " })).status).toBe(403);
   });
 });
 
