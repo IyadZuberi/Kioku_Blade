@@ -11,7 +11,8 @@ export interface GestureHandle {
 }
 
 const BASE = (import.meta as { env?: { BASE_URL?: string } }).env?.BASE_URL ?? "/";
-const MAX_FPS = 24;
+const MAX_FPS = 30;
+const DEBUG = new URLSearchParams(location.search).get("gdebug") === "1";
 
 export async function startGestures(input: Input, onStatus: (s: string) => void = () => {}): Promise<GestureHandle> {
   const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480, facingMode: "user" }, audio: false });
@@ -34,6 +35,7 @@ export async function startGestures(input: Input, onStatus: (s: string) => void 
   let raf = 0;
   let last = 0;
   let stopped = false;
+  let lastEvent = "-";
   const loop = (now: number) => {
     if (stopped) return;
     raf = requestAnimationFrame(loop);
@@ -42,10 +44,13 @@ export async function startGestures(input: Input, onStatus: (s: string) => void 
     try {
       const res = landmarker.detectForVideo(video, now);
       for (const e of tracker.update(res.landmarks as never, now / 1000)) {
-        if (e.type === "press") input.press(e.action, "gesture");
+        if (e.type === "press") (input.press(e.action, "gesture"), (lastEvent = e.action));
         else input.release(e.action, "gesture");
       }
-      label.textContent = `gestures · ${tracker.status}`;
+      const d = tracker.debug;
+      label.textContent = DEBUG
+        ? `${tracker.status} · hands ${d.hands} · speed ${d.speed.toFixed(1)} · peak ${d.peak.toFixed(1)} · last ${lastEvent}`
+        : `gestures · ${tracker.status}`;
       onStatus(tracker.status);
     } catch {
       /* a bad frame is not worth a crash */

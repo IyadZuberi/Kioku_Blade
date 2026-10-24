@@ -22,8 +22,8 @@ export interface GestureEvent {
   type: "press" | "release";
 }
 
-/** Design values, tuned on the demo laptop. Speeds are in hand-lengths per second. */
-export const GESTURE = { swipeSpeed: 6, dominance: 1.4, attackCooldown: 0.4, moveCooldown: 0.8, tapSeconds: 0.09, fistFrames: 2, openFrames: 2, lostFrames: 5 };
+/** Design values, tuned on the demo laptop. Speeds are in hand-lengths per second (a deliberate swipe is ~8-15, a casual one ~4-6). */
+export const GESTURE = { swipeSpeed: 3.5, trackKeep: 0.3, smooth: 0.6, dominance: 1.4, attackCooldown: 0.4, moveCooldown: 0.8, tapSeconds: 0.09, fistFrames: 2, openFrames: 2, lostFrames: 5 };
 
 const FINGERS: [number, number][] = [[8, 6], [12, 10], [16, 14], [20, 18]]; // [tip, pip]
 const d = (a: Pt, b: Pt) => Math.hypot(a.x - b.x, a.y - b.y);
@@ -41,6 +41,8 @@ interface Track {
 export class GestureTracker {
   private tracks: (Track | undefined)[] = [];
   private fist = 0;
+  /** Live numbers for the calibration overlay (?gdebug=1). */
+  debug = { hands: 0, speed: 0, peak: 0, vx: 0, vy: 0 };
   private open = 0;
   private lost = 0;
   private blockHeld = false;
@@ -56,6 +58,11 @@ export class GestureTracker {
     });
 
     const valid = hands.filter(ok).sort((a, b) => a[9].x - b[9].x);
+    // A hand lost to motion blur for a few frames keeps its track, so a fast swipe still has a speed.
+    this.tracks = this.tracks.map((tr) => (tr && t - tr.t <= GESTURE.trackKeep ? tr : undefined));
+    this.debug.hands = valid.length;
+    this.debug.speed = 0;
+    this.debug.peak = Math.max(0, this.debug.peak - 0.02);
     let anyFist = false;
     valid.forEach((h, i) => {
       const scale = d(h[9], h[0]);
@@ -65,13 +72,18 @@ export class GestureTracker {
       const prev = this.tracks[i];
       const tr: Track = { x: h[9].x, y: h[9].y, t, vx: 0, vy: 0 };
       if (prev && t > prev.t) {
-        const dt = t - prev.t;
-        tr.vx = 0.5 * ((tr.x - prev.x) / dt / scale) + 0.5 * prev.vx;
-        tr.vy = 0.5 * ((tr.y - prev.y) / dt / scale) + 0.5 * prev.vy;
+        const dt = Math.max(t - prev.t, 1 / 60);
+        const a = GESTURE.smooth;
+        tr.vx = a * ((tr.x - prev.x) / dt / scale) + (1 - a) * prev.vx;
+        tr.vy = a * ((tr.y - prev.y) / dt / scale) + (1 - a) * prev.vy;
       }
       this.tracks[i] = tr;
-      if (fist) return;
       const speed = Math.hypot(tr.vx, tr.vy);
+      this.debug.speed = Math.max(this.debug.speed, speed);
+      this.debug.peak = Math.max(this.debug.peak, speed);
+      this.debug.vx = tr.vx;
+      this.debug.vy = tr.vy;
+      if (fist) return;
       if (speed < GESTURE.swipeSpeed) return;
       const ax = Math.abs(tr.vx), ay = Math.abs(tr.vy);
       let action: Action | null = null;
@@ -82,8 +94,6 @@ export class GestureTracker {
       out.push({ action, type: "press" });
       this.releases.push({ action, at: t + GESTURE.tapSeconds });
     });
-    this.tracks.length = valid.length;
-
     if (valid.length) this.lost = 0;
     else this.lost++;
     if (anyFist) {

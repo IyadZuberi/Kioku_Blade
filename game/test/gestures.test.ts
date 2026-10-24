@@ -88,6 +88,39 @@ describe("GestureTracker", () => {
   });
 });
 
+describe("GestureTracker in real conditions", () => {
+  it("a swipe still attacks when the camera drops two frames mid-swipe (motion blur)", () => {
+    const tr = new GestureTracker();
+    const ev: { action: string; type: string }[] = [];
+    const n = 9; // 0.3 s sweep at 30 fps
+    for (let i = 0; i <= n; i++) {
+      const f = i / n;
+      const lost = i === 4 || i === 5;
+      ev.push(...tr.update(lost ? [] : [hand(0.2 + 0.6 * f, 0.5)], i / FPS));
+    }
+    expect(ev.some((e) => e.action === "attack" && e.type === "press")).toBe(true);
+  });
+  it("a moderate, human-speed swipe (about 6 hand-lengths per second) attacks", () => {
+    const ev = sweep(new GestureTracker(), 0.3, 0.5, 0.7, 0.5, 0.45);
+    expect(ev.some((e) => e.action === "attack" && e.type === "press")).toBe(true);
+  });
+  it("slow drift (about 1.5 hand-lengths per second) does not", () => {
+    expect(sweep(new GestureTracker(), 0.3, 0.5, 0.6, 0.5, 1.3)).toEqual([]);
+  });
+  it("a hand that vanished for over half a second starts a fresh track (no stale jump)", () => {
+    const tr = new GestureTracker();
+    tr.update([hand(0.1, 0.5)], 0);
+    const ev = tr.update([hand(0.9, 0.5)], 1.0);
+    expect(ev).toEqual([]);
+  });
+  it("exposes the live speed for the calibration overlay", () => {
+    const tr = new GestureTracker();
+    sweep(tr, 0.2, 0.5, 0.8, 0.5, 0.25);
+    expect(tr.debug.hands).toBe(1);
+    expect(tr.debug.peak).toBeGreaterThan(4);
+  });
+});
+
 describe("assistKnobs", () => {
   it("only widens the deflect windows, never tightens them", () => {
     for (const name of ["easy", "medium", "hard"] as const) {
