@@ -1,13 +1,10 @@
 /**
  * Spoken lines: the prologue (full screen, over ink) and the dialogue before and after each duel
- * (subtitles under the letterbox). A line plays its voice file when one exists and waits for it to
- * end; otherwise it stays up long enough to read. Enter / Space / click: next line; Esc: skip all.
+ * (subtitles under the letterbox). Each line stays up long enough to read. Enter / Space / click: next
+ * line; Esc: skip all.
  */
-import { VOICED } from "../audio/voiceLines";
 import { SPEAKER_NAME, type Line, type Speaker } from "../game/story";
 import { LATIN_FONT } from "./brush";
-
-const BASE = (import.meta as { env?: { BASE_URL?: string } }).env?.BASE_URL ?? "/";
 
 const COLOR: Record<Speaker, string> = { narrator: "#efe7da", kaede: "#9fd0d8", masatora: "#e8b07a", kazemaru: "#8fc4cf", kurogane: "#e0786a" };
 
@@ -37,11 +34,7 @@ export class Subtitles {
   private lines: Line[] = [];
   private i = -1;
   private timer = 0;
-  private audio: HTMLAudioElement | null = null;
   private done: (() => void) | null = null;
-  /** Called with true while a voice is speaking (the game ducks the music). */
-  onSpeaking: ((on: boolean) => void) | null = null;
-  volume = 1;
 
   private readonly onKey = (e: KeyboardEvent): void => {
     if (!this.playing) return;
@@ -110,28 +103,11 @@ export class Subtitles {
     this.text.style.animation = "none";
     void this.text.offsetWidth;
     this.text.style.animation = "";
-    const read = Math.max(2.4, l.text.length * 0.058 + 1.1) * 1000;
-    if (VOICED.has(l.id) && this.volume > 0) {
-      const a = new Audio(`${BASE}assets/voice/${l.id}.mp3`);
-      a.volume = this.volume;
-      this.audio = a;
-      this.onSpeaking?.(true);
-      a.addEventListener("ended", () => {
-        if (this.audio === a) this.timer = window.setTimeout(() => this.advance(), 450);
-      });
-      a.play().catch(() => (this.timer = window.setTimeout(() => this.advance(), read)));
-      // never hang on a file that does not report its end
-      this.timer = window.setTimeout(() => this.advance(), read + 6000);
-    } else this.timer = window.setTimeout(() => this.advance(), read);
+    this.timer = window.setTimeout(() => this.advance(), Math.max(2.6, l.text.length * 0.06 + 1.2) * 1000);
   }
 
   private clearLine(): void {
     clearTimeout(this.timer);
-    if (this.audio) {
-      this.audio.pause();
-      this.audio = null;
-      this.onSpeaking?.(false);
-    }
   }
 
   /** The finisher's name, large over the slow motion. */

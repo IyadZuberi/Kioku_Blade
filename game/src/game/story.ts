@@ -1,6 +1,5 @@
 /**
- * The story of Kioku, and every spoken line in the game. Pure data: the subtitle player shows it and
- * plays the voice file for each line when one exists (public/assets/voice/<id>.mp3).
+ * The story of Kioku and every line of dialogue. Pure data: the subtitle player shows it.
  *
  * Kaede is the last survivor of Kiri, a mountain village burned twelve winters ago by three generals of
  * the Order of the Remembering Blade. The Order's creed is that a warrior is a pattern, and a pattern
@@ -12,7 +11,7 @@ import type { BossId } from "@gr/shared";
 export type Speaker = "narrator" | "kaede" | "masatora" | "kazemaru" | "kurogane";
 
 export interface Line {
-  /** Voice file name (public/assets/voice/<id>.mp3) and stable key. */
+  /** Stable key. */
   id: string;
   who: Speaker;
   text: string;
@@ -79,8 +78,3 @@ export const TRIUMPH: Record<BossId, Line> = {
   2: L("t2", "kazemaru", "Too slow. The wind remembers."),
   3: L("t3", "kurogane", "Rise again, girl. I will learn you again."),
 };
-
-/** Every line, for the voice manifest and the voice generator. */
-export function allLines(): Line[] {
-  return [...PROLOGUE, ...Object.values(MEET).flat(), ...Object.values(AGAIN), ...Object.values(FALL).flat(), ...Object.values(TRIUMPH)];
-}
