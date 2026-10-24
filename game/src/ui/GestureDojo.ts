@@ -7,6 +7,7 @@ import { LATIN_FONT } from "./brush";
 import type { GestureFrame, GestureHandle } from "../input/gestures";
 import { GESTURE } from "../input/gestureLogic";
 import { LESSONS, LessonTracker, type LessonId } from "../input/lessons";
+import { CalibrationRecorder } from "../input/calibration";
 
 const W = 420;
 const H = 315;
@@ -67,6 +68,7 @@ export class GestureDojo {
   private readonly msg: HTMLElement;
   private readonly lessons = new LessonTracker();
   private handle: GestureHandle | null = null;
+  private rec: CalibrationRecorder | null = null;
   private off: (() => void) | null = null;
   private opened = false;
   private onKey = (e: KeyboardEvent): void => {
@@ -99,7 +101,7 @@ export class GestureDojo {
         </div>
         <div class="list"></div>
       </div>
-      <div class="foot"><span class="msg"></span><button type="button" data-reset>Start over</button><button type="button" class="primary" data-done>Skip</button></div>
+      <div class="foot"><span class="msg"></span><button type="button" data-record title="A guided 1.5-minute recording of your gestures, saved as a file for tuning">Record my gestures</button><button type="button" data-reset>Start over</button><button type="button" class="primary" data-done>Skip</button></div>
     </div>`;
     host.appendChild(this.root);
     this.canvas = this.root.querySelector("canvas") as HTMLCanvasElement;
@@ -133,6 +135,7 @@ export class GestureDojo {
       e.stopPropagation();
       const el = e.target as HTMLElement;
       if (el.closest("[data-skip]") || el.closest("[data-done]")) this.close();
+      else if (el.closest("[data-record]")) this.startRecording();
       else if (el.closest("[data-reset]")) {
         this.lessons.reset();
         this.refresh();
@@ -160,6 +163,7 @@ export class GestureDojo {
   close(): void {
     if (!this.opened) return;
     this.opened = false;
+    this.rec = null;
     this.off?.();
     this.off = null;
     if (this.handle) {
@@ -172,12 +176,57 @@ export class GestureDojo {
     window.removeEventListener("keyup", this.onKey, true);
   }
 
+  private startRecording(): void {
+    this.rec = new CalibrationRecorder();
+    this.msg.className = "msg";
+    this.msg.textContent = "Recording. Follow the words on the camera picture.";
+  }
+
+  private finishRecording(): void {
+    const rec = this.rec!;
+    this.rec = null;
+    const blob = new Blob([JSON.stringify(rec.toFile(navigator.userAgent))], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "kioku-gesture-calibration.json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    this.msg.className = "msg ok";
+    this.msg.textContent = `Saved kioku-gesture-calibration.json (${rec.frames.length} frames). Put it in the game folder for tuning.`;
+  }
+
+  /** Big instruction, countdown and progress over the camera picture while recording. */
+  private drawRecording(now: number): void {
+    const a = this.rec!.at(now);
+    if (!a) return;
+    const g = this.ctx;
+    g.fillStyle = a.ready ? "rgba(8,6,9,0.62)" : "rgba(8,6,9,0.38)";
+    g.fillRect(0, H - 92, W, 92);
+    g.fillStyle = a.ready ? "#d9cdb9" : "#fff3e4";
+    g.textAlign = "center";
+    g.font = `${a.ready ? 13 : 12}px ${LATIN_FONT}`;
+    g.fillText(a.ready ? `Next (${a.index + 1} of ${this.rec!.steps.length}): get ready` : `Step ${a.index + 1} of ${this.rec!.steps.length}: go`, W / 2, H - 68);
+    g.font = `bold 16px ${LATIN_FONT}`;
+    g.fillText(a.step.say, W / 2, H - 44, W - 20);
+    g.font = `28px ${LATIN_FONT}`;
+    g.fillStyle = a.ready ? "#a99d89" : "#ef6a52";
+    g.fillText(Math.ceil(a.left).toString(), W / 2, H - 12);
+    g.textAlign = "left";
+  }
+
   private frame(f: GestureFrame): void {
     const h = this.handle;
     if (!h) return;
     const tr = h.tracker;
     this.lessons.update(f.events, tr.axis, tr.debug.hands);
     this.draw(h.video, f);
+    if (this.rec) {
+      const now = performance.now() / 1000;
+      if (this.rec.record(now, f.hands, f.events, tr.axis, tr.debug.speed)) this.drawRecording(now);
+      else this.finishRecording();
+    }
     // live stick and swipe speed
     this.stick.style.left = `${50 + tr.axis.x * 38}%`;
     this.stick.style.top = `${50 - tr.axis.y * 38}%`;
@@ -250,6 +299,7 @@ export class GestureDojo {
   }
 
   private refresh(): void {
+    if (this.rec) return;
     const next = LESSONS.find((l) => !this.lessons.done.has(l.id));
     for (const l of LESSONS) {
       const it = this.items.get(l.id)!;
