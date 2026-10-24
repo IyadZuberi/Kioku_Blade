@@ -41,6 +41,7 @@ import { Hud } from "../ui/Hud";
 import { Arena } from "../world/Arena";
 import { RIM, SUN_DIR, installFog } from "../world/materials";
 import { ATTACKS, BOSS_MAX, Boss, OPEN, type HitDef } from "./Boss";
+import { pickQuality, type Quality, type QualitySettings, settingsFor } from "../render/quality";
 import { applyDifficulty, DIFFICULTY, DIFFICULTY_NAMES, type DifficultyName, initialDifficulty, isDifficulty, rememberDifficulty } from "./difficulty";
 import { CameraRig } from "./CameraRig";
 import { KICK_REACH, PLAYER_MAX, Player, vitalityRegen } from "./Player";
@@ -201,12 +202,13 @@ export class Game {
   private fpsT = 0;
   fps = 0;
   rendererName = "unknown";
+  quality: Quality = "high";
+  private qs: QualitySettings = settingsFor("high");
   private paused = false;
 
   constructor(canvas: HTMLCanvasElement, hudRoot: HTMLElement) {
     installFog();
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: "high-performance", stencil: false });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.NoToneMapping;
     this.renderer.shadowMap.enabled = true;
@@ -214,6 +216,9 @@ export class Game {
     const gl = this.renderer.getContext();
     const dbg = gl.getExtension("WEBGL_debug_renderer_info");
     this.rendererName = dbg ? String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)) : String(gl.getParameter(gl.RENDERER));
+    this.quality = pickQuality(this.rendererName, location.search);
+    this.qs = settingsFor(this.quality);
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, this.qs.pixelRatio));
 
     this.arena = new Arena(this.scene);
     // Dusk reflections for steel and lacquer: bake the world (before the fighters exist).
@@ -230,7 +235,7 @@ export class Game {
     this.player = new Player(this.playerBody);
     this.boss = new Boss(this.bossBody);
     this.cam = new CameraRig(this.camera);
-    this.post = new Post(this.renderer, this.scene, this.camera, this.arena.surround.sunMesh);
+    this.post = new Post(this.renderer, this.scene, this.camera, this.arena.surround.sunMesh, this.qs);
     this.hud = new Hud(hudRoot);
     this.input = new Input(canvas);
     this.hud.setDifficulty(this.difficulty);
@@ -1552,7 +1557,7 @@ export class Game {
     // Trails run on game time so hitstop freezes them with the blades.
     this.playerBody.frame(dt * this.timeScale);
     this.bossBody.frame(dt * this.timeScale * b.tempo);
-    this.snow.update(this.realTime, this.camera.position, this.windK, window.innerHeight * Math.min(window.devicePixelRatio, 1.5));
+    this.snow.update(this.realTime, this.camera.position, this.windK, window.innerHeight * Math.min(window.devicePixelRatio, this.qs.pixelRatio));
     this.arena.update(dt, this.windK);
 
     const au = this.audio;

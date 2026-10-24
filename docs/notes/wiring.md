@@ -20,3 +20,8 @@ Base: StarKnightt/shinobi-duel (MIT code). Builds clean: `pnpm -C game build` OK
 - Spec says Input uses `press(action, source)`; confirm it is public in Task 10.
 - Spec assumed `DuelStats` per fight; it is cumulative -> summary.ts takes (current, snapshot).
 - LICENSE file mentions dust2/Soldier.glb (mismatch with README); see NOTICE.md.
+
+## Performance (measured 24 Oct 2026, Playwright Chromium, Intel Iris Xe, 1038x791 @ DPR 2.5)
+- Base settings: ~14 fps title + fight. pixelRatio 1: ~20. + N8AO off: ~29. + MSAA off: up to 56 (peak), 20-27 typical in a fight.
+- Added render/quality.ts: Intel integrated GPUs (not Arc) default to 'low' (pixelRatio 1, AO off, MSAA 0); ?quality=low|high overrides. Re-measure on the real demo laptop in a real Chrome window (Task 12). Shadows/point-light toggles showed no gain in this run (fps counter may have been throttled; unverified).
+- Screenshot: docs/notes/task0-title.png (the base title looks good).

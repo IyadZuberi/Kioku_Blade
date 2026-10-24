@@ -20,6 +20,7 @@ import {
   VignetteEffect,
 } from "postprocessing";
 import { N8AOPostPass } from "n8ao";
+import { type QualitySettings, settingsFor } from "./quality";
 
 /** Tuned grade (see TASKS.md "Lighting pass"). */
 export const GRADE = {
@@ -127,8 +128,8 @@ export class Post {
   fade = 0;
   private flashColor = new THREE.Color(1, 0.85, 0.6);
 
-  constructor(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera, sun?: THREE.Mesh) {
-    this.composer = new EffectComposer(renderer, { frameBufferType: THREE.HalfFloatType, multisampling: 4 });
+  constructor(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera, sun?: THREE.Mesh, quality: QualitySettings = settingsFor("high")) {
+    this.composer = new EffectComposer(renderer, { frameBufferType: THREE.HalfFloatType, multisampling: quality.msaa });
     this.composer.addPass(new RenderPass(scene, camera));
     // Contact shadows: armour rows, cloth folds and feet on the tiles read as form, not plastic.
     this.ao = new N8AOPostPass(scene, camera, window.innerWidth, window.innerHeight);
@@ -140,6 +141,7 @@ export class Post {
     this.ao.configuration.color = new THREE.Color(0.07, 0.07, 0.13);
     this.ao.configuration.gammaCorrection = false;
     this.ao.configuration.halfRes = true;
+    this.ao.enabled = quality.ao;
     this.composer.addPass(this.ao);
 
     this.bloom = new BloomEffect({
