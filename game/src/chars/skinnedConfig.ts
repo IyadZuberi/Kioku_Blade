@@ -153,8 +153,8 @@ export const PLAYER_SKIN: SkinnedConfig = {
   required: ["idle", "attack1", "attack2", "attack3", "block", "block_impact", "hit", "dodge", "death", "finisher"],
   locomotion: { idle: "idle", walk: "walk", back: "walk_back", left: "strafe_left", right: "strafe_right", run: "run", turnLeft: "turn_left", turnRight: "turn_right", walkSpeed: 1.6, runSpeed: 5.5 },
   fades: {
-    "*>deflect": 0.04,
-    "*>block": 0.04,
+    "*>deflect": 0.08,
+    "*>block": 0.08,
     "deflect>*": 0.12,
     "block>*": 0.12,
     "*>attack1": 0.08,
@@ -229,7 +229,7 @@ export const BOSS_SKIN: SkinnedConfig = {
   required: ["idle", "walk", "attack1", "combo2", "combo3", "overhead", "thrust", "leap", "block", "block_impact", "hit", "stagger", "finished"],
   locomotion: { idle: "idle", walk: "walk", back: "walk_back", left: "strafe_left", right: "strafe_right", turnLeft: "turn_left", turnRight: "turn_right", walkSpeed: 1.7, runSpeed: 99 },
   fades: {
-    "*>block": 0.05,
+    "*>block": 0.1,
     "*>recoil": 0.1,
     "*>flinch": 0.05,
     "*>stagger": 0.1,

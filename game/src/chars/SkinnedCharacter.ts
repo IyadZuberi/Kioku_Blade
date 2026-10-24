@@ -797,7 +797,8 @@ export class SkinnedCharacter implements Fighter {
     const sg = w.segs[i];
     const ct = Math.min(sg.b, sg.a + v - sg.off);
     if (i !== this.segI) {
-      this.start({ clip: sg.clip }, this.segI < 0 ? fade : 0.08, ct);
+      // segments of a string join with a longer blend: each Mixamo slash starts from its own guard
+      this.start({ clip: sg.clip }, this.segI < 0 ? fade : 0.16, ct);
       this.segI = i;
     }
     if (this.cur) {
@@ -869,8 +870,9 @@ export class SkinnedCharacter implements Fighter {
     const w = this.guardW();
     if (w > 1e-3 && this.guardTarget) {
       const T = this.guardTarget;
-      this.armIK(T, w, 0.08, 0.75, true);
-      this.armIK(T, w, 0.08, 0.75, true);
+      // arms only: bending the spine onto the contact in one step reads as a twitch of the whole torso
+      this.armIK(T, w, 0.08, 0.75);
+      this.armIK(T, w, 0.08, 0.75);
       // The last few centimetres: the katana slides in the grip onto the contact.
       const d = this.cfg.sword;
       const S = this.swordSocket;
@@ -950,16 +952,20 @@ export class SkinnedCharacter implements Fighter {
     // A guarded blow rebounds exactly as the procedural rig's does (anchored at the contact), and
     // a deflected fighter's recoil keeps the tuned blade path (it starts point blank).
     want = Math.max(want, this.bounceT >= 0 && this.bounceT < this.bounceHoldEnd + 0.3 ? 1 : 0, this.logical === "recoil" ? 1 : 0);
-    // Rate-limited, so a state change (deflected → recoil) never snaps the blade back to the clip.
-    this.assistW = want > this.assistW ? want : Math.max(want, this.assistW - dt * 7);
+    // Rate-limited both ways: a rebound or a recoil eases onto the tuned blade path (~0.08 s) instead
+    // of snapping the arm and spine there in one step, and a state change never snaps back to the clip.
+    this.assistW = want > this.assistW ? Math.min(want, this.assistW + dt * 12) : Math.max(want, this.assistW - dt * 7);
     let w = this.assistW;
     if (w <= 1e-3) return;
     w = w * w * (3 - 2 * w);
     const hand = this.bones.get(this.cfg.sword.bone);
     const d = this.cfg.sword;
     const rh = ref.rig;
+    // Rebounding off a guard, the arms take the tuned blade path alone: dragging the spine after it
+    // each step jerks the whole torso.
+    const spine = this.bounceT < 0;
     for (let it = 0; it < IK_TUNE.assist; it++) {
-      this.armIK(rh.hiltW, w, 0, 0, true);
+      this.armIK(rh.hiltW, w, 0, 0, spine);
       if (!hand) break;
       this.rig.root.updateMatrixWorld(true);
       const hilt = _g0.set(0, d.tsuba, 0).applyMatrix4(this.swordSocket.matrixWorld);
@@ -972,7 +978,7 @@ export class SkinnedCharacter implements Fighter {
       hand.quaternion.copy(pw.invert().multiply(_gq).multiply(bw));
       hand.updateMatrixWorld(true);
     }
-    this.armIK(rh.hiltW, w, 0, 0, true);
+    this.armIK(rh.hiltW, w, 0, 0, spine);
     // What the arm can't reach, the grip takes up: the katana slides / turns a little in the hand.
     this.rig.root.updateMatrixWorld(true);
     const S = this.swordSocket;
@@ -1250,7 +1256,7 @@ export class SkinnedCharacter implements Fighter {
       this.mixer.update(0);
     } else {
       // Banked hold time is caught up on the clip clock only; fades run on real steps.
-      const extra = Math.min(this.held, dt);
+      const extra = Math.min(this.held, dt * 0.5); // catch up at 1.5x, not 2x (2x reads as a lurch)
       this.held -= extra;
       if (this.warp) {
         this.tau += dt + extra;
