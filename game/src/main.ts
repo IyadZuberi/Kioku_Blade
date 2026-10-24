@@ -22,6 +22,13 @@ startGamepad(game.input);
 const menuState = () => game.state === "title" || game.state === "defeat" || game.state === "victory";
 const dojo = new GestureDojo(hud);
 const controls = new ControlsPanel(hud, () => menuState() && !dojo.isOpen);
+controls.sound = {
+  get: () => ({ ...game.audio.volumes, muted: game.audio.isMuted }),
+  set: (v) => {
+    game.audio.setVolumes({ master: v.master, music: v.music, sfx: v.sfx });
+    game.audio.setMuted(v.muted);
+  },
+};
 controls.onPractice = () => {
   if (gestures) dojo.open(gestures);
   else void toggleGestures().then(() => gestures && dojo.open(gestures));

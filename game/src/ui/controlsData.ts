@@ -11,6 +11,56 @@ export interface ControlRow {
   actions: Listed[];
 }
 
+/** The moves list (Settings, Moves tab): what Kaede can do, and what each general does and how to answer it. */
+export interface MoveRow {
+  name: string;
+  how: string;
+  tip: string;
+}
+export const PLAYER_MOVES: MoveRow[] = [
+  { name: "Strike", how: "Strike", tip: "Up to three cuts in a string. He turns long strings aside, so cut two or three and step back." },
+  { name: "Charged cut", how: "Hold Strike", tip: "Slow, but it drives through his guard for heavy posture damage." },
+  { name: "Deflect", how: "Tap Guard as the blow lands", tip: "The heart of the duel. Each deflect builds his posture; chained deflects build it faster." },
+  { name: "Block", how: "Hold Guard", tip: "Safe but it fills your own posture bar. A full bar leaves you open." },
+  { name: "Mikiri counter", how: "Step into a thrust", tip: "Step toward him as a thrust comes in: you stamp on the blade and he reels." },
+  { name: "Jump kick", how: "Jump, then Jump again at him", tip: "Over a sweep or a ring, then off his head." },
+  { name: "Deathblow", how: "Strike at the red dot", tip: "When his posture breaks or his health is gone. Two deathblows end the duel." },
+  { name: "Gourd", how: "Gourd key", tip: "Heals. He punishes it if you drink in reach." },
+];
+export const BOSS_MOVES_LIST: { boss: string; style: string; moves: MoveRow[] }[] = [
+  {
+    boss: "Masatora, the Garden Duelist",
+    style: "Katana. Measured and patient: feints, thrusts, a third cut that waits for you to flinch.",
+    moves: [
+      { name: "Three-cut string", how: "Deflect each cut", tip: "Even rhythm." },
+      { name: "Delayed string", how: "Wait for the third cut", tip: "The third cut hangs. Pressing early is what he wants." },
+      { name: "Thrust (red !)", how: "Deflect, sidestep or step in (mikiri)", tip: "Cannot be blocked." },
+      { name: "Sweep (red !)", how: "Jump", tip: "At the ankles." },
+      { name: "Grab (red !)", how: "Step away or jump", tip: "Missed, it leaves him open." },
+    ],
+  },
+  {
+    boss: "Kazemaru, the Spear of the Wind",
+    style: "Yari. Long reach and quick: he parries strings, answers fast and is rarely open.",
+    moves: [
+      { name: "Whirling spear", how: "Deflect", tip: "One wide spin all round him; stepping rarely clears it." },
+      { name: "Wind cut", how: "Jump or deflect", tip: "An overhead that throws a blade of wind along the ground." },
+      { name: "Waterfowl", how: "Deflect five cuts", tip: "A leap straight into a five-cut flurry; the last cut is late." },
+      { name: "Spear thrust (red !)", how: "Deflect or sidestep", tip: "From far further away than a sword." },
+    ],
+  },
+  {
+    boss: "Kurogane, the Hollow Shogun",
+    style: "Odachi. Heavy armour and heavy blows: his posture holds, and a held guard breaks under him.",
+    moves: [
+      { name: "Stamp kick", how: "Deflect or step aside", tip: "Crushes a held block. Never just hold guard against it." },
+      { name: "Shockwave slam", how: "Jump the ring", tip: "A leaping slam that sends a ring across the stone." },
+      { name: "Great overhead", how: "Deflect", tip: "Slow wind-up, enormous posture damage if blocked." },
+      { name: "Grab (red !)", how: "Step away", tip: "He throws you into the ground." },
+    ],
+  },
+];
+
 export const CONTROLS: Record<"keyboard" | "pad" | "hands", ControlRow[]> = {
   keyboard: [
     { name: "Move", how: ["WASD", "Arrow keys"], tip: "Relative to the camera. You circle him when locked on.", actions: ["move"] },
@@ -22,7 +72,7 @@ export const CONTROLS: Record<"keyboard" | "pad" | "hands", ControlRow[]> = {
     { name: "Lock on", how: ["Q", "Tab", "Middle mouse"], tip: "Frames both of you. Press again to look freely.", actions: ["lock"] },
     { name: "Chapters", how: ["[", "]"], tip: "On the title: pick an unlocked general. Click the chips too.", actions: [] },
     { name: "Difficulty", how: ["A", "D", "1", "2", "3"], tip: "On the title: easy, medium or hard.", actions: [] },
-    { name: "Hands and menus", how: ["G", "F1", "M"], tip: "G turns webcam hand control on or off, F1 opens this window, M mutes.", actions: [] },
+    { name: "Hands and menus", how: ["G", "F1", "M"], tip: "G turns webcam hand control on or off, F1 opens Settings, M mutes.", actions: [] },
   ],
   pad: [
     { name: "Move", how: ["Left stick"], tip: "Push up to walk toward him.", actions: ["move"] },

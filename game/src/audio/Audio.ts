@@ -27,6 +27,24 @@ interface CamLike {
 }
 
 const MUTE_KEY = "shinobi-duel.muted";
+const VOL_KEY = "kioku.volume";
+
+export interface Volumes {
+  master: number;
+  music: number;
+  sfx: number;
+}
+const DEFAULT_VOL: Volumes = { master: 1, music: 1, sfx: 1 };
+
+function loadVolumes(): Volumes {
+  try {
+    const v = JSON.parse(localStorage.getItem(VOL_KEY) ?? "{}") as Partial<Volumes>;
+    const ok = (x: unknown, d: number) => (typeof x === "number" && x >= 0 && x <= 1 ? x : d);
+    return { master: ok(v.master, 1), music: ok(v.music, 1), sfx: ok(v.sfx, 1) };
+  } catch {
+    return { ...DEFAULT_VOL };
+  }
+}
 const rand = (a: number, b: number) => a + Math.random() * (b - a);
 
 export class GameAudio {
@@ -45,6 +63,8 @@ export class GameAudio {
   private swingN = 0;
   intensity = 0;
   taikoTempo = 72;
+  private vol: Volumes = loadVolumes();
+  private mutedPref = false;
 
   constructor() {
     if (typeof window === "undefined") return;
@@ -57,13 +77,7 @@ export class GameAudio {
     window.addEventListener("keydown", kick);
     window.addEventListener("keydown", (e) => {
       if (e.code !== "KeyM" || e.repeat) return;
-      const m = !(this.ctx ? this.mix.muted : localStorage.getItem(MUTE_KEY) === "1");
-      try {
-        localStorage.setItem(MUTE_KEY, m ? "1" : "0");
-      } catch {
-        /* storage blocked */
-      }
-      if (this.ctx) this.mix.setMuted(m);
+      this.setMuted(!this.isMuted);
     });
   }
 
@@ -81,6 +95,41 @@ export class GameAudio {
       /* storage blocked */
     }
     if (muted) this.mix.setMuted(true);
+    this.mix.setUser(this.vol);
+  }
+
+  get volumes(): Volumes {
+    return { ...this.vol };
+  }
+
+  /** The Sound settings: master, music and effects (0..1), remembered in this browser. */
+  setVolumes(v: Volumes): void {
+    this.vol = { ...v };
+    try {
+      localStorage.setItem(VOL_KEY, JSON.stringify(this.vol));
+    } catch {
+      /* storage blocked */
+    }
+    if (this.ctx) this.mix.setUser(this.vol);
+  }
+
+  get isMuted(): boolean {
+    if (this.ctx) return this.mix.muted;
+    try {
+      return localStorage.getItem(MUTE_KEY) === "1";
+    } catch {
+      return this.mutedPref;
+    }
+  }
+
+  setMuted(m: boolean): void {
+    this.mutedPref = m;
+    try {
+      localStorage.setItem(MUTE_KEY, m ? "1" : "0");
+    } catch {
+      /* storage blocked */
+    }
+    if (this.ctx) this.mix.setMuted(m);
   }
 
   /** Build the graph on any context (tools/audio-render.mjs passes an OfflineAudioContext). */

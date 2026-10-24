@@ -125,6 +125,16 @@ export class Mix {
     return this.ctx.currentTime;
   }
 
+  /** The player's volume settings (0..1 each), on top of the mix levels. */
+  setUser(v: { master: number; music: number; sfx: number }): void {
+    const t = this.ctx.currentTime;
+    this.master.gain.setTargetAtTime(LEVELS.master * v.master, t, 0.03);
+    this.music.gain.setTargetAtTime(LEVELS.music * v.music, t, 0.03);
+    this.amb.gain.setTargetAtTime(LEVELS.amb * v.sfx, t, 0.03);
+    this.sfx.gain.setTargetAtTime(LEVELS.sfx * v.sfx, t, 0.03);
+    this.voice.gain.setTargetAtTime(LEVELS.voice * v.sfx, t, 0.03);
+  }
+
   setMuted(m: boolean): void {
     this.muted = m;
     this.mute.gain.setTargetAtTime(m ? 0 : 1, this.ctx.currentTime, 0.03);

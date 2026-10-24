@@ -1,16 +1,23 @@
 /**
- * The Controls window: keyboard and mouse, controller, and hand gestures, each listed from
- * controlsData.ts. Opens from the chip on the title / end screens or with F1; Esc closes it. While
+ * The Settings window: controls (keyboard and mouse, controller, hand gestures), the moves list and
+ * sound (volumes, mute), all listed from controlsData.ts. Opens from the chip on the title / end screens or with F1; Esc closes it. While
  * it is open every key and click stays inside it (the game never sees them).
  */
-import { KANJI_FONT, LATIN_FONT } from "./brush";
-import { CONTROLS, type ControlRow } from "./controlsData";
+import { LATIN_FONT } from "./brush";
+import { BOSS_MOVES_LIST, CONTROLS, PLAYER_MOVES, type ControlRow } from "./controlsData";
 
-type Tab = "keyboard" | "pad" | "hands";
+export interface SoundSettings {
+  get(): { master: number; music: number; sfx: number; muted: boolean };
+  set(v: { master: number; music: number; sfx: number; muted: boolean }): void;
+}
+
+type Tab = "keyboard" | "pad" | "hands" | "moves" | "sound";
 const TABS: { id: Tab; label: string; blurb: string }[] = [
   { id: "keyboard", label: "Keyboard and mouse", blurb: "The default. Pointer lock hides the cursor in a duel." },
   { id: "pad", label: "Controller", blurb: "Plug in or pair any standard pad (Xbox, PlayStation, Switch Pro). It is picked up automatically." },
   { id: "hands", label: "Hands", blurb: "Webcam control. Press G to start. Your left hand walks, your right hand fights." },
+  { id: "moves", label: "Moves", blurb: "What Kaede can do, and how each general fights and how to answer him." },
+  { id: "sound", label: "Sound", blurb: "Volumes are remembered in this browser. M mutes at any time." },
 ];
 
 const CSS = `
@@ -24,7 +31,18 @@ const CSS = `
 #ctl .win { width: min(92vw, 880px); max-height: 88vh; display: flex; flex-direction: column; background: linear-gradient(180deg, #17121a 0%, #100d12 100%); color: #efe7da; font-family: ${LATIN_FONT};
   border-top: 1px solid rgba(196,55,42,0.9); box-shadow: 0 24px 80px rgba(0,0,0,0.6); }
 #ctl header { display: flex; align-items: baseline; gap: 16px; padding: 20px 28px 0; }
-#ctl h2 { margin: 0; font: 700 30px/1 ${KANJI_FONT}; }
+#ctl h2 { margin: 0; font: 700 30px/1 ${LATIN_FONT}; }
+#ctl h3 { margin: 18px 0 2px; font: 600 18px/1.3 ${LATIN_FONT}; color: #f1d9c4; }
+#ctl .style { color: #a99d89; font-size: 13.5px; margin-bottom: 4px; }
+#ctl .mrow { display: grid; grid-template-columns: minmax(140px, 1fr) minmax(150px, 1fr) minmax(0, 1.6fr); gap: 4px 16px; padding: 9px 0; border-bottom: 1px solid rgba(239,231,218,0.08); font-size: 14.5px; }
+#ctl .mrow .how2 { color: #e1a58f; }
+#ctl .mrow .tip2 { color: #a99d89; font-size: 13.5px; }
+@media (max-width: 640px) { #ctl .mrow { grid-template-columns: 1fr; } }
+#ctl .snd { display: grid; grid-template-columns: 120px 1fr 48px; gap: 16px; align-items: center; padding: 12px 0; font-size: 15px; }
+#ctl .snd input[type=range] { width: 100%; accent-color: #c4372a; }
+#ctl .snd output { color: #a99d89; text-align: right; }
+#ctl label.mute { display: flex; gap: 10px; align-items: center; padding: 14px 0; font-size: 15px; cursor: pointer; }
+#ctl label.mute input { width: 18px; height: 18px; accent-color: #c4372a; }
 #ctl header span { color: #a99d89; font-size: 14px; }
 #ctl header button { margin-left: auto; align-self: center; background: none; border: 1px solid rgba(239,231,218,0.3); color: #d9cdb9; font: 13px ${LATIN_FONT}; padding: 6px 12px; cursor: pointer; }
 #ctl header button:hover { border-color: rgba(239,231,218,0.8); }
@@ -79,6 +97,8 @@ export class ControlsPanel {
   private readonly blurb: HTMLElement;
   private readonly tabs = new Map<Tab, HTMLButtonElement>();
   private tab: Tab = "keyboard";
+  /** Set by main: the game's audio volumes. */
+  sound: SoundSettings | null = null;
   private opened = false;
   /** Set by main: opens the hand-training window. */
   onPractice: () => void = () => {};
@@ -101,7 +121,7 @@ export class ControlsPanel {
     this.chip = document.createElement("button");
     this.chip.id = "ctl-chip";
     this.chip.type = "button";
-    this.chip.innerHTML = `Controls<kbd>F1</kbd>`;
+    this.chip.innerHTML = `Settings<kbd>F1</kbd>`;
     host.appendChild(this.chip);
     for (const t of ["mousedown", "mouseup"] as const) this.chip.addEventListener(t, (e) => e.stopPropagation());
     this.chip.addEventListener("click", (e) => {
@@ -113,8 +133,8 @@ export class ControlsPanel {
     this.root.id = "ctl";
     this.root.setAttribute("role", "dialog");
     this.root.setAttribute("aria-modal", "true");
-    this.root.setAttribute("aria-label", "Controls");
-    this.root.innerHTML = `<div class="win"><header><h2>Controls</h2><span>Keyboard and mouse, controller, hands</span><button type="button" data-close>Close <kbd>Esc</kbd></button></header><nav role="tablist"></nav><div class="blurb"></div><div class="rows"></div></div>`;
+    this.root.setAttribute("aria-label", "Settings");
+    this.root.innerHTML = `<div class="win"><header><h2>Settings</h2><span>Controls, moves and sound</span><button type="button" data-close>Close <kbd>Esc</kbd></button></header><nav role="tablist"></nav><div class="blurb"></div><div class="rows"></div></div>`;
     host.appendChild(this.root);
     const nav = this.root.querySelector("nav") as HTMLElement;
     this.blurb = this.root.querySelector(".blurb") as HTMLElement;
@@ -182,6 +202,8 @@ export class ControlsPanel {
     for (const [id, b] of this.tabs) b.setAttribute("aria-selected", String(id === this.tab));
     this.blurb.textContent = TABS.find((t) => t.id === this.tab)!.blurb;
     this.rows.replaceChildren();
+    if (this.tab === "moves") return this.renderMoves();
+    if (this.tab === "sound") return this.renderSound();
     if (this.tab === "hands") {
       const b = document.createElement("button");
       b.type = "button";
@@ -216,5 +238,69 @@ export class ControlsPanel {
       row.append(ico, name, how, tip);
       this.rows.appendChild(row);
     }
+  }
+
+  private mrow(m: { name: string; how: string; tip: string }): HTMLElement {
+    const r = document.createElement("div");
+    r.className = "mrow";
+    for (const [cls, t] of [["", m.name], ["how2", m.how], ["tip2", m.tip]]) {
+      const d = document.createElement("div");
+      if (cls) d.className = cls;
+      d.textContent = t;
+      r.appendChild(d);
+    }
+    return r;
+  }
+
+  private renderMoves(): void {
+    const h = (t: string) => {
+      const e = document.createElement("h3");
+      e.textContent = t;
+      this.rows.appendChild(e);
+    };
+    h("Kaede");
+    for (const m of PLAYER_MOVES) this.rows.appendChild(this.mrow(m));
+    for (const b of BOSS_MOVES_LIST) {
+      h(b.boss);
+      const s = document.createElement("div");
+      s.className = "style";
+      s.textContent = b.style;
+      this.rows.appendChild(s);
+      for (const m of b.moves) this.rows.appendChild(this.mrow(m));
+    }
+  }
+
+  private renderSound(): void {
+    const s = this.sound;
+    if (!s) return;
+    const v = s.get();
+    for (const [key, label] of [["master", "Master"], ["music", "Music"], ["sfx", "Effects"]] as const) {
+      const row = document.createElement("label");
+      row.className = "snd";
+      const name = document.createElement("span");
+      name.textContent = label;
+      const input = document.createElement("input");
+      input.type = "range";
+      input.min = "0";
+      input.max = "100";
+      input.value = String(Math.round(v[key] * 100));
+      input.setAttribute("aria-label", `${label} volume`);
+      const out = document.createElement("output");
+      out.textContent = `${input.value}%`;
+      input.addEventListener("input", () => {
+        out.textContent = `${input.value}%`;
+        s.set({ ...s.get(), [key]: +input.value / 100 });
+      });
+      row.append(name, input, out);
+      this.rows.appendChild(row);
+    }
+    const mute = document.createElement("label");
+    mute.className = "mute";
+    const box = document.createElement("input");
+    box.type = "checkbox";
+    box.checked = v.muted;
+    box.addEventListener("change", () => s.set({ ...s.get(), muted: box.checked }));
+    mute.append(box, document.createTextNode("Mute everything (M)"));
+    this.rows.appendChild(mute);
   }
 }
