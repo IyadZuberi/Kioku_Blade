@@ -7,7 +7,7 @@ import { GOURD, REZ } from "./game/Player";
 import { wavedash } from "./wavedash";
 import { sendOverride } from "./learn/session";
 import { ControlsPanel } from "./ui/ControlsPanel";
-import { GestureDojo } from "./ui/GestureDojo";
+import { PoseTrainer } from "./ui/PoseTrainer";
 import type { GestureHandle } from "./input/gestures";
 import { startGamepad } from "./input/gamepad";
 
@@ -20,8 +20,8 @@ wavedash.ready();
 // Controller (any standard pad, picked up automatically) and the Controls window (chip on menus, F1 anywhere).
 startGamepad(game.input);
 const menuState = () => game.state === "title" || game.state === "defeat" || game.state === "victory";
-const dojo = new GestureDojo(hud);
-const controls = new ControlsPanel(hud, () => menuState() && !dojo.isOpen);
+const trainer = new PoseTrainer(document.body);
+const controls = new ControlsPanel(hud, () => menuState() && !trainer.isOpen);
 controls.sound = {
   get: () => ({ ...game.audio.volumes, muted: game.audio.isMuted }),
   set: (v) => {
@@ -30,8 +30,8 @@ controls.sound = {
   },
 };
 controls.onPractice = () => {
-  if (gestures) dojo.open(gestures);
-  else void toggleGestures().then(() => gestures && dojo.open(gestures));
+  if (gestures) trainer.open(gestures);
+  else void toggleGestures().then(() => gestures && trainer.open(gestures));
 };
 setInterval(() => controls.showChip(menuState()), 250);
 window.addEventListener("gamepadconnected", () => game.council.flash("Controller connected"));
@@ -50,7 +50,7 @@ async function toggleGestures(): Promise<void> {
     gestures = await startGestures(game.input);
     game.gestureAssist = true;
     controls.select("hands");
-    dojo.open(gestures); // first thing after the camera starts: learn what each hand does
+    if (!gestures.poses.ready) trainer.open(gestures); // first thing after the camera starts: teach it your poses
   } catch (e) {
     console.warn("gestures unavailable:", e);
   }
@@ -326,30 +326,6 @@ game.arena
 
 // Dev-only hooks for tools/skin-smoke.mjs (stripped from production builds).
 if (import.meta.env.DEV) {
-  // Opens the hand-training window with synthetic hands (no camera): window.__duel.dojoDemo()
-  window.__duel.dojoDemo = async () => {
-    const { GestureTracker } = await import("./input/gestureLogic");
-    const tracker = new GestureTracker();
-    const subs = new Set<(f: never) => void>();
-    const fake = { hold: false, video: document.createElement("video"), tracker, onFrame: (cb: (f: never) => void) => (subs.add(cb), () => subs.delete(cb)), preview() {}, stop() {} } as unknown as GestureHandle;
-    const hand = (mx: number, y: number, fist: boolean) => {
-      const x = 1 - mx;
-      const pts = Array.from({ length: 21 }, (_, i) => ({ x: x + ((i % 5) - 2) * 0.012, y: y + 0.15 - (i / 20) * 0.2, z: 0 }));
-      pts[0] = { x, y: y + 0.15, z: 0 };
-      pts[9] = { x, y, z: 0 };
-      for (const [tip, pip] of [[8, 6], [12, 10], [16, 14], [20, 18]]) (pts[tip] = { x: pts[pip].x, y: fist ? y + 0.1 : y - 0.12, z: 0 });
-      return pts;
-    };
-    let t = 0;
-    const id = setInterval(() => {
-      t += 1 / 30;
-      const hands = [hand(0.28 + Math.sin(t) * 0.05, 0.5 - Math.max(0, Math.sin(t * 0.7)) * 0.1, false), hand(0.7 + Math.sin(t * 5) * 0.12, 0.5, Math.sin(t * 0.5) > 0.5)];
-      const events = tracker.update(hands as never, t);
-      for (const cb of subs) cb({ hands, events } as never);
-    }, 33);
-    dojo.open(fake);
-    return () => clearInterval(id);
-  };
   window.__duel.dev = {
     three: () => Promise.resolve(THREE),
     skinned: () => import("./chars/SkinnedCharacter"),

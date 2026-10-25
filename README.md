@@ -47,7 +47,7 @@ Check the whole loop with real fights: `node game/tools/learncheck.mjs 3 mix` (n
 
 Mouse and keyboard (from the base): LMB / J strike, RMB / K guard (tap just before a blow lands to deflect), Shift step, Space jump, R gourd, WASD move, Q lock-on. F1 opens Settings: every control, the moves list (Kaede and each general, with how to answer), sound (master, music, effects, mute).
 
-Optional hand gestures (`G`, or `?gestures=1`): a fist is the guard, a fast sideways swipe strikes, a fast downward swipe steps, a fast upward flick jumps. Movement and the gourd stay on the keyboard. Video never leaves the browser. Needs a webcam and has not been tested with a real hand yet (see `docs/verification.md`).
+Optional hand control (`G`, or `?gestures=1`): your left hand is a movement stick; for everything else you train your own hand poses (F1 > Hands > Train my poses): one pose per action, read from a single camera frame. Poses and video stay in the browser.
 
 URL options: `?name=` player name, `?quality=low|high`, `?replay=1` (serve stored plans, labelled replay), `?gestures=1`, `?difficulty=easy|medium|hard`.
 

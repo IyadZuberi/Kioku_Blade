@@ -90,10 +90,7 @@ export const CONTROLS: Record<"keyboard" | "pad" | "hands", ControlRow[]> = {
   ],
   hands: [
     { name: "Move: left hand", how: ["Raise to walk forward", "Lower to back off", "Move sideways to strafe"], tip: "Hold your left hand up where it is comfortable. That spot is the centre. Close the fist to set a new centre. It works like a thumbstick in the air.", actions: ["move"] },
-    { name: "Guard: right fist", how: ["Close your right fist"], tip: "Hold it closed to block. Close it just before a blow lands to deflect.", actions: ["block"] },
-    { name: "Strike: right hand swipe", how: ["Swipe sideways, open hand"], tip: "A quick flick across your view. Faster than a wave.", actions: ["attack"] },
-    { name: "Step: right hand down", how: ["Swipe down, open hand"], tip: "A quick downward chop.", actions: ["dodge"] },
-    { name: "Jump: right hand up", how: ["Flick up, open hand"], tip: "A quick upward flick.", actions: ["jump"] },
-    { name: "Setup", how: ["Camera at chest height", "Even light", "Keep each hand on its side"], tip: "Your left hand stays on the left half of the camera view and your right on the right. Press G to start, G again to stop. Video never leaves your browser. Gourd and lock-on stay on keys or the pad.", actions: [] },
+    { name: "Fight: your own poses", how: ["Guard, strike, step, jump, gourd, lock on"], tip: "Press Train my poses, pick an action and hold the hand shape you want for it. Poses react in a blink and stay in this browser. Teach a Rest pose too so a relaxed hand does nothing. Guard stays on while you hold its pose.", actions: ["block", "attack", "dodge", "jump"] },
+    { name: "Setup", how: ["Camera at chest height", "Even light", "Keep each hand on its side"], tip: "Your left hand stays on the left half of the camera view and your right on the right. Press G to start, G again to stop. Video never leaves your browser.", actions: [] },
   ],
 };

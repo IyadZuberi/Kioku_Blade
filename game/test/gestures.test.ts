@@ -32,67 +32,6 @@ function sweep(tr: GestureTracker, x0: number, y0: number, x1: number, y1: numbe
 const R = 0.7; // a right-hand x (right half of the view)
 const L = 0.3; // a left-hand x
 
-describe("right hand: fight and guard", () => {
-  it("slow movement emits nothing", () => {
-    expect(sweep(new GestureTracker(), 0.6, 0.5, 0.9, 0.5, 2)).toEqual([]);
-  });
-  it("a fast sideways swipe attacks (press, then its release a frame or two later)", () => {
-    const tr = new GestureTracker();
-    const ev = [...sweep(tr, 0.55, 0.5, 0.95, 0.5, 0.25), ...sweep(tr, 0.95, 0.5, 0.95, 0.5, 0.3, 0.3)];
-    expect(ev.filter((e) => e.action === "attack" && e.type === "press").length).toBe(1);
-    expect(ev.filter((e) => e.action === "attack" && e.type === "release").length).toBe(1);
-  });
-  it("two swipes inside the cooldown make one attack", () => {
-    const tr = new GestureTracker();
-    const a = sweep(tr, 0.55, 0.5, 0.95, 0.5, 0.2, 0);
-    const b = sweep(tr, 0.95, 0.5, 0.55, 0.5, 0.2, 0.22);
-    expect([...a, ...b].filter((e) => e.action === "attack" && e.type === "press").length).toBe(1);
-  });
-  it("a fast downward move is a dodge, a fast upward flick is a jump", () => {
-    expect(sweep(new GestureTracker(), R, 0.2, R, 0.75, 0.25).some((e) => e.action === "dodge" && e.type === "press")).toBe(true);
-    expect(sweep(new GestureTracker(), R, 0.75, R, 0.2, 0.25).some((e) => e.action === "jump" && e.type === "press")).toBe(true);
-  });
-  it("a human-speed swipe (about 6 hand-lengths per second) attacks; slow drift does not", () => {
-    expect(sweep(new GestureTracker(), 0.55, 0.5, 0.95, 0.5, 0.45).some((e) => e.action === "attack")).toBe(true);
-    expect(sweep(new GestureTracker(), 0.55, 0.5, 0.85, 0.5, 1.3)).toEqual([]);
-  });
-  it("a swipe survives two dropped frames (motion blur)", () => {
-    const tr = new GestureTracker();
-    const ev: Ev[] = [];
-    for (let i = 0; i <= 9; i++) ev.push(...tr.update(i === 4 || i === 5 ? [] : [hand(0.55 + 0.4 * (i / 9), 0.5)], i / FPS).map((e) => ({ ...e, t: i })));
-    expect(ev.some((e) => e.action === "attack" && e.type === "press")).toBe(true);
-  });
-  it("closing a fist presses block, opening it releases", () => {
-    const tr = new GestureTracker();
-    const ev: { action: string; type: string }[] = [];
-    for (let i = 0; i < 6; i++) ev.push(...tr.update([hand(R, 0.5, false)], i / FPS));
-    for (let i = 6; i < 14; i++) ev.push(...tr.update([hand(R, 0.5, true)], i / FPS));
-    expect(ev.filter((e) => e.action === "block" && e.type === "press").length).toBe(1);
-    expect(ev.some((e) => e.action === "block" && e.type === "release")).toBe(false);
-    for (let i = 14; i < 22; i++) ev.push(...tr.update([hand(R, 0.5, false)], i / FPS));
-    expect(ev.filter((e) => e.action === "block" && e.type === "release").length).toBe(1);
-  });
-  it("the hand vanishing releases a held block, and a fast-moving fist does not attack", () => {
-    const tr = new GestureTracker();
-    for (let i = 0; i < 8; i++) tr.update([hand(R, 0.5, true)], i / FPS);
-    const ev: { action: string; type: string }[] = [];
-    for (let i = 8; i < 20; i++) ev.push(...tr.update([], i / FPS));
-    expect(ev.filter((e) => e.action === "block" && e.type === "release").length).toBe(1);
-    expect(sweep(new GestureTracker(), 0.55, 0.5, 0.95, 0.5, 0.25, 0, true).some((e) => e.action === "attack")).toBe(false);
-  });
-  it("a hand gone for over half a second starts a fresh track (no stale jump)", () => {
-    const tr = new GestureTracker();
-    tr.update([hand(0.6, 0.5)], 0);
-    expect(tr.update([hand(0.95, 0.5)], 1.0)).toEqual([]);
-  });
-  it("exposes the live speed for the calibration overlay", () => {
-    const tr = new GestureTracker();
-    sweep(tr, 0.55, 0.5, 0.95, 0.5, 0.25);
-    expect(tr.debug.hands).toBe(1);
-    expect(tr.debug.peak).toBeGreaterThan(4);
-  });
-});
-
 describe("left hand: movement stick", () => {
   it("the first sighting sets the centre: no movement yet", () => {
     const tr = new GestureTracker();
@@ -141,27 +80,7 @@ describe("left hand: movement stick", () => {
   });
 });
 
-describe("both hands together", () => {
-  it("left hand walks while the right hand guards, and the right hand can still strike", () => {
-    const tr = new GestureTracker();
-    const ev: { action: string; type: string }[] = [];
-    for (let i = 0; i < 6; i++) ev.push(...tr.update([hand(L, 0.5), hand(R, 0.5, true)], i / FPS));
-    for (let i = 6; i < 14; i++) ev.push(...tr.update([hand(L, 0.38), hand(R, 0.5, true)], i / FPS));
-    expect(ev.some((e) => e.action === "block" && e.type === "press")).toBe(true);
-    expect(tr.axis.y).toBeGreaterThan(0.5);
-    const tr2 = new GestureTracker();
-    const ev2: { action: string; type: string }[] = [];
-    for (let i = 0; i <= 8; i++) ev2.push(...tr2.update([hand(L, 0.5), hand(0.55 + 0.4 * (i / 8), 0.5)], i / FPS));
-    expect(ev2.some((e) => e.action === "attack" && e.type === "press")).toBe(true);
-  });
-  it("a lone hand takes the role of the side of the view it first appears on", () => {
-    const left = new GestureTracker();
-    sweep(left, 0.1, 0.5, 0.45, 0.5, 0.25);
-    expect(left.debug.role).toBe("move");
-    const right = new GestureTracker();
-    right.update([hand(R, 0.5)], 0);
-    expect(right.debug.role).toBe("fight");
-  });
+describe("broken input", () => {
   it("empty and broken input never throws or emits NaN", () => {
     const tr = new GestureTracker();
     expect(tr.update([], 0)).toEqual([]);

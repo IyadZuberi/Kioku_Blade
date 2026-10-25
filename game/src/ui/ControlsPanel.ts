@@ -1,5 +1,5 @@
 /**
- * The Settings window: controls (keyboard and mouse, controller, hand gestures), the moves list and
+ * The Settings window: controls (keyboard and mouse, controller, hand poses), the moves list and
  * sound (volumes, mute), all listed from controlsData.ts. Opens from the chip on the title / end screens or with F1; Esc closes it. While
  * it is open every key and click stays inside it (the game never sees them).
  */
@@ -15,7 +15,7 @@ type Tab = "keyboard" | "pad" | "hands" | "moves" | "sound";
 const TABS: { id: Tab; label: string; blurb: string }[] = [
   { id: "keyboard", label: "Keyboard and mouse", blurb: "The default. Pointer lock hides the cursor in a duel." },
   { id: "pad", label: "Controller", blurb: "Plug in or pair any standard pad (Xbox, PlayStation, Switch Pro). It is picked up automatically." },
-  { id: "hands", label: "Hands", blurb: "Webcam control. Press G to start. Your left hand walks, your right hand fights." },
+  { id: "hands", label: "Hands", blurb: "Webcam control. Press G to start. Your left hand walks, your right hand makes the poses you trained." },
   { id: "moves", label: "Moves", blurb: "What Kaede can do, and how each general fights and how to answer him." },
   { id: "sound", label: "Sound", blurb: "Volumes are remembered in this browser. M mutes at any time." },
 ];
@@ -208,7 +208,7 @@ export class ControlsPanel {
       const b = document.createElement("button");
       b.type = "button";
       b.className = "practice";
-      b.textContent = "Practice with your camera";
+      b.textContent = "Train my poses";
       b.addEventListener("click", () => {
         this.close();
         this.onPractice();

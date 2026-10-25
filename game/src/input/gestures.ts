@@ -64,10 +64,8 @@ export async function startGestures(input: Input, onStatus: (s: string) => void 
     lastVideoTime = video.currentTime;
     try {
       const res = landmarker.detectForVideo(video, now);
-      tracker.poseMode = poses.ready;
-      const events = tracker.update(res.landmarks as never, now / 1000);
-      const poseEvents = poses.update(res.landmarks as never, now / 1000);
-      if (poses.ready) events.push(...poseEvents);
+      tracker.update(res.landmarks as never, now / 1000);
+      const events = poses.update(res.landmarks as never, now / 1000);
       if (handle.hold) {
         for (const a of ["block", "attack", "dodge", "jump", "heal", "lock"] as const) input.release(a, "gesture");
         input.setAnalog("hand", 0, 0);
@@ -81,8 +79,8 @@ export async function startGestures(input: Input, onStatus: (s: string) => void 
       for (const cb of subs) cb({ hands: res.landmarks as never, events });
       const d = tracker.debug;
       label.textContent = DEBUG
-        ? `${tracker.status} · hands ${d.hands} · speed ${d.speed.toFixed(1)} · peak ${d.peak.toFixed(1)} · stick ${tracker.axis.x.toFixed(2)},${tracker.axis.y.toFixed(2)} · last ${lastEvent}`
-        : `gestures · ${tracker.status}`;
+        ? `${tracker.status} · hands ${d.hands} · pose ${poses.current?.pose.action ?? "-"} · stick ${tracker.axis.x.toFixed(2)},${tracker.axis.y.toFixed(2)} · last ${lastEvent}`
+        : `hands · ${tracker.status}${poses.ready ? "" : " · no poses trained (F1 > Hands)"}`;
       onStatus(tracker.status);
     } catch {
       /* a bad frame is not worth a crash */
