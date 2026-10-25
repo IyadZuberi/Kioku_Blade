@@ -79,7 +79,8 @@ export class Hazards {
 
   constructor(private readonly scene: THREE.Scene) {}
 
-  addWave(from: THREE.Vector3, to: THREE.Vector3): void {
+  /** `size`: 1 = a wind cut; smaller = a thrown star. */
+  addWave(from: THREE.Vector3, to: THREE.Vector3, size = 1.3): void {
     const s = makeWave(from.x, from.z, to.x, to.z);
     const g = new THREE.Group();
     const a = new THREE.Mesh(this.waveGeo, waveMat());
@@ -87,7 +88,7 @@ export class Hazards {
     a.position.y = 0.45;
     b.position.y = 0.8;
     g.add(a, b);
-    g.scale.set(1.3, 1, 1.3);
+    g.scale.set(size, 1, size);
     g.rotation.y = -Math.atan2(s.dz, s.dx);
     g.position.set(s.x, 0, s.z);
     this.scene.add(g);

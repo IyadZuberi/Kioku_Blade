@@ -97,7 +97,11 @@ window.addEventListener("keydown", (e) => {
       }
       game.council.flash("Wrong host token: nothing was saved. Press H to try again.");
     } else if (r.status === 404) game.council.flash("That fight is not stored on the server (replay or offline): nothing was saved.");
-    else if (r.ok) game.council.flash("Rule saved and the fight was re-sent to Mubit for training.");
+    else if (r.ok) {
+      // Use the corrected plan for the rematch (it was only sent to Mubit before).
+      if (r.plan && game.learn.result) game.learn.result = { ...game.learn.result, plan: r.plan };
+      game.council.flash("Rule saved: the General will use it next fight (and Mubit trains on it).");
+    }
     else game.council.flash("Rule saved. Mubit is off or unreachable, so nothing was re-sent.");
   });
 });
@@ -259,6 +263,10 @@ window.__duel = {
   pause: () => game.pause(),
   resume: () => game.resume(),
   startFight: () => game.startFight(),
+  /** Tests and tuning: pretend the General has already fought this player `n` duels (all lost or won). */
+  remember: (n: number, wins = 0) => {
+    game.mem = { fights: n, wins, losses: n - wins, consecutive_losses: wins ? 0 : n };
+  },
   arena: (n: 1 | 2 | 3) => game.setArena(n),
   toTitle: () => game.toTitle(),
   forceBossAttack: (n: string) => game.forceBossAttack(n),

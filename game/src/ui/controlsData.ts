@@ -30,8 +30,9 @@ export const PLAYER_MOVES: MoveRow[] = [
 export const BOSS_MOVES_LIST: { boss: string; style: string; moves: MoveRow[] }[] = [
   {
     boss: "Masatora, the Garden Duelist",
-    style: "Katana. Measured and patient: feints, thrusts, a third cut that waits for you to flinch.",
+    style: "Katana. Patient and exact, like a Sekiro swordmaster: he waits for you, then punishes the cut you should not have made.",
     moves: [
+      { name: "Riposte stance", how: "Do NOT cut into it. Wait, or step round", tip: "His steel glows bright blue and he stands guarded. Any cut into it is parried and answered. When the glow fades he steps in with a delayed cut or a thrust." },
       { name: "Three-cut string", how: "Deflect each cut", tip: "Even rhythm." },
       { name: "Delayed string", how: "Wait for the third cut", tip: "The third cut hangs. Pressing early is what he wants." },
       { name: "Thrust (red !)", how: "Deflect, sidestep or step in (mikiri)", tip: "Cannot be blocked." },
@@ -41,20 +42,23 @@ export const BOSS_MOVES_LIST: { boss: string; style: string; moves: MoveRow[] }[
   },
   {
     boss: "Kazemaru, the Spear of the Wind",
-    style: "Yari. Long reach and quick: he parries strings, answers fast and is rarely open.",
+    style: "Yari. Fast and far-reaching: he attacks from across the room, springs away and comes straight back, and parries strings.",
     moves: [
+      { name: "Spear lunge (red !)", how: "Deflect, sidestep or step in", tip: "A thrust from the far side of the room. Watch the glint, not his feet." },
+      { name: "Backflip", how: "Hold your ground, then answer the lunge", tip: "He springs away and the lunge follows at once. Do not chase him." },
       { name: "Whirling spear", how: "Deflect", tip: "One wide spin all round him; stepping rarely clears it." },
       { name: "Wind cut", how: "Jump or deflect", tip: "An overhead that throws a blade of wind along the ground." },
       { name: "Waterfowl", how: "Deflect five cuts", tip: "A leap straight into a five-cut flurry; the last cut is late." },
-      { name: "Spear thrust (red !)", how: "Deflect or sidestep", tip: "From far further away than a sword." },
     ],
   },
   {
     boss: "Kurogane, the Hollow Shogun",
-    style: "Odachi. Heavy armour and heavy blows: his posture holds, and a held guard breaks under him.",
+    style: "Odachi and shinobi tricks, in the manner of Sekiro's Owl: smoke, thrown stars, and a kick for the guard.",
     moves: [
+      { name: "Smoke bomb", how: "Turn, then deflect the cut from behind", tip: "He vanishes in smoke and reappears behind you with an overhead. Listen for the whoosh and watch the smoke." },
+      { name: "Shuriken fan", how: "Jump or step out of the fan", tip: "Three stars in a spread. Thrown from range." },
       { name: "Stamp kick", how: "Deflect or step aside", tip: "Crushes a held block. Never just hold guard against it." },
-      { name: "Shockwave slam", how: "Jump the ring", tip: "A leaping slam that sends a ring across the stone." },
+      { name: "Shockwave slam", how: "Jump the ring", tip: "A leaping slam that sends a ring across the ground." },
       { name: "Great overhead", how: "Deflect", tip: "Slow wind-up, enormous posture damage if blocked." },
       { name: "Grab (red !)", how: "Step away", tip: "He throws you into the ground." },
     ],

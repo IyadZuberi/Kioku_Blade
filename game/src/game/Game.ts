@@ -44,12 +44,12 @@ import type { ThemeId } from "../world/themes";
 import { applyBossLook, applyPlayerLook } from "../chars/looks";
 import { ChapterCard } from "../ui/ChapterCard";
 import { bossOf, type BossId } from "@gr/shared";
-import { BOSSES, bossKnobs, type BossDef } from "./bosses";
+import { BOSSES, bossKnobs, learnedSummary, type BossDef } from "./bosses";
 import { Hazards, RING, WAVE } from "./hazards";
 import { Gate } from "./Gate";
 import { afterFight, fresh, loadProgress, saveProgress, select as selectProgress, unlockAll, type Progress } from "./progress";
 import { RIM, SUN_DIR, installFog } from "../world/materials";
-import { ATTACKS, VARIANT, BOSS_MAX, Boss, OPEN, type HitDef } from "./Boss";
+import { ATTACKS, SPECIAL, VARIANT, BOSS_MAX, Boss, OPEN, type HitDef } from "./Boss";
 import { pickQuality, type Quality, type QualityStep, type QualitySettings, QualityGovernor, settingsFor, withOverrides } from "../render/quality";
 import type { HabitScore } from "@gr/shared";
 import { Council } from "../ui/Council";
@@ -57,7 +57,8 @@ import { assistKnobs } from "../input/assist";
 import { applyPlan } from "../learn/planLoader";
 import { fetchGlobal, getNickname, newFightId, requestPlan, type PlanResult } from "../learn/session";
 import { mark, summarize, type StatsMark } from "../learn/summary";
-import { applyDifficulty, DIFFICULTY, DIFFICULTY_NAMES, type DifficultyName, initialDifficulty, isDifficulty, overrideDifficulty, rememberDifficulty } from "./difficulty";
+import { levelOf, loadMemory, NOTHING, remember, saveMemory, type Remembered } from "../learn/remembers";
+import { applyDifficulty, DIFFICULTY, DIFFICULTY_NAMES, DIFFICULTY_PRESETS, type DifficultyName, initialDifficulty, isDifficulty, overrideDifficulty, rememberDifficulty } from "./difficulty";
 import { CameraRig } from "./CameraRig";
 import { KICK_REACH, PLAYER_MAX, Player, vitalityRegen } from "./Player";
 import { wavedash } from "../wavedash";
@@ -182,6 +183,8 @@ export class Game {
   progress: Progress = fresh();
   bossDef: BossDef = BOSSES[1];
   private progressFor = "";
+  /** What the General remembers of this player: every duel, won or lost (learn/remembers.ts). */
+  mem: Remembered = { ...NOTHING };
   private cardFor = 0;
   private gateT = 0;
   private poseDt = 0;
@@ -425,6 +428,7 @@ export class Game {
 
   private resetActors(): void {
     this.council.hide();
+    this.bossBody.setVisible(true); // a smoke bomb never carries over into the next fight
     this.applyBodies();
     this.hazards.clear();
     this.applyLooks();
@@ -465,8 +469,10 @@ export class Game {
     this.fightMark = mark(this.stats);
     this.firstHealT = null;
     // The boss's own tuning first, then the war council's plan for THIS boss on top of it.
-    overrideDifficulty(bossKnobs(this.bossDef, structuredClone(DIFFICULTY)));
+    overrideDifficulty(bossKnobs(this.bossDef, structuredClone(DIFFICULTY), levelOf(this.mem, this.progress.streak)));
     this.boss.canWind = this.bossDef.moves.includes("windSlash");
+    this.boss.windFan = this.bossDef.id === 3; // Kurogane throws a fan of three shuriken
+    this.boss.extras = this.bossDef.extra;
     this.boss.setOpening([this.bossDef.opening]);
     if (this.learn.result && this.learn.boss === this.bossDef.id) applyPlan(this.learn.result.plan, this.boss);
     // Gesture mode: webcam latency eats the deflect window, so widen it (never tighten).
@@ -482,19 +488,23 @@ export class Game {
     const fightId = this.learn.fightId;
     const boss = this.bossDef.id;
     const streak = summary.victory ? this.progress.streak + 1 : 0;
+    // He remembers this duel whatever its result: the next one is harder.
+    this.mem = remember(this.mem, summary.victory);
+    saveMemory(getNickname(), this.mem);
     const { next, advanced } = afterFight(this.progress, summary.victory);
     this.progress = next;
     saveProgress(getNickname(), next);
     this.advancedTo = advanced ? next.boss : null;
     this.learn.state = "pending";
     this.council.thinking();
-    void requestPlan({ nickname: getNickname(), fightId, fightNumber: this.fightsPlayed, stats: summary, boss, bossStreak: streak }).then((r) => {
+    void requestPlan({ nickname: getNickname(), fightId, fightNumber: this.fightsPlayed, stats: summary, boss, bossStreak: streak, localLevel: levelOf(this.mem, streak) }).then((r) => {
       if (this.learn.fightId !== fightId) return; // a newer fight already started
       this.learn.result = r;
       this.learn.boss = boss;
       this.learn.state = "ready";
       if (this.state === "defeat" || this.state === "victory") {
-        this.council.show(r, this.prevHabits);
+        const learned = learnedSummary(this.bossDef, DIFFICULTY_PRESETS[this.difficulty], levelOf(this.mem, this.progress.streak));
+        this.council.show(r, this.prevHabits, `He has fought you ${this.mem.fights} ${this.mem.fights === 1 ? "time" : "times"}. Next duel he parries ${learned.parryPct}% of long strings and moves ${learned.speedPct >= 0 ? "+" : ""}${learned.speedPct}% faster.`);
         if (this.advancedTo) this.council.flash(`Chapter ${BOSSES[this.advancedTo].chapter} unlocked: ${BOSSES[this.advancedTo].latin}, ${BOSSES[this.advancedTo].epithet}.`);
         else if (summary.victory && this.bossDef.gate > 0) this.council.flash(`Streak ${this.progress.streak} of ${this.bossDef.gate} against ${this.bossDef.latin}.`);
       }
@@ -508,6 +518,7 @@ export class Game {
     const nick = getNickname();
     this.progressFor = nick;
     this.progress = loadProgress(nick);
+    this.mem = loadMemory(nick);
     const q = Number(new URLSearchParams(location.search).get("boss"));
     if (q === 1 || q === 2 || q === 3) this.progress = selectProgress(unlockAll(this.progress), q);
   }
@@ -519,6 +530,11 @@ export class Game {
     this.hud.setBoss(this.bossDef.latin, this.bossDef.epithet);
     this.applyBodies();
     this.applyLooks();
+  }
+
+  private smokePuff(at: THREE.Vector3): void {
+    this.fx.kickPuff(at);
+    this.fx.kickPuff(at.clone().setY(at.y + 0.8));
   }
 
   /** Loading: put each general (arena, body, look) on stage in turn so `compile` sees all of it, then back. */
@@ -698,7 +714,10 @@ export class Game {
     this.setBoss(this.progress.boss);
     this.council.setChapters(this.progress, (id) => this.selectBoss(id));
     void fetchGlobal().then((g) => {
-      if (g) this.council.banner(g.totalFights ? `The General has fought ${g.totalFights} ${g.totalFights === 1 ? "duel" : "duels"} · Boss level ${g.bossLevel}` : "The General is waiting for his first duel");
+      if (this.mem.fights) {
+        const learned = learnedSummary(this.bossDef, DIFFICULTY_PRESETS[this.difficulty], levelOf(this.mem, this.progress.streak));
+        this.council.banner(`The General remembers ${this.mem.fights} ${this.mem.fights === 1 ? "duel" : "duels"} against you · he parries ${learned.parryPct}% of long strings`);
+      } else if (g) this.council.banner(g.totalFights ? `The General has fought ${g.totalFights} ${g.totalFights === 1 ? "duel" : "duels"} · he is waiting for you` : "The General is waiting for his first duel");
     });
     this.resetActors();
     this.stats.victory = false;
@@ -898,6 +917,7 @@ export class Game {
           this.desatTarget = 0.65;
           this.barsTarget = 0;
           this.hud.showEnd("victory");
+          this.audio.victoryJingle();
         }
         // The prompt waits for the council's answer (at most 6 s), so the rematch uses the new plan.
         if (!this.promptShown && this.endT > (this.state === "victory" ? 5.5 : 1.0) && (this.learn.state !== "pending" || this.endT > 6)) {
@@ -1432,7 +1452,7 @@ export class Game {
       this.hitstop = 0.05;
       this.cam.shake(0.2);
       if (b.state !== "stagger" && !b.cutInOpening() && (b.state === "flinch" || b.state === "recover" || b.state === "whiff" || b.state === "idle" || b.state === "wait")) b.flinch();
-    } else if (b.state === "idle" || b.state === "block" || b.state === "wait") {
+    } else if (b.state === "idle" || b.state === "block" || b.state === "wait" || b.state === "stance") {
       b.yaw = Math.atan2(p.pos.x - b.pos.x, p.pos.z - b.pos.z);
       b.ch.guardAt(at);
       if (sw.charged) {
@@ -1569,6 +1589,7 @@ export class Game {
     this.stats.defeats++;
     this.endLearning();
     this.hud.showEnd("defeat");
+    this.audio.defeatJingle();
     this.audio.setTaiko(false);
     this.desatTarget = 0.65;
   }
@@ -1793,9 +1814,29 @@ export class Game {
       else if (e === "whooshHeavy") au.whoosh(true, "boss"); // [audio hook]
       else if (e === "leapOff") au.dodge();
       else if (e === "windCast") {
-        this.hazards.addWave(this.boss.ch.rig.chestW.clone().setY(0), this.player.pos);
+        const from = this.boss.ch.rig.chestW.clone().setY(0);
+        if (this.boss.windFan) {
+          // Kurogane's shuriken: three stars in a fan, each cleared by a jump or turned aside
+          for (const a of [-0.24, 0, 0.24]) {
+            const d = this.player.pos.clone().sub(from).setY(0);
+            const c = Math.cos(a), s = Math.sin(a);
+            this.hazards.addWave(from, from.clone().add(new THREE.Vector3(d.x * c - d.z * s, 0, d.x * s + d.z * c)), 0.62);
+          }
+        } else this.hazards.addWave(from, this.player.pos);
         au.whoosh(true, "boss");
         this.cam.shake(0.12);
+      } else if (e === "vanishOut") {
+        this.smokePuff(this.boss.pos);
+        this.bossBody.setVisible(false);
+        au.whoosh(false, "boss");
+      } else if (e === "vanishIn") {
+        this.bossBody.setVisible(true);
+        this.smokePuff(this.boss.pos);
+        au.whoosh(true, "boss");
+        this.cam.shake(0.15);
+      } else if (e === "stance") {
+        au.glint();
+        this.fx.glint(tip);
       } else if (e === "ring") {
         this.hazards.addRing(this.boss.pos);
         this.cam.shake(0.3);
@@ -2066,7 +2107,7 @@ export class Game {
   }
 
   forceBossAttack(name: string): void {
-    if (!ATTACKS[name] && !(name in VARIANT)) return;
+    if (!ATTACKS[name] && !(name in VARIANT) && !SPECIAL.has(name)) return;
     this.boss.startAttack(name);
   }
 

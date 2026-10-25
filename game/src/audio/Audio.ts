@@ -450,6 +450,38 @@ export class GameAudio {
     this.pluck(t + 0.42, 0.9);
   }
 
+  /**
+   * The win sting, deliberately a little silly: a slide-whistle swoop, a cheeky "ta-da" in kazoo-ish
+   * saw tones with a wobble, and a boing at the end. Plays over the quiet after the finisher.
+   */
+  victoryJingle(): void {
+    if (!this.ctx) return;
+    const m = this.mix;
+    const t = m.now + 0.05;
+    const d = m.em.c.in;
+    m.osc(d, t, 420, 1900, 0.45, 0.16, { glide: 0.42, attack: 0.03 }); // slide whistle up
+    const notes: [number, number, number][] = [[523.25, 0.0, 0.14], [659.25, 0.14, 0.14], [783.99, 0.28, 0.14], [1046.5, 0.44, 0.7]];
+    for (const [f, at, dur] of notes) {
+      m.osc(d, t + 0.5 + at, f, f * 1.01, dur, 0.1, { type: "sawtooth", attack: 0.01, verb: 0.15 });
+      m.osc(d, t + 0.5 + at, f * 2, f * 2.02, dur, 0.04, { type: "square", attack: 0.01 }); // the kazoo buzz
+    }
+    m.osc(d, t + 1.35, 160, 520, 0.28, 0.18, { glide: 0.18, attack: 0.005 }); // boing
+    m.osc(d, t + 1.35, 330, 1040, 0.22, 0.05, { glide: 0.15, type: "triangle" });
+  }
+
+  /** The loss sting, the same joke the other way: a sad trombone, wah wah wah wahhh. */
+  defeatJingle(): void {
+    if (!this.ctx) return;
+    const m = this.mix;
+    const t = m.now + 0.1;
+    const d = m.em.c.in;
+    const notes: [number, number, number, number][] = [[233.08, 0, 0.42, 233.08], [220, 0.5, 0.42, 220], [207.65, 1.0, 0.42, 207.65], [196, 1.5, 1.3, 130]];
+    for (const [f, at, dur, end] of notes) {
+      m.osc(d, t + at, f, end, dur, 0.13, { type: "sawtooth", attack: 0.05, glide: dur, verb: 0.2 });
+      m.osc(d, t + at, f * 0.5, end * 0.5, dur, 0.05, { type: "triangle", attack: 0.05, glide: dur });
+    }
+  }
+
   /** The single shamisen pluck (Karplus-Strong string, sawari buzz, skin body). */
   pluck(at?: number, gain = 0.8): void {
     if (!this.ctx) return;

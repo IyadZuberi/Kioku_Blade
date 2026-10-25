@@ -36,6 +36,11 @@ export interface BossDef {
    * or a cut, and how he falls (a segment plan for his "finished" move; none = the default kneel and fall).
    */
   finisher: { name: string; clip: string; plunge: boolean; fall?: { clip: string; from?: number; to?: number; speed?: number }[] };
+  /**
+   * Sekiro-style tricks he may pick on his own (not in the war council's move list: see Boss.ts VARIANT).
+   * Masatora: stance. Kazemaru: lunge, backflip. Kurogane: vanish.
+   */
+  extra: readonly string[];
   /** How he opens a fight when the war council has no plan yet: his signature, straight away. */
   opening: readonly string[];
   look: BossLook;
@@ -64,7 +69,12 @@ export const BOSSES: Record<BossId, BossDef> = {
     arena: 1,
     gate: 3,
     moves: BOSS_MOVES[1],
-    opening: ["leap", "combo", "thrust", "comboDelay", "overhead", "sweep"],
+    extra: ["stance"],
+    picks: {
+      p1: { combo: 0.24, comboDelay: 0.1, overhead: 0.18, thrust: 0.12, sweep: 0.08, grab: 0.05, stance: 0.18, idle: 0.05 },
+      p2: { flurry: 0.12, combo: 0.16, comboDelay: 0.1, overhead: 0.12, thrust: 0.12, sweep: 0.08, grab: 0.08, stance: 0.2, idle: 0.02 },
+    },
+    opening: ["leap", "combo", "thrust", "stance", "comboDelay", "overhead", "sweep"],
     finisher: { name: "Through the Heart", clip: "finisher", plunge: true },
     look: "ronin",
     body: "armoured",
@@ -78,12 +88,13 @@ export const BOSSES: Record<BossId, BossDef> = {
     arena: 2,
     gate: 6,
     moves: BOSS_MOVES[2],
-    opening: ["leap", "spin", "windSlash", "thrust", "comboDelay", "spin", "waterfowl"],
+    extra: ["lunge", "backflip"],
+    opening: ["lunge", "spin", "windSlash", "backflip", "comboDelay", "spin", "waterfowl"],
     // she spins past his spear and opens him with one turning cut; he falls back into the grass
     finisher: { name: "Wind's End", clip: "attack_charged", plunge: false, fall: [{ clip: "hit_heavy", to: 0.5 }, { clip: "death", from: 0.15 }] },
     picks: {
-      p1: { combo: 0.12, comboDelay: 0.16, overhead: 0.06, thrust: 0.14, sweep: 0.08, grab: 0.02, windSlash: 0.18, waterfowl: 0.08, spin: 0.14, idle: 0.02 },
-      p2: { flurry: 0.12, combo: 0.08, comboDelay: 0.12, overhead: 0.04, thrust: 0.14, sweep: 0.08, grab: 0.04, windSlash: 0.14, waterfowl: 0.12, spin: 0.12, idle: 0 },
+      p1: { combo: 0.1, comboDelay: 0.12, overhead: 0.05, thrust: 0.1, sweep: 0.06, grab: 0.02, windSlash: 0.14, waterfowl: 0.08, spin: 0.12, lunge: 0.1, backflip: 0.09, idle: 0.02 },
+      p2: { flurry: 0.1, combo: 0.06, comboDelay: 0.1, overhead: 0.03, thrust: 0.1, sweep: 0.06, grab: 0.03, windSlash: 0.12, waterfowl: 0.1, spin: 0.1, lunge: 0.12, backflip: 0.1, idle: 0 },
     },
     tempoP2: 1.08,
     gapStep: 2,
@@ -100,12 +111,13 @@ export const BOSSES: Record<BossId, BossDef> = {
     arena: 3,
     gate: 0,
     moves: BOSS_MOVES[3],
-    opening: ["shockwave", "overhead", "kick", "combo", "grab", "shockwave", "kick"],
+    extra: ["vanish"],
+    opening: ["windSlash", "vanish", "kick", "combo", "grab", "shockwave", "vanish"],
     // she leaps and cleaves down through the great helm; the shogun staggers and falls among the petals
     finisher: { name: "The Last Blossom", clip: "jump_attack", plunge: false, fall: [{ clip: "stumble", to: 0.55 }, { clip: "knockdown", from: 0.1 }] },
     picks: {
-      p1: { combo: 0.1, comboDelay: 0.14, overhead: 0.22, thrust: 0.06, sweep: 0.1, grab: 0.1, shockwave: 0.14, windSlash: 0.02, kick: 0.1, idle: 0.02 },
-      p2: { flurry: 0.06, combo: 0.06, comboDelay: 0.12, overhead: 0.16, thrust: 0.06, sweep: 0.1, grab: 0.12, shockwave: 0.16, windSlash: 0.04, kick: 0.12, idle: 0 },
+      p1: { combo: 0.08, comboDelay: 0.1, overhead: 0.16, thrust: 0.04, sweep: 0.08, grab: 0.08, shockwave: 0.1, windSlash: 0.1, kick: 0.1, vanish: 0.14, idle: 0.02 },
+      p2: { flurry: 0.05, combo: 0.05, comboDelay: 0.09, overhead: 0.12, thrust: 0.04, sweep: 0.08, grab: 0.1, shockwave: 0.12, windSlash: 0.1, kick: 0.1, vanish: 0.15, idle: 0 },
     },
     tempoP2: 1.12,
     gapStep: 3,
@@ -124,26 +136,43 @@ const normalise = (w: Record<string, number>): Record<string, number> => {
 type Range = [number, number];
 const harder = (base: Range, to: Range): Range => [Math.min(base[0], to[0]), Math.min(base[1], to[1])];
 
-/** Pure: the boss's own tuning on top of the chosen difficulty preset. Only ever harder, never past the tested bounds. */
-export function bossKnobs(def: BossDef, base: DifficultyValues): DifficultyValues {
+/**
+ * Pure: the boss's own tuning on top of the chosen difficulty preset, plus what he has LEARNED of this
+ * player: `level` (0 = never fought, up to 10; see learn/remembers.ts) pulls more of his guard-and-answer
+ * knobs toward the HARD preset after every duel, won or lost, and raises his tempo and shortens his gaps.
+ * Only ever harder, and never past HARD (the tested, fair ceiling); deflect windows and the player's
+ * damage are never touched.
+ */
+export function bossKnobs(def: BossDef, base: DifficultyValues, level = 0): DifficultyValues {
   const k = structuredClone(base);
   if (def.picks) {
     k.picks.p1 = normalise(def.picks.p1);
     k.picks.p2 = normalise(def.picks.p2);
   }
-  if (def.tempoP2) k.tempo = [base.tempo[0], Math.min(1.12, Math.max(base.tempo[1], def.tempoP2))];
-  if (def.gapStep) {
-    const g = GAP_BY_STEP[def.gapStep];
+  const L = Math.max(0, Math.min(10, level));
+  const tempoP2 = Math.max(def.tempoP2 ?? 0, L > 0 ? 1.02 + 0.01 * L : 0);
+  if (tempoP2) k.tempo = [base.tempo[0], Math.min(1.12, Math.max(base.tempo[1], tempoP2))];
+  const gapStep = Math.max(def.gapStep ?? 0, Math.floor(L / 3.4)) as 0 | 1 | 2 | 3;
+  if (gapStep) {
+    const g = GAP_BY_STEP[Math.min(3, gapStep)];
     k.gap = { p1: harder(base.gap.p1, g.p1), p2: harder(base.gap.p2, g.p2) };
   }
-  if (def.lean) {
+  const amount = Math.min(1, (def.lean?.amount ?? 0) + (L / 10) * 0.65);
+  if (amount > 0) {
+    const knobs = new Set<LeanKnob>([...(def.lean?.knobs ?? []), ...(L > 0 ? READS_YOU : []), ...(L >= 7 ? IRON : [])]);
     const hard = DIFFICULTY_PRESETS.hard as Record<string, unknown>;
     const out = k as unknown as Record<string, unknown>;
-    const mix = (a: number, b: number) => a + (b - a) * def.lean!.amount;
-    for (const knob of def.lean.knobs) {
+    const mix = (a: number, b: number) => a + (b - a) * amount;
+    for (const knob of knobs) {
       const a = out[knob], b = hard[knob];
       out[knob] = Array.isArray(a) ? a.map((v: number, i: number) => mix(v, (b as number[])[i])) : mix(a as number, b as number);
     }
   }
   return k;
+}
+
+/** What the General has learned, in words the player can feel (council screen, title). */
+export function learnedSummary(def: BossDef, base: DifficultyValues, level: number): { parryPct: number; speedPct: number } {
+  const k = bossKnobs(def, base, level);
+  return { parryPct: Math.round(k.bossDeflect[3] * 100), speedPct: Math.round((k.tempo[1] - 1) * 100) };
 }

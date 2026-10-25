@@ -130,7 +130,7 @@ export class Council {
     this.box.classList.add("on");
   }
 
-  show(r: PlanResult, prev: HabitScore[]): void {
+  show(r: PlanResult, prev: HabitScore[], learned = ""): void {
     const b = this.box;
     b.replaceChildren();
     const head = el("div", "c-head", b);
@@ -145,6 +145,7 @@ export class Council {
       if (opening?.length) parts.push(`opens ${opening.join(" → ")}`);
       el("div", "c-next", b, parts.join("  —  "));
     }
+    if (learned) el("div", "c-next", b, learned);
     if (r.plan.taunt) el("div", "c-taunt", b, `“${r.plan.taunt}”`);
     const bars = habitBars(prev, r.habits);
     if (bars.length) {

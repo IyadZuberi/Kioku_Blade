@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BOSS_IDS, BOSS_MOVES } from "@gr/shared";
+import { BOSS_IDS, BOSS_MOVES, MOVES } from "@gr/shared";
 import { DIFFICULTY_PRESETS } from "../src/game/difficulty";
 import { BOSSES, bossKnobs } from "../src/game/bosses";
 import { afterFight, fresh, select, type Progress } from "../src/game/progress";
@@ -15,9 +15,15 @@ describe("boss registry", () => {
     expect([BOSSES[1].gate, BOSSES[2].gate, BOSSES[3].gate]).toEqual([3, 6, 0]);
   });
   it("each opens with his own moves, all of them his", () => {
-    for (const id of BOSS_IDS) for (const m of BOSSES[id].opening) expect(BOSSES[id].moves).toContain(m);
+    for (const id of BOSS_IDS) for (const m of BOSSES[id].opening) expect([...BOSSES[id].moves, ...BOSSES[id].extra]).toContain(m);
     expect(BOSSES[2].opening).toContain("spin");
     expect(BOSSES[3].opening).toContain("kick");
+  });
+  it("the Sekiro tricks are the game's own: never in the war council's (frozen Mubit) move list", () => {
+    for (const id of BOSS_IDS) for (const m of BOSSES[id].extra) expect((MOVES as readonly string[]).includes(m)).toBe(false);
+    expect(BOSSES[1].extra).toEqual(["stance"]);
+    expect(BOSSES[2].extra).toEqual(["lunge", "backflip"]);
+    expect(BOSSES[3].extra).toEqual(["vanish"]);
   });
   it("names are distinct", () => {
     expect(new Set(BOSS_IDS.map((i) => BOSSES[i].latin)).size).toBe(3);
@@ -26,10 +32,10 @@ describe("boss registry", () => {
 });
 
 describe("bossKnobs", () => {
-  it("boss 1 leaves the preset untouched", () => {
+  it("before he has learned anything, boss 1 changes only which moves he picks (his guard, tempo and gaps are the preset's)", () => {
     for (const name of ["easy", "medium", "hard"] as const) {
       const base = structuredClone(DIFFICULTY_PRESETS[name]);
-      expect(bossKnobs(BOSSES[1], base)).toEqual(base);
+      expect({ ...bossKnobs(BOSSES[1], base), picks: base.picks }).toEqual(base);
     }
   });
   it("never touches the deflect windows or the player's damage, for any boss or preset", () => {
@@ -49,7 +55,7 @@ describe("bossKnobs", () => {
       const k = bossKnobs(BOSSES[id], structuredClone(DIFFICULTY_PRESETS.medium));
       for (const ph of ["p1", "p2"] as const) {
         expect(sum(k.picks[ph])).toBeCloseTo(1, 9);
-        for (const key of Object.keys(k.picks[ph])) if (key !== "idle") expect(BOSS_MOVES[id]).toContain(key);
+        for (const key of Object.keys(k.picks[ph])) if (key !== "idle") expect([...BOSS_MOVES[id], ...BOSSES[id].extra]).toContain(key);
       }
     }
   });

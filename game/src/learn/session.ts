@@ -20,6 +20,8 @@ export interface PlanRequest {
   stats: StatsSummary;
   boss?: 1 | 2 | 3;
   bossStreak?: number;
+  /** The level the game computed itself (learn/remembers.ts): what the plan falls back on when the server is away. */
+  localLevel?: number;
 }
 
 const API = (import.meta as { env?: { VITE_API?: string } }).env?.VITE_API ?? "";
@@ -101,11 +103,11 @@ export function resetReplay(): void {
 }
 
 /** Operator correction: a designer rule, re-sent with the stored fight. Never throws. */
-export async function sendOverride(fightId: string, rule: string, hostToken: string, fetchFn: typeof fetch = globalThis.fetch.bind(globalThis)): Promise<{ ok: boolean; status?: number }> {
+export async function sendOverride(fightId: string, rule: string, hostToken: string, fetchFn: typeof fetch = globalThis.fetch.bind(globalThis)): Promise<{ ok: boolean; status?: number; plan?: Plan }> {
   try {
     const res = await fetchFn(`${API}/api/override`, { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${hostToken}` }, body: JSON.stringify({ fightId, rule }) });
     const j = await res.json().catch(() => null);
-    return { ok: !!j?.ok, status: res.status };
+    return { ok: !!j?.ok, status: res.status, plan: j?.ok && j.plan ? (j.plan as Plan) : undefined };
   } catch {
     return { ok: false };
   }
@@ -136,11 +138,12 @@ export async function requestPlan(req: PlanRequest, o: { fetchFn?: typeof fetch;
     return { ...j, habits: Array.isArray(j.habits) ? j.habits : [] };
   } catch {
     const habits = computeHabits(req.stats);
+    const level = req.localLevel ?? lastLevel;
     return {
-      plan: rulesPlan(habits, lastLevel),
+      plan: rulesPlan(habits, level),
       source: "local",
       valid: false,
-      bossLevel: lastLevel,
+      bossLevel: level,
       grudge: 0,
       habits,
       intelLines: habits.length ? habits.map((h) => `You ${h.evidence}.`) : ["I could not read a clear pattern yet."],

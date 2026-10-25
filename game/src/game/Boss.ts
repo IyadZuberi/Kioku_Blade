@@ -169,7 +169,24 @@ ATTACKS.kick = {
   moves: [{ d: 1.4, stop: 1.1 }],
 };
 
-export const VARIANT: Record<string, string> = { windSlash: "overhead", shockwave: "leap", waterfowl: "leap" };
+/**
+ * Sekiro-style tricks, NOT in the war council's move list (the frozen Mubit task names only shared/types
+ * MOVES): the game picks them itself, so they scale with what he has learned but the model never plans them.
+ *   lunge     Kazemaru's spear dash: a thrust from across the room (red !)
+ *   backflip  he springs away, then comes straight back with the lunge
+ *   vanish    Kurogane's smoke bomb: gone, then behind you with an overhead
+ *   stance    Masatora's riposte stance: his steel glows, and a cut into it is parried and answered
+ */
+export const VARIANT: Record<string, string> = { windSlash: "overhead", shockwave: "leap", waterfowl: "leap", lunge: "thrust", backflip: "leap", vanish: "overhead" };
+/** Spec changes for variants that differ from their base clip's attack. */
+const SPEC_OVERRIDE: Record<string, Partial<AttackSpec>> = {
+  lunge: { moves: [{ d: 7.5, stop: 0.9 }] },
+  backflip: { hits: [] },
+};
+/** Moves the brain can pick that are not attacks (the state machine runs them). */
+export const SPECIAL = new Set(["stance"]);
+/** How long Masatora holds his riposte stance. */
+const STANCE_T = 1.4;
 
 export function buildAttack(spec: AttackSpec, tl: Timeline): AttackDef {
   const n = Math.min(spec.hits.length, tl.hits.length);
@@ -198,6 +215,7 @@ export type BState =
   | "whiff"
   | "mikiried"
   | "kicked"
+  | "stance"
   | "throw"
   | "deathblown"
   | "rise"
@@ -276,6 +294,8 @@ export class Boss {
   private strafeT = 0;
   private lastAttack = "";
   private queue: string[] = [];
+  /** The war council's script, kept so phase 2 opens with it too (rise() used to drop it). */
+  private councilOpening: string[] = [];
   private moveAllow: number[] = [];
   private fallV = 0;
   private leapFrom = new THREE.Vector3();
@@ -286,11 +306,17 @@ export class Boss {
   /** Freeze the brain (title screen, scripted shots). */
   passive = false;
   /** Set by the running variant; the game reads it to spawn the matching effect. */
-  variant: "windSlash" | "shockwave" | null = null;
+  variant: "windSlash" | "shockwave" | "lunge" | "backflip" | "vanish" | null = null;
+  /** Smoke bomb: he is out of sight (not hittable; the game hides his body). */
+  vanished = false;
+  /** The Sekiro tricks this general may pick (bosses.ts `extra`; set by the game each fight). */
+  extras: readonly string[] = [];
   /** The move as the plan names it (windSlash, waterfowl...), for stats and the hit log. */
   moveName = "";
   /** This boss may throw wind cuts from range. */
   canWind = false;
+  /** Kurogane throws a fan of three shuriken instead of one wind cut. */
+  windFan = false;
   private fxDone = false;
 
   constructor(readonly ch: Fighter) {
@@ -319,7 +345,9 @@ export class Boss {
     this.punishedHeal = false;
     this.tempo = 1;
     this.queue = ["leap", "combo", "thrust", "comboDelay", "overhead", "sweep"];
+    this.councilOpening = [];
     this.variant = null;
+    this.vanished = false;
     this.moveName = "";
     this.fxDone = false;
     this.R = rng(9);
@@ -332,6 +360,7 @@ export class Boss {
   setOpening(strings: readonly (readonly string[])[]): void {
     const q = strings.flat().filter((m) => m in ATTACKS || m in VARIANT).slice(0, 12);
     if (q.length) this.queue = q;
+    this.councilOpening = q;
   }
 
   setClip(name: string, fade = 0.15, t0 = 0): void {
@@ -375,23 +404,26 @@ export class Boss {
 
   /** He can be cut / kicked / deathblown (not while rising, falling or already finished). */
   get hittable(): boolean {
-    return this.state !== "rise" && this.state !== "deathblown" && this.state !== "finished" && this.state !== "dead" && this.state !== "throw";
+    return !this.vanished && this.state !== "rise" && this.state !== "deathblown" && this.state !== "finished" && this.state !== "dead" && this.state !== "throw";
   }
 
   startAttack(name: string, t0 = 0): void {
     this.pendingCounter = null;
+    if (name === "stance") return this.startStance();
     const real = VARIANT[name] ?? name;
-    this.variant = name === "windSlash" || name === "shockwave" ? name : null;
+    this.variant = name === "windSlash" || name === "shockwave" || name === "lunge" || name === "backflip" || name === "vanish" ? name : null;
+    this.vanished = false;
     this.moveName = name;
     this.fxDone = false;
-    const a = buildAttack(ATTACKS[real], this.ch.timeline(real));
+    const a = buildAttack({ ...ATTACKS[real], ...SPEC_OVERRIDE[name] }, this.ch.timeline(real));
     this.serial++;
     this.attack = a;
     this.hitDone = a.hits.map(() => false);
     this.moveAllow = a.moves.map(() => -1);
     this.guarded = false;
-    this.follow = name === "waterfowl" ? "flurry" : this.pickFollow(real);
-    this.followAt = this.follow && a.hits.length ? a.hits[a.hits.length - 1].t1 + 0.4 : Infinity;
+    this.follow = name === "waterfowl" ? "flurry" : name === "backflip" ? "lunge" : name === "lunge" || name === "vanish" ? null : this.pickFollow(real);
+    // a hit-less move (the backflip) hands over just after it lands
+    this.followAt = this.follow ? (a.hits.length ? a.hits[a.hits.length - 1].t1 + 0.4 : a.slam + 0.2) : Infinity;
     this.enter("attack");
     this.stateT = t0;
     this.setClip(a.clip, 0.12, t0);
@@ -421,15 +453,17 @@ export class Boss {
     if (q) {
       const leapish = q === "leap" || q === "shockwave" || q === "waterfowl";
       if (leapish && dist < 4.5) return "combo";
-      if (!leapish && q !== "thrust" && q !== "windSlash" && dist > 4.4) return dist > 6 ? "leap" : "thrust";
+      const ranged = q === "thrust" || q === "windSlash" || q === "lunge" || q === "backflip" || q === "vanish";
+      if (!leapish && !ranged && q !== "stance" && dist > 4.4) return dist > 6 ? "leap" : "thrust";
       return q;
     }
     const r = this.R();
     const p2 = this.phase === 2;
-    const peril = (n: string) => n === "thrust" || n === "sweep" || n === "grab";
+    const peril = (n: string) => n === "thrust" || n === "sweep" || n === "grab" || n === "lunge";
+    const has = (m: string) => this.extras.includes(m);
     let pick: string | null;
-    if (dist > 6.5) pick = this.canWind && r < 0.3 ? "windSlash" : r < 0.6 ? "leap" : r < 0.85 ? "thrust" : null;
-    else if (dist > 4.4) pick = this.canWind && r < 0.25 ? "windSlash" : r < 0.4 ? "thrust" : r < 0.7 ? "leap" : p2 && r < 0.85 ? "grab" : null;
+    if (dist > 6.5) pick = this.canWind && r < 0.3 ? "windSlash" : has("lunge") && r < 0.5 ? "lunge" : has("vanish") && r < 0.5 ? "vanish" : r < 0.6 ? "leap" : r < 0.85 ? "thrust" : null;
+    else if (dist > 4.4) pick = this.canWind && r < 0.25 ? "windSlash" : has("lunge") && r < 0.45 ? "lunge" : r < 0.4 ? "thrust" : r < 0.7 ? "leap" : p2 && r < 0.85 ? "grab" : null;
     else if (!p2) {
       pick = weighted(DIFFICULTY.picks.p1, r);
     } else {
@@ -529,6 +563,22 @@ export class Boss {
           this.fxDone = true;
           this.events.push("windCast");
         }
+        if (this.variant === "vanish" && a.hits.length) {
+          // Smoke bomb: out of sight in a blink, then behind the player with the cut still to come.
+          const back = a.hits[0].t0 - 0.62;
+          if (!this.vanished && prevT < 0.1 && t >= 0.1) {
+            this.vanished = true;
+            this.events.push("vanishOut");
+          } else if (this.vanished && t >= Math.max(back, 0.3)) {
+            this.vanished = false;
+            const behind = to.clone().normalize();
+            if (behind.lengthSq() < 0.5) behind.set(0, 0, -1);
+            this.pos.copy(player).addScaledVector(behind, 2.0).setY(0);
+            this.yaw = Math.atan2(-behind.x, -behind.z);
+            this.vel.set(0, 0, 0);
+            this.events.push("vanishIn");
+          }
+        }
         for (let i = 0; i < a.whoosh.length; i++) {
           if (prevT < a.whoosh[i] && t >= a.whoosh[i] && a.perilous !== "grab") this.events.push(a.hits[i].heavy ? "whooshHeavy" : "whoosh");
         }
@@ -549,8 +599,13 @@ export class Boss {
           const land = a.slam;
           if (prevT < off && t >= off) {
             this.leapFrom.copy(this.pos);
-            const d = clamp(dist - 1.5, 1.5, 9.5);
+            const away = this.variant === "backflip";
+            const d = away ? -3.4 : clamp(dist - 1.5, 1.5, 9.5);
             this.leapTo.copy(this.pos).addScaledVector(to.clone().normalize(), d);
+            if (away) {
+              this.leapTo.x = clamp(this.leapTo.x, -ARENA_HALF + 1, ARENA_HALF - 1);
+              this.leapTo.z = clamp(this.leapTo.z, RIDGE_Z + 2.4, ARENA_HALF - 1);
+            }
             this.yaw = face;
             this.events.push("leapOff");
           }
@@ -564,7 +619,7 @@ export class Boss {
           }
           if (prevT < land && t >= land) {
             this.pos.y = 0;
-            this.events.push("slam");
+            if (this.variant !== "backflip") this.events.push("slam");
             if (this.variant === "shockwave") this.events.push("ring");
           }
         }
@@ -596,6 +651,16 @@ export class Boss {
         }
         break;
       }
+      case "stance":
+        // Riposte stance: guard up, eyes on you; any cut into it is turned aside (see guard()). If
+        // nothing comes, he steps in with a delayed cut of his own.
+        this.vel.multiplyScalar(Math.exp(-dt * 8));
+        this.yaw = approachAngle(this.yaw, face, dt * 6);
+        if (this.stateT >= STANCE_T) {
+          this.events.push("stanceEnd");
+          this.startAttack(dist > 3.4 ? "thrust" : "comboDelay");
+        }
+        break;
       case "block":
         this.vel.multiplyScalar(Math.exp(-dt * 8));
         this.yaw = approachAngle(this.yaw, face, dt * 5);
@@ -700,7 +765,28 @@ export class Boss {
    * The player's blade met his guard. Returns "block" | "deflect". A string of cuts gets turned
    * aside more and more often (phase 1 guards more than phase 2).
    */
+  /** Enter the riposte stance (a move of his own: the steel glows; a cut into it is always parried). */
+  private startStance(): void {
+    this.attack = null;
+    this.follow = null;
+    this.variant = null;
+    this.moveName = "stance";
+    this.lastAttack = "stance";
+    this.serial++;
+    this.enter("stance");
+    this.setClip("guard", 0.12);
+    this.clipNow = "guard";
+    this.events.push("stance");
+  }
+
   guard(): "block" | "deflect" {
+    if (this.state === "stance") {
+      // He was waiting for exactly this: the cut is turned aside, and he answers.
+      this.guardHits = 0;
+      this.lastGuardT = this.time;
+      this.postureIdle = 0;
+      return "deflect";
+    }
     if (this.time - this.lastGuardT > 1.3) this.guardHits = 0;
     this.lastGuardT = this.time;
     this.guardHits++;
@@ -721,6 +807,7 @@ export class Boss {
    * is up and a string of cuts has been met). Shown as a cold glow along his steel.
    */
   get parryReady(): number {
+    if (this.state === "stance") return 1;
     if (this.state !== "block" && this.state !== "idle" && this.state !== "wait") return 0;
     const n = this.time - this.lastGuardT > 1.3 ? 1 : this.guardHits + 1;
     const D = DIFFICULTY.bossDeflect;
@@ -841,7 +928,8 @@ export class Boss {
     this.phase = 2;
     this.posture = 0;
     this.guardHits = 0;
-    this.queue = ["thrust", "sweep", "flurry", "grab", "combo"];
+    // Council counters first, then the base phase-2 string.
+    this.queue = [...this.councilOpening, "thrust", "sweep", "flurry", "grab", "combo"].slice(0, 12);
     this.enter("rise");
     this.setClip("rise", 0.2);
     this.events.push("rise");
