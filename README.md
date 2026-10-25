@@ -6,30 +6,24 @@
   <img src="docs/img/demo-title.jpg" width="100%" alt="Kioku: Blades That Remember, the title screen">
 </p>
 
-<p align="center"><b><a href="DEMO_LINK_HERE">Watch the demo</a></b></p>
-
 <p align="center"><b>A samurai duel where the generals study you, and come back different every time.</b><br/>
-Three generals, three arenas, and three jobs for a language model, all through Mubit.</p>
+Three generals, three arenas, and three jobs for a language model, all through Mubit.<br/>
+Play with keyboard, controller, or <b>your own hand gestures</b>: train a pose per action and fight with your hands, through the webcam.</p>
 
 <p align="center">
   <a href="#how-a-duel-flows">How a duel flows</a> ·
   <a href="#how-kioku-uses-mubit">How Kioku uses Mubit</a> ·
   <a href="docs/architecture.md">Architecture</a> ·
   <a href="docs/features.md">Features</a> ·
+  <a href="DEMO_LINK_HERE">Demo</a> ·
   <a href="#run-it">Run it</a>
 </p>
-
-**At a glance:** 3 Mubit tasks, about 2,400 stored calls, 3 trained adapters (Qwen3-4B v1; the plan adapter matches the
-provider model on 75% of test cases, target 85%), a model that never sits in the frame loop, 305 passing tests, about
-58 fps in fights. Details and the console screenshot: [How Kioku uses Mubit](#how-kioku-uses-mubit).
-
-Built at the Night Shift hackathon (Mubit), London, 23 to 25 October 2026.
 
 ---
 
 ## What it is
 
-Kioku is a browser samurai duel (Three.js, nothing to install) in three chapters. The twist is the opponent. After every
+Kioku is a browser samurai duel (Three.js, nothing to install) in three chapters, played with keyboard, controller or hand gestures. The twist is the opponent. After every
 duel, **won, lost or forfeited**, the general you fought studies how *you* fight: how often you attack, guard, deflect
 and dodge, and whether you stand close or keep away. He then comes back harder and *different*: new combos, new moves,
 a new way to keep you where he wants you, and a **condition** you must break before he bleeds. A language model, through
@@ -96,6 +90,9 @@ sequenceDiagram
 ```
 
 ## How Kioku uses Mubit
+
+**At a glance:** 3 Mubit tasks, about 2,400 stored calls, 3 trained adapters (Qwen3-4B v1; the plan adapter matches the
+provider model on 75% of test cases, target 85%), a model that never sits in the frame loop.
 
 **Every language-model call in Kioku goes through Mubit** (`https://api.mubit.ai/openai/v1`). The game is split into three small, single-purpose jobs on purpose, so each is its own **Mubit task**. Mubit records each call, groups calls by task, keeps examples, and trains a small model (an adapter) for that one job.
 
