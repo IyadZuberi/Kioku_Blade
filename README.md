@@ -1,8 +1,13 @@
-# The General Remembers
+# Kioku: Blades That Remember (the project is called The General Remembers)
 
-A browser samurai duel (a fork of [shinobi-duel](https://github.com/StarKnightt/shinobi-duel), MIT) whose general learns. After every fight his next fight is re-planned from how you fought and from everyone who fought him before. The planning call is one frozen task, `general_plan`, that goes through [Mubit](https://mubit.ai).
+A browser samurai duel (a fork of [shinobi-duel](https://github.com/StarKnightt/shinobi-duel), MIT) whose generals learn. After **every** duel, won or lost, the general is harder the next time, and he has read how you fight. Two layers:
 
-Built for the Night Shift hackathon (London, 23-25 Oct 2026). Design: `docs/superpowers/specs/`. Plan: `docs/superpowers/plans/`. Evidence: `docs/verification.md`. Demo: `docs/demo-script.md`.
+1. **Memory in the game** (works offline): every duel is counted (`game/src/learn/remembers.ts`). Each one pulls his guard-and-answer knobs toward the HARD preset: he parries more of your long strings, answers a deflect faster, leaves fewer openings, moves faster and rests less (`bossKnobs` in `game/src/game/bosses.ts`). Never past HARD (the fair, bot-tested ceiling); your deflect windows are never touched. The title and the council screen say it in numbers ("he parries 47% of long strings").
+2. **The war council** (Mubit): after the duel your numbers go to one frozen task, `general_plan`, through [Mubit](https://mubit.ai). It reads your habits (blended with your history) and answers with an enum-only plan: which moves to favour, an opening string, tempo and gap steps, a line of intel and a taunt. Code maps it onto the knobs; a validator keeps it inside the level's limits. If the call fails the same rules code runs locally and the screen says so.
+
+Each general fights differently (katana duelist with a riposte stance, spear fighter who lunges across the room and springs away, shinobi-style shogun who vanishes in smoke and throws shuriken). Those Sekiro-style tricks are the game's own picks; the model never plans them (the frozen Mubit task names only the shared move list).
+
+Built for the Night Shift hackathon (London, 23-25 Oct 2026). Design: `docs/superpowers/specs/`. Plan: `docs/superpowers/plans/`. Evidence: `docs/verification.md`. Demo: `docs/demo-script.md`. Walkthrough: `docs/walkthrough.md`.
 
 ## Run it
 
@@ -17,7 +22,9 @@ Node 22+ (uses built-in `node:sqlite`) and pnpm. The server listens on 127.0.0.1
 
 ## Mubit is OFF by default (credits are limited)
 
-Nothing is sent to Mubit unless **both** are set: `MUBIT_LIVE=1` in the server's environment and a key in `.env` (`MUBIT_API_KEY=mbt_...`, copy `.env.example`). Without them the server answers with the deterministic rules plan and says so on screen ("planned by the rules table").
+Nothing is sent to Mubit unless **both** are set: `MUBIT_LIVE=1` in the server's environment and a key in `.env` (`MUBIT_API_KEY=mbt_...`; copy `.env.example`, which also says where each value comes from). Without them the server answers with the deterministic rules plan and says so on screen.
+
+This project's provider key in Mubit is Groq, so calls go to `https://api.mubit.ai/compat/groq/v1` with model `openai/gpt-oss-120b` (`.env.example`). Groq's free tier allows about 8,000 tokens a minute (about 3 plans), so set `MUBIT_PER_MINUTE=3` for live play; beyond that the rules plan answers and the screen says "planned locally".
 
 Live scripts refuse to run without `MUBIT_LIVE=1` **and** `--yes-live`:
 
@@ -25,17 +32,20 @@ Live scripts refuse to run without `MUBIT_LIVE=1` **and** `--yes-live`:
 cd server
 pnpm gen:seed; pnpm gen:heldout                         # local, free: data/seed.json (80), data/heldout.json (60)
 pnpm eval --label baseline                              # local, free: the rules table as a baseline row
-# LIVE (spends credits; do these in order, after reading docs/notes/wiring.md):
-#   tsx scripts/smoke.ts --yes-live                      one call: does strict json_schema work on starter credit?
-#   tsx scripts/send_seed.ts --yes-live                  80 calls, storage ON: this is what Mubit trains on
+# LIVE (spends credits; in order):
+#   tsx scripts/smoke.ts --yes-live                      one call
+#   tsx scripts/send_seed.ts --yes-live                  80 calls, storage ON: this is what Mubit trains on (done once; ~25 min, paced to the token window)
 #   pnpm eval --label provider --yes-live --notes "..."  60 calls, storage OFF
+$env:MUBIT_LIVE="1"; $env:MUBIT_PER_MINUTE="3"; pnpm -C server start   # live play
 ```
 
-`server/src/prompts/general_plan.ts` (system prompt + schema + model) is **frozen once the seed is sent**: any edit silently starts a new, empty Mubit task.
+`server/src/prompts/general_plan.ts` (system prompt + schema + model) is **frozen** now that the seed is sent: any edit starts a new, empty Mubit task. `server/test/frozen.test.ts` pins its hash. Mubit trains an adapter (a small model for this one task) once it keeps 25 examples, and tests it against the provider model's answers; watch Tasks and Adapters in the Mubit console. Whether an adapter then serves live traffic is not documented by Mubit; the game does not depend on it.
+
+Check the whole loop with real fights: `node game/tools/learncheck.mjs 3 mix` (needs the server live and the preview on 5410).
 
 ## Controls
 
-Mouse and keyboard (from the base): LMB / J strike, RMB / K guard (tap just before a blow lands to deflect), Shift step, Space jump, R gourd, WASD move, Q lock-on.
+Mouse and keyboard (from the base): LMB / J strike, RMB / K guard (tap just before a blow lands to deflect), Shift step, Space jump, R gourd, WASD move, Q lock-on. F1 opens Settings: every control, the moves list (Kaede and each general, with how to answer), sound (master, music, effects, mute).
 
 Optional hand gestures (`G`, or `?gestures=1`): a fist is the guard, a fast sideways swipe strikes, a fast downward swipe steps, a fast upward flick jumps. Movement and the gourd stay on the keyboard. Video never leaves the browser. Needs a webcam and has not been tested with a real hand yet (see `docs/verification.md`).
 

@@ -185,6 +185,8 @@ export class Game {
   private progressFor = "";
   /** What the General remembers of this player: every duel, won or lost (learn/remembers.ts). */
   mem: Remembered = { ...NOTHING };
+  /** A win's council text, waiting for the fall to finish. */
+  private councilReady: (() => void) | null = null;
   private cardFor = 0;
   private gateT = 0;
   private poseDt = 0;
@@ -496,18 +498,21 @@ export class Game {
     saveProgress(getNickname(), next);
     this.advancedTo = advanced ? next.boss : null;
     this.learn.state = "pending";
-    this.council.thinking();
+    this.councilReady = null;
+    if (!summary.victory) this.council.thinking(); // a win shows it after the fall (see the end card)
     void requestPlan({ nickname: getNickname(), fightId, fightNumber: this.fightsPlayed, stats: summary, boss, bossStreak: streak, localLevel: levelOf(this.mem, streak) }).then((r) => {
       if (this.learn.fightId !== fightId) return; // a newer fight already started
       this.learn.result = r;
       this.learn.boss = boss;
       this.learn.state = "ready";
-      if (this.state === "defeat" || this.state === "victory") {
+      const present = (): void => {
         const learned = learnedSummary(this.bossDef, DIFFICULTY_PRESETS[this.difficulty], levelOf(this.mem, this.progress.streak));
         this.council.show(r, this.prevHabits, `He has fought you ${this.mem.fights} ${this.mem.fights === 1 ? "time" : "times"}. Next duel he parries ${learned.parryPct}% of long strings and moves ${learned.speedPct >= 0 ? "+" : ""}${learned.speedPct}% faster.`);
         if (this.advancedTo) this.council.flash(`Chapter ${BOSSES[this.advancedTo].chapter} unlocked: ${BOSSES[this.advancedTo].latin}, ${BOSSES[this.advancedTo].epithet}.`);
         else if (summary.victory && this.bossDef.gate > 0) this.council.flash(`Streak ${this.progress.streak} of ${this.bossDef.gate} against ${this.bossDef.latin}.`);
-      }
+      };
+      if (this.state === "defeat" || (this.state === "victory" && this.endCard)) present();
+      else if (this.state === "victory") this.councilReady = present;
       this.prevHabits = r.habits;
       this.onPlan?.(r);
     });
@@ -708,7 +713,6 @@ export class Game {
   toTitle(): void {
     this.subs.stop();
     this.parleyDone = false;
-    if (this.state === "victory" && !this.endCard) this.endLearning(); // left during the fall: the win still counts
     this.go("title");
     if (this.progressFor !== getNickname()) this.loadChapter();
     this.setBoss(this.progress.boss);
@@ -912,7 +916,9 @@ export class Game {
         if (this.state === "victory" && !this.endCard && this.endT > 1.9 && (!this.subs.playing || this.endT > 9)) {
           this.subs.stop();
           this.endCard = true;
-          this.endLearning();
+          // the council's answer may already be in: show it now (or "studying you" while it is not)
+          if (this.councilReady) this.councilReady();
+          else if (this.learn.state === "pending") this.council.thinking();
           this.cam.setMode("victory");
           this.desatTarget = 0.65;
           this.barsTarget = 0;
@@ -1756,6 +1762,7 @@ export class Game {
     if (t >= tl.end) {
       this.go("victory");
       this.stats.victory = true;
+      this.endLearning(); // counted and sent now; the council shows after the fall
       wavedash.submitScore(`victory-${this.difficulty}`, (this.gameTime - this.fightStartT) * 1000);
       wavedash.achieve("VICTORY");
       if (this.difficulty === "hard") wavedash.achieve("VICTORY_HARD");
