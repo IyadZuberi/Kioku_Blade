@@ -13,6 +13,10 @@ export interface TaskDef<I, O> {
   format?: "json_schema" | "json_object";
   /** Reasoning models (gpt-oss): how hard to think. "low" keeps answers fast and the token bill small. */
   reasoning?: "low" | "medium" | "high";
+  /** What the model is shown as the user message (default: the input as is). Keep it small. */
+  userMessage?: (input: I) => unknown;
+  /** Turn the model's reply into the shape validate() and the callers expect. */
+  normalize?: (parsed: unknown) => unknown;
   validate: (o: unknown) => boolean;
   fallback: (input: I) => O;
 }
@@ -84,11 +88,11 @@ export async function callTask<I, O>(
           model: t.model,
           messages: [
             { role: "system", content: t.system },
-            { role: "user", content: JSON.stringify(input) }, // EVERYTHING variable goes here
+            { role: "user", content: JSON.stringify(t.userMessage ? t.userMessage(input) : input) }, // EVERYTHING variable goes here
           ],
           response_format,
           // only the gpt-oss reasoning models take it
-          ...(t.reasoning && /gpt-oss/.test(t.model) ? { reasoning_effort: t.reasoning } : {}),
+          ...(t.reasoning && /gpt-oss|gpt-6/.test(t.model) ? { reasoning_effort: t.reasoning } : {}),
           // No `metadata`: on this route the provider refuses it ("only allowed when 'store' is enabled",
           // even with store: true). Mubit then gives each call the session of its conversation start
           // (instructions + first user message), and every fight report is a different user message,
@@ -113,6 +117,7 @@ export async function callTask<I, O>(
     let parsed: unknown;
     try {
       parsed = JSON.parse(raw);
+      if (t.normalize) parsed = t.normalize(parsed);
     } catch {
       return fail("reply was not JSON", { requestId, usage, raw });
     }

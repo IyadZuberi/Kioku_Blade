@@ -1,12 +1,19 @@
 /**
- * THE MUBIT TASK: general_plan.
+ * THE MUBIT TASK: general_plan (v2, compact).
+ *
+ * v1 sent ~1,600 tokens per call (long prose prompt, a 13-key emphasis object in the schema, rich JSON
+ * input). Mubit only trains on examples it keeps, and long ones risk being dropped, so v2 says the same
+ * in about 600: short instructions, an output of two small arrays instead of the 13-key object, and a
+ * compact input (userMessage below). The model's reply is converted back to the Plan shape
+ * (normalize) so everything after the call is unchanged. v2 is a new Mubit task (new hash); v1's 80
+ * examples stay in Mubit under the old task.
  *
  * FROZEN after seeding starts. Mubit groups calls into one task by system prompt + schema + model
  * (+ tools). Editing any of them silently starts a NEW task with 0 examples. Everything that varies
  * (stats, habits, memory, rules, limits) goes in the user message (PlanInput as JSON). If a change
  * is truly needed it is a new task: tell the user first. The hash is logged at server start.
  */
-import { ACCEPTED_COUNTERS, HABITS, MOVES, PLAN_SCHEMA, rulesPlan, type BossId, type HabitScore, type Limits, type Move, type Plan, type StatsSummary } from "@gr/shared";
+import { ACCEPTED_COUNTERS, BOSS_MOVES, HABITS, MOVES, rulesPlan, type BossId, type HabitScore, type Limits, type Move, type Plan, type StatsSummary } from "@gr/shared";
 import type { TaskDef } from "../mubit/client";
 
 export interface PlanInput {
@@ -25,43 +32,82 @@ export interface PlanInput {
   limits: Limits;
 }
 
-const MOVE_NOTES: Partial<Record<Move, string>> = {
-  windSlash: "an overhead cut that also throws a travelling blade of wind along the ground (jump or deflect it)",
-  waterfowl: "a leap straight into a five-cut flurry, the last cut delayed",
-  shockwave: "a leaping slam that sends a ring along the ground (jump it)",
-  spin: "a whirling spear cut that sweeps all round him (deflect it; a step dodge rarely clears it)",
-  kick: "a stamp kick that crushes a held guard (deflect or step aside, never just hold block)",
-};
-const notes = MOVES.filter((m) => MOVE_NOTES[m]).map((m) => `- ${m}: ${MOVE_NOTES[m]}`).join("\n");
+const BOSS_LINE = ([1, 2, 3] as const).map((b) => `${b}: ${BOSS_MOVES[b].join(" ")}`).join("; ");
+const COUNTERS = HABITS.map((h) => `${h}: ${ACCEPTED_COUNTERS[h].join(" ")}`).join("; ");
 
-const counters = HABITS.map((h) => `- ${h}: ${ACCEPTED_COUNTERS[h].join(", ")}`).join("\n");
+const SYSTEM = `You plan a samurai general's next duel from a JSON report about the human player. Reply with JSON only.
+Report keys: boss; streak (player wins in a row); lvl 1-10; won; st (t seconds, df deflects, late late deflects, bl blocks, hit hits taken, dg dodges, cut cuts landed, sw sweeps jumped, gr grabs landed, hl heals, deaths); hurt (moves that hit them); habits (strongest first: habit, power 0-1); notes (what you wrote about them before); losses (lost in a row); caps [strings, string length, tempo, gap]; rules (extra orders).
+Moves by boss: ${BOSS_LINE}.
+Habit: counters: ${COUNTERS}.
+focus: the top habit with real evidence, else none. strings: up to caps[0] strings of up to caps[1] moves, only the boss's moves, starting with the focus counters. high: moves to favour. low: moves they handled easily. tempo and gap: never above caps; one lower after 2+ losses, one higher after an easy win. intel: one sentence, 20 words max, quoting their numbers. taunt: 10 words max, in character, no slurs. rules beat everything.`;
 
-const SYSTEM = `You are the WAR COUNCIL of a samurai general in a one-on-one sword duel game. After each fight you read a JSON report about the human player and plan the general's NEXT fight so it counters the player's habits while staying fair. Reply with JSON only, matching the response schema.
+const HABIT_ENUM = [...HABITS, "none"];
+const MOVE_LIST = { type: "array", items: { type: "string", enum: [...MOVES] } } as const;
+/** What the model replies: small arrays, not a 13-key object. */
+export const PLAN_WIRE_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["focus", "strings", "high", "low", "tempo", "gap", "intel", "taunt"],
+  properties: {
+    focus: { type: "string", enum: HABIT_ENUM },
+    strings: { type: "array", items: MOVE_LIST },
+    high: MOVE_LIST,
+    low: MOVE_LIST,
+    tempo: { type: "integer", enum: [0, 1, 2, 3, 4] },
+    gap: { type: "integer", enum: [0, 1, 2, 3] },
+    intel: { type: "string" },
+    taunt: { type: "string" },
+  },
+} as const;
 
-MOVES: ${MOVES.join(", ")}. Each boss only has the moves listed in "unlocked" (boss 1 Masatora, katana, has the first eight; boss 2 Kazemaru, spear, adds windSlash, waterfowl and spin; boss 3 Kurogane, great sword, adds windSlash, shockwave and kick).
-${notes}
+const r2 = (x: number) => Math.round(x * 100) / 100;
 
-HABITS AND THE MOVES THAT COUNTER THEM
-${counters}
+/** The model's whole input, compact (this is the user message; ~150 tokens). */
+export function compactInput(i: PlanInput): Record<string, unknown> {
+  const st = i.stats;
+  const hurt = Object.entries(st.hitsByMove).filter(([, n]) => (n ?? 0) > 0).sort((a, b) => (b[1] ?? 0) - (a[1] ?? 0)).slice(0, 2).map(([m, n]) => `${m} ${n}`);
+  const pm = i.playerMemory as { dossier?: string; consecutive_losses?: number };
+  const out: Record<string, unknown> = {
+    boss: i.boss,
+    streak: i.bossStreak,
+    lvl: i.bossLevel,
+    won: st.victory,
+    st: { t: Math.round(st.fightSeconds), df: st.deflects, late: st.lateDeflects, bl: st.blocks, hit: st.hitsTaken, dg: st.dodged, cut: st.playerHits, sw: st.sweepsJumped, gr: st.grabbed, hl: st.heals, deaths: st.deaths },
+    hurt,
+    habits: i.habits.slice(0, 3).map((h) => ({ habit: h.habit, power: r2(h.strength) })),
+    notes: pm.dossier ?? "",
+    losses: pm.consecutive_losses ?? 0,
+    caps: [i.limits.maxStrings, i.limits.maxStringLen, i.limits.maxTempoStep, i.limits.maxGapStep],
+  };
+  if (i.designerRules.length) out.rules = i.designerRules;
+  return out;
+}
 
-HOW TO PLAN
-1. focus_habit: the strongest habit in "habits" that has real evidence; prefer a habit that also appears in player_memory. Use "none" if there is no evidence.
-2. emphasis: give every move one of low, normal, high. Set the counters of focus_habit to high. Set moves the player handled easily to low. Everything else normal.
-3. opening_strings: at most limits.maxStrings strings, each at most limits.maxStringLen moves, using only moves in "unlocked". "boss" says which general you are planning for; a higher "bossStreak" means the player is winning, so be sharper. Start with the counters of focus_habit. Do not repeat a string. Include a comboDelay feint if the player deflects well.
-4. tempo_step and gap_step: never above limits.maxTempoStep and limits.maxGapStep. If player_memory shows two or more losses in a row, choose one step lower. If the player won easily, choose one step higher, within the limits.
-5. Use global_memory: moves that hurt many players are worth emphasising.
-6. Follow every rule in designer_rules. They override everything above.
-7. intel: one sentence, at most 25 words, citing the player's own numbers. taunt: at most 12 words, in character, no slurs or profanity.`;
+/** The reply, back in the Plan's own shape (what validatePlan reads). Junk passes through for validatePlan to reject. */
+export function normalizeWire(raw: unknown): unknown {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return raw;
+  const w = raw as Record<string, unknown>;
+  if (!("focus" in w)) return raw; // already Plan-shaped (old plans, tests, fallbacks)
+  const emphasis = Object.fromEntries(MOVES.map((m) => [m, "normal"]));
+  for (const m of Array.isArray(w.low) ? w.low : []) if (m in emphasis) emphasis[m as string] = "low";
+  for (const m of Array.isArray(w.high) ? w.high : []) if (m in emphasis) emphasis[m as string] = "high";
+  return { focus_habit: w.focus, opening_strings: w.strings, emphasis, tempo_step: w.tempo, gap_step: w.gap, intel: w.intel, taunt: w.taunt };
+}
 
 const KEYS = ["focus_habit", "opening_strings", "emphasis", "tempo_step", "gap_step", "intel", "taunt"];
 
 export const generalPlanTask: TaskDef<PlanInput, Plan> = {
   name: "general_plan",
-  model: process.env.MUBIT_MODEL ?? "openai/gpt-oss-120b",
+  // Mubit's starter-credit model on its OpenAI route: no provider key, no daily token cap (Groq's free tier
+  // ran dry after ~200k tokens a day). The Groq model is the backup (see mubitPlan.ts).
+  model: process.env.MUBIT_MODEL ?? "gpt-6-luna",
+  baseURL: process.env.MUBIT_BASE_URL ?? "https://api.mubit.ai/openai/v1",
   system: SYSTEM,
-  schema: PLAN_SCHEMA,
+  schema: PLAN_WIRE_SCHEMA,
   reasoning: "low",
-  // Shape check only; the route runs validatePlan with the real per-level limits.
+  userMessage: compactInput,
+  normalize: normalizeWire,
+  // Shape check only (after normalize); the route runs validatePlan with the real per-level limits.
   validate: (o) => !!o && typeof o === "object" && !Array.isArray(o) && KEYS.every((k) => k in (o as object)),
   fallback: (i) => rulesPlan(i.habits, i.bossLevel, i.unlocked),
 };

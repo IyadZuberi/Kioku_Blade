@@ -3,11 +3,11 @@ import { logCall } from "./mubit/log";
 import { generalPlanTask } from "./prompts/general_plan";
 
 /**
- * When the main provider (Groq) is out of tokens for the minute or the day, the same plan prompt is
- * answered by Mubit's starter-credit model instead, as a different task and NOT stored (so it can
+ * When the main model (Mubit's starter-credit gpt-6-luna) refuses a call (rate limit), the same plan prompt is
+ * answered by the backup (Groq's gpt-oss-120b through Mubit) instead, as a different task and NOT stored (so it can
  * neither fork the task nor pollute its examples). The plan still comes from a real model call.
  */
-const BACKUP = { model: process.env.MUBIT_BACKUP_MODEL ?? "gpt-6-luna", baseURL: process.env.MUBIT_BACKUP_BASE ?? "https://api.mubit.ai/openai/v1" };
+const BACKUP = { model: process.env.MUBIT_BACKUP_MODEL ?? "openai/gpt-oss-120b", baseURL: process.env.MUBIT_BACKUP_BASE ?? "https://api.mubit.ai/compat/groq/v1" };
 const OUT_OF_ROOM = /429|rate limit|tokens per (day|minute)|TPD|TPM/i; // fast refusals only: a timeout would leave no time for a second call
 import type { Deps } from "./app";
 

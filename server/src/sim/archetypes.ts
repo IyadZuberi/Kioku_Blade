@@ -107,6 +107,8 @@ export function genInput(a: Archetype, r: Rng, i: number): PlanInput {
       losses,
       consecutive_losses: Math.min(losses, ri(r, 0, 3)),
       habit_avgs: Object.fromEntries(habits.map((h) => [h.habit, +(h.strength * (0.6 + r() * 0.4)).toFixed(2)])),
+      // what the general wrote down about them before (empty on a first duel), like the live notes
+      dossier: fight > 1 && habits[0] && r() < 0.7 ? `Earlier duels: ${habits[0].habit.replace("_", " ")}${habits[1] && r() < 0.5 ? ", " + habits[1].habit.replace("_", " ") : ""}.` : "",
     },
     globalMemory: {
       totalFights: ri(r, 0, 80),

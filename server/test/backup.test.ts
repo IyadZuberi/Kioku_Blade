@@ -21,9 +21,9 @@ describe("plan backup model", () => {
     const { plan, seen } = mk([() => fail("429 Rate limit reached ... tokens per day (TPD)"), () => ok]);
     const r = await plan(input, "s1");
     expect(r.ok).toBe(true);
-    expect(seen[0]).toMatchObject({ model: "openai/gpt-oss-120b", store: true });
-    expect(seen[1]).toMatchObject({ model: "gpt-6-luna", store: false });
-    expect(r.model).toBe("gpt-6-luna");
+    expect(seen[0]).toMatchObject({ model: "gpt-6-luna", store: true });
+    expect(seen[1]).toMatchObject({ model: "openai/gpt-oss-120b", store: false });
+    expect(r.model).toBe("openai/gpt-oss-120b");
     const row = logs.at(-1);
     expect(row.served_by).toBe("backup");
     expect(row.store).toBe(false);
@@ -33,7 +33,7 @@ describe("plan backup model", () => {
     expect((await a.plan(input, "s2")).ok).toBe(false);
     expect(a.seen.length).toBe(1);
     const b = mk([() => ok]);
-    expect((await b.plan(input, "s3")).model).toBe("openai/gpt-oss-120b");
+    expect((await b.plan(input, "s3")).model).toBe("gpt-6-luna");
     expect(b.seen.length).toBe(1);
   });
 });
