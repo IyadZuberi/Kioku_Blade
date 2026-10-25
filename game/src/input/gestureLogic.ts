@@ -68,6 +68,8 @@ export class GestureTracker {
   axis: Axis = { x: 0, y: 0 };
   /** Live numbers for the calibration overlay (?gdebug=1). */
   debug = { hands: 0, speed: 0, peak: 0, vx: 0, vy: 0, role: "fight" as Role };
+  /** True when the player has trained hand poses: the fighting hand is then read by PoseTracker, not as swipes and a fist. */
+  poseMode = false;
   private tracks: Partial<Record<Role, Track>> = {};
   private fist = 0;
   private open = 0;
@@ -150,8 +152,8 @@ export class GestureTracker {
       }
 
       fightSeen = true;
-      fightFist = fist;
-      if (fist) continue;
+      fightFist = fist && !this.poseMode;
+      if (fist || this.poseMode) continue;
       if (speed < GESTURE.swipeSpeed) continue;
       const ax = Math.abs(tr.vx), ay = Math.abs(tr.vy);
       let action: Action | null = null;

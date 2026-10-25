@@ -8,6 +8,7 @@ import type { GestureFrame, GestureHandle } from "../input/gestures";
 import { GESTURE } from "../input/gestureLogic";
 import { LESSONS, LessonTracker, type LessonId } from "../input/lessons";
 import { CalibrationRecorder } from "../input/calibration";
+import { PoseTrainer } from "./PoseTrainer";
 
 const W = 420;
 const H = 315;
@@ -71,7 +72,9 @@ export class GestureDojo {
   private rec: CalibrationRecorder | null = null;
   private off: (() => void) | null = null;
   private opened = false;
+  private readonly trainer = new PoseTrainer(document.body);
   private onKey = (e: KeyboardEvent): void => {
+    if (this.trainer.isOpen) return; // the pose window above handles keys itself
     if (e.code === "Escape") this.close();
     if (e.code !== "Tab") {
       e.preventDefault();
@@ -101,7 +104,7 @@ export class GestureDojo {
         </div>
         <div class="list"></div>
       </div>
-      <div class="foot"><span class="msg"></span><button type="button" data-record title="A guided 1.5-minute recording of your gestures, saved as a file for tuning">Record my gestures</button><button type="button" data-reset>Start over</button><button type="button" class="primary" data-done>Skip</button></div>
+      <div class="foot"><span class="msg"></span><button type="button" data-poses title="Teach the game your own hand shapes, one per action. Poses react faster than swipes.">Train my poses</button><button type="button" data-record title="A guided 1.5-minute recording of your gestures, saved as a file for tuning">Record my gestures</button><button type="button" data-reset>Start over</button><button type="button" class="primary" data-done>Skip</button></div>
     </div>`;
     host.appendChild(this.root);
     this.canvas = this.root.querySelector("canvas") as HTMLCanvasElement;
@@ -136,6 +139,7 @@ export class GestureDojo {
       const el = e.target as HTMLElement;
       if (el.closest("[data-skip]") || el.closest("[data-done]")) this.close();
       else if (el.closest("[data-record]")) this.startRecording();
+      else if (el.closest("[data-poses]") && this.handle) this.trainer.open(this.handle);
       else if (el.closest("[data-reset]")) {
         this.lessons.reset();
         this.refresh();

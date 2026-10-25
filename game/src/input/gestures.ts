@@ -5,6 +5,7 @@
 import { FilesetResolver, HandLandmarker } from "@mediapipe/tasks-vision";
 import type { Input } from "../core/Input";
 import { GestureTracker, type GestureEvent, type Hand } from "./gestureLogic";
+import { PoseTracker, loadPoses } from "./poses";
 
 export interface GestureFrame {
   hands: Hand[];
@@ -16,6 +17,8 @@ export interface GestureHandle {
   /** The mirrored camera video element (the training window draws from it). */
   video: HTMLVideoElement;
   tracker: GestureTracker;
+  /** The player's trained hand poses (see PoseTrainer); once any pose has an action the fighting hand is read from them. */
+  poses: PoseTracker;
   /** Called after every analysed frame; returns an unsubscribe function. */
   onFrame(cb: (f: GestureFrame) => void): () => void;
   /** While true the hands are analysed but nothing reaches the game (training window open). */
@@ -25,7 +28,6 @@ export interface GestureHandle {
 }
 
 const BASE = (import.meta as { env?: { BASE_URL?: string } }).env?.BASE_URL ?? "/";
-const MAX_FPS = 30;
 const DEBUG = new URLSearchParams(location.search).get("gdebug") === "1";
 
 export async function startGestures(input: Input, onStatus: (s: string) => void = () => {}): Promise<GestureHandle> {
@@ -46,22 +48,28 @@ export async function startGestures(input: Input, onStatus: (s: string) => void 
   const landmarker = await make("GPU").catch(() => make("CPU"));
 
   const tracker = new GestureTracker();
+  const poses = new PoseTracker();
+  poses.set = loadPoses();
   const subs = new Set<(f: GestureFrame) => void>();
   const handle = { hold: false } as { hold: boolean };
   let raf = 0;
-  let last = 0;
+  let lastVideoTime = -1;
   let stopped = false;
   let lastEvent = "-";
   const loop = (now: number) => {
     if (stopped) return;
     raf = requestAnimationFrame(loop);
-    if (now - last < 1000 / MAX_FPS || video.readyState < 2) return;
-    last = now;
+    // analyse every NEW camera frame as soon as it arrives (no fixed cap: the camera is the limit)
+    if (video.readyState < 2 || video.currentTime === lastVideoTime) return;
+    lastVideoTime = video.currentTime;
     try {
       const res = landmarker.detectForVideo(video, now);
+      tracker.poseMode = poses.ready;
       const events = tracker.update(res.landmarks as never, now / 1000);
+      const poseEvents = poses.update(res.landmarks as never, now / 1000);
+      if (poses.ready) events.push(...poseEvents);
       if (handle.hold) {
-        for (const a of ["block", "attack", "dodge", "jump"] as const) input.release(a, "gesture");
+        for (const a of ["block", "attack", "dodge", "jump", "heal", "lock"] as const) input.release(a, "gesture");
         input.setAnalog("hand", 0, 0);
       } else {
         for (const e of events) {
@@ -85,6 +93,7 @@ export async function startGestures(input: Input, onStatus: (s: string) => void 
   return Object.assign(handle, {
     video,
     tracker,
+    poses,
     onFrame(cb: (f: GestureFrame) => void) {
       subs.add(cb);
       return () => void subs.delete(cb);
@@ -96,7 +105,7 @@ export async function startGestures(input: Input, onStatus: (s: string) => void 
     stop() {
       stopped = true;
       cancelAnimationFrame(raf);
-      for (const a of ["block", "attack", "dodge", "jump"] as const) input.release(a, "gesture");
+      for (const a of ["block", "attack", "dodge", "jump", "heal", "lock"] as const) input.release(a, "gesture");
       input.setAnalog("hand", 0, 0);
       stream.getTracks().forEach((t) => t.stop());
       landmarker.close();
