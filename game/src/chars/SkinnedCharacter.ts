@@ -562,8 +562,8 @@ export class SkinnedCharacter implements Fighter {
     next.setLoop(spec.loop ? THREE.LoopRepeat : THREE.LoopOnce, Infinity);
     next.clampWhenFinished = !spec.loop;
     next.reset();
-    next.setEffectiveTimeScale(this.speedOf(spec));
-    next.time = spec.atEnd ? clip.duration : Math.min(time, clip.duration);
+    next.setEffectiveTimeScale(spec.pose !== undefined ? 0 : this.speedOf(spec));
+    next.time = spec.pose !== undefined ? clip.duration * spec.pose : spec.atEnd ? clip.duration : Math.min(time, clip.duration);
     next.play();
     this.cur = next;
     this.updateFades(0);
@@ -673,7 +673,7 @@ export class SkinnedCharacter implements Fighter {
     let w: Warp | null = null;
     const spec = this.cfg.clips[name];
     const has = this.source.listClips().some((c) => c.name === name);
-    if (has && !(spec?.loop || spec?.atEnd) && (spec || this.cfg.plans?.[name])) {
+    if (has && !(spec?.loop || spec?.atEnd || spec?.pose !== undefined) && (spec || this.cfg.plans?.[name])) {
       const plan: Segment[] = this.cfg.plans?.[name] ?? [{ clip: clip ?? this.spec(name).clip }];
       const segs: Warp["segs"] = [];
       const cw: number[] = [];

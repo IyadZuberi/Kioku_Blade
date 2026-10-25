@@ -21,6 +21,8 @@ export interface ClipSpec {
   fit?: number;
   /** Start at the clip's last frame and hold it (lying still after a finisher). */
   atEnd?: boolean;
+  /** Freeze on this fraction (0..1) of the clip and hold that frame: a posed stance cut out of a moving clip. */
+  pose?: number;
   /** Asset clips to use (in order) when `clip` isn't in the files; its events come along. */
   alt?: string[];
   /** Largest speed-up of the clip's lead-in / recovery when fitted to the gameplay clock (default 1.6). */
@@ -202,7 +204,10 @@ export const BOSS_SKIN: SkinnedConfig = {
   clips: {
     idle: { clip: "idle", loop: true },
     walk: { clip: "walk", loop: true },
-    guard: { clip: "block", loop: true },
+    // His guard is the braced frame of the blocked-impact clip, held: feet wide and planted, blade across the body.
+    // (The Great Sword Blocking loop tucked the elbows in and hunched him, and the idle clip has the hands clasped low:
+    // both read as timid.)
+    guard: { clip: "block_impact", pose: 0.5 },
     block: { clip: "block_impact", fit: 0.35 },
     // Deflected: his blade knocked aside (Great Sword Blocked Impact).
     recoil: { clip: "block_impact", fit: 0.95, alt: ["hit"] },
