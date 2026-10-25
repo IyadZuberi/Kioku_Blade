@@ -3,9 +3,12 @@
 **A browser samurai duel where the generals learn.** Three duels, three different fighters. After every fight, won or lost, the general has read how you fight and comes back harder. The planning is done by a language model through [Mubit](https://mubit.ai); the sword-fighting is plain code.
 
 <p align="center">
-  <img src="docs/notes/arena1.png" width="32%" alt="Arena one: the shrine courtyard">
-  <img src="docs/notes/arena2b.png" width="32%" alt="Arena two: the rooftop at dusk">
-  <img src="docs/notes/arena3b.png" width="32%" alt="Arena three: the sakura garden">
+  <img src="docs/img/title.jpg" width="100%" alt="The title screen: Kioku, Blades That Remember">
+</p>
+<p align="center">
+  <img src="docs/img/arena1-masatora.jpg" width="32%" alt="Masatora in the shrine courtyard">
+  <img src="docs/img/arena2-kazemaru.jpg" width="32%" alt="Kazemaru on the rooftop at dusk">
+  <img src="docs/img/arena3-kurogane.jpg" width="32%" alt="Kurogane in the sakura garden">
 </p>
 
 Built for the Night Shift hackathon (London, 23-25 Oct 2026). Repository name: `the-general-remembers`. A fork of [shinobi-duel](https://github.com/StarKnightt/shinobi-duel) (MIT).
@@ -28,7 +31,7 @@ If a call fails, the same rules code runs locally and canned lines are used. The
 | Kazemaru, the Spear of the Wind | Reach fighter | Lunges across the room, springs away |
 | Kurogane, the Hollow Shogun | Shinobi-trained master | Vanishes in smoke, throws a fan of shuriken |
 
-Each ends with its own finisher: *Through the Heart*, *Wind's End*, *The Last Blossom*. The Sekiro-style tricks are the game's own picks; the model never plans them.
+Each has a different voice (browser speech, with subtitles; Settings > Sound turns it down) and ends with its own finisher: *Through the Heart*, *Wind's End*, *The Last Blossom*. The Sekiro-style tricks are the game's own picks; the model never plans them.
 
 ## Run it
 

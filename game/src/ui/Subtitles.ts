@@ -5,6 +5,7 @@
  */
 import { SPEAKER_NAME, type Line, type Speaker } from "../game/story";
 import { LATIN_FONT } from "./brush";
+import { Voice } from "./Voice";
 
 const COLOR: Record<Speaker, string> = { narrator: "#efe7da", kaede: "#9fd0d8", masatora: "#e8b07a", kazemaru: "#8fc4cf", kurogane: "#e0786a" };
 
@@ -38,6 +39,7 @@ export class Subtitles {
   private i = -1;
   private timer = 0;
   private done: (() => void) | null = null;
+  readonly voice = new Voice();
 
   private readonly onKey = (e: KeyboardEvent): void => {
     if (!this.playing) return;
@@ -106,7 +108,15 @@ export class Subtitles {
     this.text.style.animation = "none";
     void this.text.offsetWidth;
     this.text.style.animation = "";
-    this.timer = window.setTimeout(() => this.advance(), Math.max(2.6, l.text.length * 0.06 + 1.2) * 1000);
+    const wait = Math.max(2.6, l.text.length * 0.06 + 1.2) * 1000;
+    const at = this.i;
+    // spoken: go on 0.7 s after the voice ends (a safety timer covers a voice that never ends); else the reading time
+    const spoken = this.voice.speak(l.text, l.who, () => {
+      if (this.i !== at) return;
+      clearTimeout(this.timer);
+      this.timer = window.setTimeout(() => this.advance(), 700);
+    });
+    this.timer = window.setTimeout(() => this.advance(), spoken ? Math.max(wait, l.text.length * 140 + 4000) : wait);
   }
 
   private clearLine(): void {
@@ -128,6 +138,7 @@ export class Subtitles {
     this.sayEl.style.color = COLOR[who];
     this.sayEl.classList.add("on");
     this.sayTimer = window.setTimeout(() => this.sayEl.classList.remove("on"), ms);
+    if (!this.playing) this.voice.speak(text, who);
   }
 
   /** The finisher's name, large over the slow motion. */
@@ -149,6 +160,7 @@ export class Subtitles {
 
   /** End now without running `done` (the game moved on). */
   stop(): void {
+    this.voice.stop();
     this.clearLine();
     this.i = -1;
     this.done = null;

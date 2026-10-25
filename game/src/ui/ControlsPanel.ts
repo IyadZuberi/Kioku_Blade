@@ -3,6 +3,7 @@
  * sound (volumes, mute), all listed from controlsData.ts. Opens from the chip on the title / end screens or with F1; Esc closes it. While
  * it is open every key and click stays inside it (the game never sees them).
  */
+import { Voice } from "./Voice";
 import { LATIN_FONT } from "./brush";
 import { BOSS_MOVES_LIST, CONTROLS, PLAYER_MOVES, type ControlRow } from "./controlsData";
 
@@ -99,6 +100,8 @@ export class ControlsPanel {
   private tab: Tab = "keyboard";
   /** Set by main: the game's audio volumes. */
   sound: SoundSettings | null = null;
+  /** Spoken voices (Settings > Sound). */
+  voice: Voice | null = null;
   private opened = false;
   /** Set by main: opens the hand-training window. */
   onPractice: () => void = () => {};
@@ -302,5 +305,27 @@ export class ControlsPanel {
     box.addEventListener("change", () => s.set({ ...s.get(), muted: box.checked }));
     mute.append(box, document.createTextNode("Mute everything (M)"));
     this.rows.appendChild(mute);
+    const vc = this.voice;
+    if (vc?.supported) {
+      const row = document.createElement("label");
+      row.className = "snd";
+      const name = document.createElement("span");
+      name.textContent = "Voices";
+      const input = document.createElement("input");
+      input.type = "range";
+      input.min = "0";
+      input.max = "100";
+      input.value = String(vc.enabled ? Math.round(vc.volume * 100) : 0);
+      input.setAttribute("aria-label", "Voices volume");
+      const out = document.createElement("output");
+      out.textContent = `${input.value}%`;
+      input.addEventListener("input", () => {
+        out.textContent = `${input.value}%`;
+        vc.set(+input.value > 0, +input.value / 100);
+      });
+      input.addEventListener("change", () => vc.speak("The blade remembers.", "masatora"));
+      row.append(name, input, out);
+      this.rows.appendChild(row);
+    }
   }
 }

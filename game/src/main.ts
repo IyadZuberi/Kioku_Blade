@@ -22,6 +22,8 @@ startGamepad(game.input);
 const menuState = () => game.state === "title" || game.state === "defeat" || game.state === "victory";
 const trainer = new PoseTrainer(document.body);
 const controls = new ControlsPanel(hud, () => menuState() && !trainer.isOpen);
+controls.voice = game.subs.voice;
+game.subs.voice.muted = () => game.audio.isMuted;
 controls.sound = {
   get: () => ({ ...game.audio.volumes, muted: game.audio.isMuted }),
   set: (v) => {
