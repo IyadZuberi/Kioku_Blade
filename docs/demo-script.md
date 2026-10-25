@@ -1,32 +1,18 @@
-# Demo script (3 minutes)
+# Demo script (two minutes)
 
-Run order before going on stage: server up, game open in Chrome on the demo laptop (`?quality=low` if integrated GPU), mouse mode, `?name=` set to something short, sound on. Keep `?replay=1` ready in a second tab as the offline backup.
-
-## The 2-minute video (lead with the learning, not the scenery)
+Record at 1280x720 with sound on (the voices and music are part of it). Keep the server and the voice sidecar running
+so the council screen shows a real model design and the rematch greeting is spoken. Use a fresh nickname so the
+general starts at level 0, or `?boss=2` to jump to the second general.
 
 | Time | Show | Say |
 |---|---|---|
-| 0:00-0:12 | A duel already running: Masatora in his riposte stance, glowing blue; the player deflects and the red "!" lands | "A boss that learns you. This is Kioku." |
-| 0:12-0:45 | Finish one duel (win or lose, it does not matter): the finisher, then the **council screen**: your own numbers, "You blocked 14 times...", what he will favour, "He has fought you 1 time. Next duel he parries 47% of long strings and moves +6% faster." | "After every duel the numbers go to Mubit. The model reads my habit and plans his next fight." |
-| 0:45-1:15 | Rematch: he opens with the string the council named; show the parry glow and "PARRIED" | "Same general, new plan: he is faster, parries more, and opens with the counter to my habit." |
-| 1:15-1:35 | The duel after that, **lost on purpose**: council screen again, level higher | "Win or lose, he gets harder. Losses never make him easier; after three in a row he holds, he does not drop." |
-| 1:35-1:55 | Mubit console: Requests (real calls, request ids), Tasks (one task, kept examples), Adapters | "One task, 80 seeded examples; Mubit trains a small adapter for it and tests it against the big model." |
-| 1:55-2:00 | Title: "The General remembers N duels against you" | "Blades that remember." |
+| 0:00 to 0:10 | Title screen, then press any key | "Bored of fighting the same boss with the same moves again and again? Meet Kioku: blades that remember." |
+| 0:10 to 0:25 | Narrated prologue (Esc skips), the chapter card | "Three generals who never forget a fighter. Every voice and every cut scene is narrated." |
+| 0:25 to 0:50 | The duel: deflect, a combo, the banner, a finisher | "He is shielded: I can only cut him just after I step through a blow. I deflect, break his posture, finish him." |
+| 0:50 to 1:10 | War council screen | "This is what he learned about me: how I fight, where I stand, his level, and the combos the language model designed for him. That call went through Mubit." |
+| 1:10 to 1:30 | Rematch: his new line, different distance, new combo, different condition | "Same general, different fight. He keeps away because I fight close. The condition changed because I beat the last one." |
+| 1:30 to 1:45 | Pause menu (Esc), hand poses window | "Pause, switch to hands, train a pose per action, or leave and forfeit." |
+| 1:45 to 2:00 | Mubit: call log with request ids, the three tasks, the cost table | "Three Mubit tasks, about 1,400 stored calls, a duel costs under a tenth of a cent on the small model, and the adapters learn from this traffic." |
 
-## Live demo order (3 minutes)
-
-| Time | Do | Say |
-|---|---|---|
-| 0:00-0:15 | Title screen with the crowd banner ("The General has fought N duels") | "Game bosses never learn you. Ours does, and its brain gets cheaper." |
-| 0:15-1:30 | A judge plays one fight (mouse) | (let them play; point at deflect timing if they struggle) |
-| 1:30-1:50 | Council screen appears with their numbers | Read one real line: "You blocked 14 times and deflected 2, so he comes with thrust and grab." |
-| 1:50-2:20 | Rematch, short | "Same general, new plan: watch for the opening string." |
-| 2:20-2:50 | `/dashboard` scoreboard + Mubit console Requests | Say exactly what the rows are. Label overnight rows "trained overnight". Say Mubit "passed" means agreement with the big model, not ground truth. |
-| 2:50-3:00 | Close | "Your fights today are tomorrow's general: fast, cheap and owned." |
-
-Honest lines to keep ready:
-- "Mubit trains the small model overnight; during the demo the plan comes from the provider model (or the rules table if Mubit is off). Both are labelled on screen."
-- "The labels for the held-out set come from our own habit table. The baseline row shows that table alone."
-- If asked "is it just difficulty knobs?": "The model picks habit-targeted opening strings and emphasis; code maps them to the base game's tested knobs, and a validator keeps every plan fair."
-
-Backup: `?replay=1` (stored real plans, labelled replay), recorded video, screenshots of the Mubit console History.
+Backup if the network is down: the game works without the server; the council screen then says the plan was local and the
+general still levels up, gets new combos and conditions from the brain in the game.
