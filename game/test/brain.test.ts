@@ -125,7 +125,7 @@ describe("the language model's design", () => {
     expect(b.cond).toBe("whenOpen");
     const beh = behaviourOf(b, MV);
     expect(beh.moves).toContain("windSlash");
-    expect(beh.named[0]).toMatchObject({ name: "Broken Rhythm", from: "his own design (language model)" });
+    expect(beh.named[0]).toMatchObject({ name: "Broken Rhythm", from: "designed by the language model" });
     expect(beh.chains[0]).toEqual(forge.combos[0].moves);
     expect(beh.tactic).toBe("kite");
     expect(beh.forgeNote).toBe("He keeps away now.");

@@ -211,7 +211,7 @@ export function behaviourOf(b: Brain, baseMoves: readonly string[]): Behaviour {
   // real combos first (a few more of them, and a different few each duel), then ones he makes up
   const pool = L >= 1 ? usableCombos(moves, preferFor(tactic)) : [];
   const take = Math.min(pool.length, 1 + Math.floor(L / 4));
-  const own: Combo[] = (f?.combos ?? []).filter((c) => c.moves.every((m) => moves.includes(m))).map((c, i) => ({ id: `forge-${i}`, name: c.name, from: "his own design (language model)", moves: c.moves, range: "mixed", why: "Designed after reading how you fight.", answer: "" }));
+  const own: Combo[] = (f?.combos ?? []).filter((c) => c.moves.every((m) => moves.includes(m))).map((c, i) => ({ id: `forge-${i}`, name: c.name, from: "designed by the language model", moves: c.moves, range: "mixed", why: "Designed after reading how you fight.", answer: "" }));
   const named = [...own, ...Array.from({ length: take }, (_, i) => pool[(b.duels + i) % pool.length])];
   return {
     level: L,

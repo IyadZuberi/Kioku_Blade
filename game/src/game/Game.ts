@@ -222,9 +222,9 @@ export class Game {
     const skills = beh.skills.length ? ` New in him: ${beh.skills[beh.skills.length - 1]}.` : "";
     const tactic = beh.tactic === "kite" ? " You fight close, so he will keep away and cut from range." : beh.tactic === "crowd" ? " You keep your distance, so he will crowd you." : "";
     const combo = beh.named.length ? ` He has learned ${beh.named[0].name} (${beh.named[0].from.split(":")[0]}).` : "";
-    const forged = beh.forgeNote ? ` The war council's designer says: ${beh.forgeNote}` : "";
-    const cond = br.cond !== "none" ? ` Next time ${COND_TEXT[br.cond].replace("Shielded. ", "he is shielded: ").toLowerCase()}` : "";
-    return `${readingOf(br)} Level ${br.level.toFixed(1)}: he parries ${learned.parryPct}% of long strings, ${learned.speedPct >= 0 ? "+" : ""}${learned.speedPct}% faster, ${beh.chains.length ? beh.chains[0].length : 2}-move combos.${skills}${combo}${forged}${tactic}${cond}`.trim();
+    const forged = beh.forgeNote ? `The war council's designer says: ${beh.forgeNote}` : "";
+    const cond = br.cond !== "none" ? `Next time he is shielded: ${COND_TEXT[br.cond].replace("Shielded. ", "").replace(/^Cut/, "cut")}` : "";
+    return [readingOf(br), `Level ${br.level.toFixed(1)}: he parries ${learned.parryPct}% of long strings, ${learned.speedPct >= 0 ? "+" : ""}${learned.speedPct}% faster, ${beh.chains.length ? beh.chains[0].length : 2}-move combos.${skills}`, `${combo}${tactic}`.trim(), forged.trim(), cond.trim()].filter(Boolean).join("\n");
   }
   private lastSneer = -99;
   /** A line the model wrote for this general about this player ("" until the first duel with him, or when its call failed). */
@@ -577,7 +577,8 @@ export class Game {
       }
       if (r.lines?.source === "mubit") for (const k of ["greeting", "parry", "fall", "win"] as const) this.subs.voice.prefetch(r.lines[k], speakerOf(boss)); // have the server voice his new lines now, not when he speaks them
       const present = (): void => {
-        this.council.show(r, this.prevHabits, `He has fought you ${this.mem.fights} ${this.mem.fights === 1 ? "time" : "times"}. ${this.brainText()}`);
+        this.council.show(r, this.prevHabits, `He has fought you ${this.mem.fights} ${this.mem.fights === 1 ? "time" : "times"}.
+${this.brainText()}`);
         if (this.advancedTo) this.council.flash(`Chapter ${BOSSES[this.advancedTo].chapter} unlocked: ${BOSSES[this.advancedTo].latin}, ${BOSSES[this.advancedTo].epithet}.`);
         else if (summary.victory && this.bossDef.gate > 0) this.council.flash(`Streak ${this.progress.streak} of ${this.bossDef.gate} against ${this.bossDef.latin}.`);
       };
