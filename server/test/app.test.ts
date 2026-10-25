@@ -42,7 +42,7 @@ describe("POST /api/fight-end", () => {
     expect(j.valid).toBe(true);
     expect(j.requestId).toBe("mreq_fake");
     expect(j.plan.intel).toBe("Mubit says hi.");
-    expect(j.bossLevel).toBe(1);
+    expect(j.bossLevel).toBe(4); // the first duel already raises the level: 2 + 2 per duel
     expect(j.intelLines.join(" ")).toContain("14");
     expect(j.habits[0].habit).toBe("block_holder");
     const g: any = await (await fetch(base + "/api/global")).json();
@@ -100,14 +100,27 @@ describe("POST /api/fight-end", () => {
     const c: any = await (await post("/api/fight-end", fe({ fightId: "3", stats: { ...zero, victory: true } }))).json();
     expect(c.grudge).toBe(0);
   });
-  it("after two losses in a row tempo_step drops one (never below 0)", async () => {
-    const hot: Deps["callPlan"] = async (input) => ({ out: { ...rulesPlan(input.habits, input.bossLevel), tempo_step: 3, gap_step: 2 }, ok: true, latencyMs: 1 });
-    const { post, db } = boot(hot);
-    setTotalFights(db, 72); // boss level 10: tempo ceiling 4
-    const one: any = await (await post("/api/fight-end", fe({ fightId: "1" }))).json();
-    const two: any = await (await post("/api/fight-end", fe({ fightId: "2" }))).json();
-    expect(one.plan.tempo_step).toBe(3);
-    expect(two.plan.tempo_step).toBe(2);
+  it("on the rules path two losses in a row take one tempo step off (never below 0)", async () => {
+    const down: Deps["callPlan"] = async () => ({ out: undefined, ok: false, latencyMs: 1, error: "down" });
+    const { post } = boot(down);
+    const a: any = await (await post("/api/fight-end", fe({ fightId: "1" }))).json();
+    const b: any = await (await post("/api/fight-end", fe({ fightId: "2" }))).json();
+    expect(a.source).toBe("rules");
+    // level 6 allows tempo step 2; the habit-driven plan wants it, the second straight loss takes one off
+    expect(b.plan.tempo_step).toBeGreaterThanOrEqual(0);
+    expect(b.plan.tempo_step).toBeLessThanOrEqual(1);
+  });
+  it("every duel raises the level, won or lost; it is per player, not global", async () => {
+    const { post } = boot();
+    const lv = async (id: string, nick: string, victory: boolean) => ((await (await post("/api/fight-end", fe({ fightId: id, nickname: nick, stats: { ...zero, victory } }))).json()) as any).bossLevel;
+    expect([await lv("a1", "Kenji", false), await lv("a2", "Kenji", true), await lv("a3", "Kenji", false)]).toEqual([4, 6, 8]);
+    expect(await lv("b1", "Mika", false)).toBe(4); // another player starts again at the bottom
+  });
+  it("after three losses in a row the level holds until a win", async () => {
+    const { post } = boot();
+    const lv = async (id: string, victory: boolean) => ((await (await post("/api/fight-end", fe({ fightId: id, stats: { ...zero, victory } }))).json()) as any).bossLevel;
+    expect([await lv("l1", false), await lv("l2", false), await lv("l3", false), await lv("l4", false)]).toEqual([4, 6, 6, 6]);
+    expect(await lv("w1", true)).toBe(10);
   });
   it("the nickname never reaches the prompt input and the session id is slugged", async () => {
     const { post, calls } = boot();

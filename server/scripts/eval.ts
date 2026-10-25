@@ -33,18 +33,22 @@ const runner: Runner = live
       const sessionId = `gr-eval-${label}-${i}`;
       const r = await callTask(generalPlanTask, input, { sessionId, store: false, timeoutMs: 20000 });
       logCall({ ts: new Date().toISOString(), task: generalPlanTask.name, task_hash: hash, session_id: sessionId, store: false, ok: r.ok, latency_ms: Math.round(r.latencyMs), prompt_tokens: r.usage?.prompt_tokens, completion_tokens: r.usage?.completion_tokens, request_id: r.requestId, served_by: "unknown", error: r.error });
+      // Groq free tier: ~8k tokens/min. Wait for the window like send_seed.ts, or most of the 60 calls 429.
+      const left = Number(r.limits?.["remaining-tokens"] ?? 8000);
+      const m = /(?:(\d+)m)?([\d.]+)s/.exec(r.limits?.["reset-tokens"] ?? "0s");
+      if (left < 2600) await new Promise((res) => setTimeout(res, ((m ? Number(m[1] ?? 0) * 60 + Number(m[2]) : 15) + 1) * 1000));
       return { out: r.out, ok: r.ok, latencyMs: r.latencyMs, usage: r.usage };
     }
   : async (input) => {
       const t0 = performance.now();
-      return { out: rulesPlan(input.habits, input.bossLevel), ok: true, latencyMs: performance.now() - t0 };
+      return { out: rulesPlan(input.habits, input.bossLevel, input.unlocked), ok: true, latencyMs: performance.now() - t0 };
     };
 
 mkdirSync("../data/eval", { recursive: true });
 const refFile = "../data/eval/provider-plans.json";
 const reference: Plan[] | undefined = label !== "provider" && existsSync(refFile) ? JSON.parse(readFileSync(refFile, "utf8")) : undefined;
 const model = generalPlanTask.model.replace(/-\d{4}-\d{2}-\d{2}$/, "");
-const res = await evalSet(items, runner, { reference, keepPlans: true, prices: live ? PRICES[model] : undefined, concurrency: live ? 4 : 1 });
+const res = await evalSet(items, runner, { reference, keepPlans: true, prices: live ? PRICES[model] : undefined, concurrency: 1 });
 writeFileSync(`../data/eval/${label}-plans.json`, JSON.stringify(res.plans));
 const { plans: _plans, ...row } = res;
 const iso = new Date().toISOString();

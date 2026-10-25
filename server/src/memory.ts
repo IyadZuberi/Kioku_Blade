@@ -64,6 +64,18 @@ export function recordGlobal(db: DatabaseSync, habits: HabitScore[], stats: Stat
   setG(db, "moveHits", mh);
 }
 
+/** This fight's habits blended with the player's running averages, so counters persist across fights. */
+export function blendHabits(now: HabitScore[], avgs: Partial<Record<HabitId, number>>, wNow = 0.6): HabitScore[] {
+  const ids = new Set<HabitId>([...now.map((h) => h.habit), ...(Object.keys(avgs) as HabitId[])]);
+  const out: HabitScore[] = [];
+  for (const id of ids) {
+    const h = now.find((x) => x.habit === id);
+    const s = wNow * (h?.strength ?? 0) + (1 - wNow) * (avgs[id] ?? 0);
+    if (s > 0.05) out.push({ habit: id, strength: +s.toFixed(3), evidence: h?.evidence ?? `${id.replace("_", " ")} in earlier fights` });
+  }
+  return out.sort((a, b) => b.strength - a.strength).slice(0, 3);
+}
+
 export function globalMemory(db: DatabaseSync) {
   const total = getTotalFights(db);
   const hc = getG<Record<string, number>>(db, "habitCounts", {});

@@ -1,9 +1,9 @@
 import express, { type Request, type Response } from "express";
 import type { DatabaseSync } from "node:sqlite";
 import { bossOf, computeHabits, limitsForLevel, movesFor, rulesPlan, validatePlan, type BossId, type HabitScore, type Plan, type StatsSummary } from "@gr/shared";
-import { bossLevel } from "./bossLevel";
+import { bossLevel, playerLevel } from "./bossLevel";
 import { createHash, randomUUID, timingSafeEqual } from "node:crypto";
-import { addRule, designerRules, getPlayer, getTotalFights, globalMemory, recordGlobal, updatePlayer } from "./memory";
+import { addRule, blendHabits, designerRules, getPlayer, getTotalFights, globalMemory, recordGlobal, updatePlayer } from "./memory";
 import type { PlanInput } from "./prompts/general_plan";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -64,10 +64,13 @@ export function createApp(deps: Deps) {
   const inflight = new Map<string, Promise<FightEndResponse>>();
 
   async function fightEnd(fightId: string, nickname: string, stats: StatsSummary, boss: BossId, bossStreak: number): Promise<FightEndResponse> {
-    const habits = computeHabits(stats);
-    const level = bossLevel(getTotalFights(db));
+    const fightHabits = computeHabits(stats);
+    const player = updatePlayer(db, nickname, fightHabits, stats.victory);
+    // Per-player ramp: every duel (won or lost) raises the level; a win streak raises it faster.
+    const level = playerLevel(player, bossStreak);
     const limits = limitsForLevel(level);
-    const player = updatePlayer(db, nickname, habits, stats.victory);
+    // What the plan counters: this fight blended with this player's history (input data only).
+    const habits = blendHabits(fightHabits, player.habit_avgs);
     const gm = globalMemory(db);
     const allowed = movesFor(boss);
     const fallback = rulesPlan(habits, level, allowed);
@@ -105,8 +108,13 @@ export function createApp(deps: Deps) {
       failures = ["call_failed"];
       source = "rules";
     }
-    // Two losses in a row: one step less raw speed. Targeting stays.
-    if (player.consecutive_losses >= 2) plan = { ...plan, tempo_step: Math.max(0, plan.tempo_step - 1) as Plan["tempo_step"] };
+    if (source === "rules") {
+      // Rules path: a win streak pushes pressure up within the level's limits ...
+      if (stats.victory) plan = { ...plan, tempo_step: Math.max(plan.tempo_step, Math.min(limits.maxTempoStep, bossStreak)) as Plan["tempo_step"], gap_step: Math.max(plan.gap_step, Math.min(limits.maxGapStep, bossStreak)) as Plan["gap_step"] };
+      // ... and two losses in a row take one step of raw speed off. (The LLM path already does this per its
+      // prompt rule; doing it here too would lower tempo twice.)
+      if (player.consecutive_losses >= 2) plan = { ...plan, tempo_step: Math.max(0, plan.tempo_step - 1) as Plan["tempo_step"] };
+    }
 
     const res: FightEndResponse = {
       plan,
@@ -233,7 +241,9 @@ export function createApp(deps: Deps) {
 
   // Stored real plans for demo fallback (Wi-Fi or Mubit down). Always labelled "replay".
   app.get("/api/replay", (_req: Request, res: Response) => {
-    const rows = db.prepare("SELECT response FROM fights ORDER BY rowid DESC LIMIT 20").all() as { response: string }[];
+    // Prefer real model plans; fall back to any stored plan (rules) only when none exist yet.
+    let rows = db.prepare("SELECT response FROM fights WHERE source = 'mubit' ORDER BY rowid DESC LIMIT 20").all() as { response: string }[];
+    if (!rows.length) rows = db.prepare("SELECT response FROM fights ORDER BY rowid DESC LIMIT 20").all() as { response: string }[];
     res.json({ plans: rows.map((r) => ({ ...JSON.parse(r.response), source: "replay" })) });
   });
 

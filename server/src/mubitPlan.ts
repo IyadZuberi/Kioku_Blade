@@ -10,7 +10,8 @@ import type { Deps } from "./app";
 export function makeCallPlan(o: { call?: typeof callTask; perMinute?: number; log?: typeof logCall } = {}): Deps["callPlan"] {
   const call = o.call ?? callTask;
   const log = o.log ?? logCall;
-  const perMinute = o.perMinute ?? 30;
+  // Groq free tier is ~8k tokens/min (~4 plans): set MUBIT_PER_MINUTE=4 there; default stays 30.
+  const perMinute = o.perMinute ?? (Number(process.env.MUBIT_PER_MINUTE) || 30);
   const stamps: number[] = [];
   return async (input, sessionId) => {
     if (process.env.MUBIT_LIVE !== "1") return { out: undefined, ok: false, latencyMs: 0, error: "MUBIT_LIVE is not 1: no Mubit call made" };
@@ -19,7 +20,7 @@ export function makeCallPlan(o: { call?: typeof callTask; perMinute?: number; lo
     while (stamps.length && now - stamps[0] > 60_000) stamps.shift();
     if (stamps.length >= perMinute) return { out: undefined, ok: false, latencyMs: 0, error: `rate limit: ${perMinute} live calls per minute` };
     stamps.push(now);
-    const r = await call(generalPlanTask, input, { sessionId, store: true, timeoutMs: 6000 });
+    const r = await call(generalPlanTask, input, { sessionId, store: true, timeoutMs: 4500 } /* < the browser's 6 s requestPlan abort, so a slow live plan is not shown as "offline" */);
     log({
       ts: new Date().toISOString(),
       task: generalPlanTask.name,

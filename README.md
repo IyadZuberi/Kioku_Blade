@@ -26,7 +26,7 @@ cd server
 pnpm gen:seed; pnpm gen:heldout                         # local, free: data/seed.json (80), data/heldout.json (60)
 pnpm eval --label baseline                              # local, free: the rules table as a baseline row
 # LIVE (spends credits; do these in order, after reading docs/notes/wiring.md):
-#   tsx scripts/smoke.ts                                 one call: does strict json_schema work on starter credit?
+#   tsx scripts/smoke.ts --yes-live                      one call: does strict json_schema work on starter credit?
 #   tsx scripts/send_seed.ts --yes-live                  80 calls, storage ON: this is what Mubit trains on
 #   pnpm eval --label provider --yes-live --notes "..."  60 calls, storage OFF
 ```
@@ -39,7 +39,7 @@ Mouse and keyboard (from the base): LMB / J strike, RMB / K guard (tap just befo
 
 Optional hand gestures (`G`, or `?gestures=1`): a fist is the guard, a fast sideways swipe strikes, a fast downward swipe steps, a fast upward flick jumps. Movement and the gourd stay on the keyboard. Video never leaves the browser. Needs a webcam and has not been tested with a real hand yet (see `docs/verification.md`).
 
-URL options: `?name=` player name, `?quality=low|high`, `?theme=snow` (original look), `?replay=1` (serve stored plans, labelled replay), `?gestures=1`, `?difficulty=easy|medium|hard`.
+URL options: `?name=` player name, `?quality=low|high`, `?replay=1` (serve stored plans, labelled replay), `?gestures=1`, `?difficulty=easy|medium|hard`.
 
 Host key: `H` on the end screen teaches the General a rule and re-sends that fight with it. It needs `HOST_TOKEN` set on the server (the game asks for it once per tab); without a token the endpoint is disabled.
 

@@ -56,10 +56,10 @@ stop swinging and guard.
 
 1. Mubit console → API keys → create a key (starts with `mbt_`). Never paste it in chat or commit it.
 2. Create `the-general-remembers/.env` (gitignored) from `.env.example`:
-   `MUBIT_API_KEY=mbt_...`, `MUBIT_BASE_URL=https://api.mubit.ai/openai/v1`, `MUBIT_MODEL=gpt-6-luna`.
+   `MUBIT_API_KEY=mbt_...`, `MUBIT_BASE_URL=https://api.mubit.ai/compat/groq/v1`, `MUBIT_MODEL=openai/gpt-oss-120b` (what .env.example and the seeded task use).
 3. One smoke call (1 credit): `cd server && MUBIT_LIVE=1 pnpm exec tsx scripts/smoke.ts --yes-live`.
 4. Seed (80 calls): `MUBIT_LIVE=1 pnpm exec tsx scripts/send_seed.ts --yes-live`. From here the prompt file is frozen.
-5. Live play: `MUBIT_LIVE=1 pnpm -C server dev` and `pnpm -C game dev`.
+5. Live play (PowerShell): `$env:MUBIT_LIVE="1"; pnpm -C server dev`, then `pnpm -C game dev` in a second window.
 
 ## Settings (F1, or the Settings chip on the title)
 
