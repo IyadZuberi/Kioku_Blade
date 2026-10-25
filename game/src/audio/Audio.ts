@@ -60,6 +60,12 @@ export class GameAudio {
   private smp: Samples | null = null;
   /** The ground underfoot (set per arena): which footstep recordings play. */
   surface: "step-snow" | "step-grass" | "step-gravel" = "step-gravel";
+  private arenaTheme = 1;
+  /** The arena's music theme (1 shrine, 2 rooftop, 3 sakura): key, scale, pace and drum feel. */
+  setTheme(n: number): void {
+    this.arenaTheme = n;
+    this.music?.setTheme(n);
+  }
   private lastDeflect = -9;
   private charge: { nodes: AudioNode[]; srcs: AudioScheduledSourceNode[]; out: GainNode } | null = null;
   private charging = false;
@@ -142,6 +148,7 @@ export class GameAudio {
     this.mix = new Mix(ctx);
     this.voice = new Voices(this.mix);
     this.music = new Music(this.mix);
+    this.music.setTheme(this.arenaTheme);
     this.amb = new Ambience(this.mix);
     this.amb.on = o.ambience ?? true;
     this.shamisen = makeString(ctx, 146.83, SHAMISEN);

@@ -10,9 +10,27 @@
 import type { Mix } from "./mix";
 import { KOTO, makeString } from "./synth";
 
-const SCALE = [0, 1, 5, 7, 8]; // semitones from D
+/**
+ * One theme per arena (and so per general): its own key, scale, pace, koto-versus-flute balance and
+ * drum feel. 1 shrine: miyako-bushi on D, the base score. 2 rooftop at dusk: the brighter yo scale a fourth
+ * up, faster, galloping shime. 3 sakura garden: hirajoshi a step down, slow, koto-led, heavy o-daiko.
+ */
+interface Theme {
+  scale: number[];
+  /** Semitones from D. */
+  root: number;
+  tempoMul: number;
+  /** Chance a flute phrase also gets a koto note. */
+  kotoP: number;
+  gallop: boolean;
+  weight: number;
+}
+const THEMES: Record<number, Theme> = {
+  1: { scale: [0, 1, 5, 7, 8], root: 0, tempoMul: 1, kotoP: 0.3, gallop: false, weight: 1 },
+  2: { scale: [0, 2, 5, 7, 9], root: 5, tempoMul: 1.14, kotoP: 0.15, gallop: true, weight: 0.9 },
+  3: { scale: [0, 2, 3, 7, 8], root: -2, tempoMul: 0.9, kotoP: 0.6, gallop: false, weight: 1.25 },
+};
 const D4 = 293.66;
-const note = (deg: number) => D4 * Math.pow(2, (SCALE[((deg % 5) + 5) % 5] + 12 * Math.floor(deg / 5)) / 12);
 
 // 16-step patterns; values = velocity.
 const ODAIKO = [1, 0, 0, 0, 0, 0, 0, 0, 0.8, 0, 0, 0, 0, 0, 0.45, 0];
@@ -35,6 +53,7 @@ export class Music {
   private phraseAt = 0;
   private lastDeg = 5;
   private scene: Scene = "";
+  private th: Theme = THEMES[1];
   tempo = 76;
   intensity = 0;
   phase = 1;
@@ -72,6 +91,20 @@ export class Music {
     }
   }
 
+  /** Pick the arena's theme (1..3); the drone follows the key, the next phrase and drum bar use the new scale and pace. */
+  setTheme(n: number): void {
+    const th = THEMES[n] ?? THEMES[1];
+    if (th === this.th) return;
+    this.th = th;
+    const k = Math.pow(2, th.root / 12);
+    [73.42, 73.42, 110, 146.8].forEach((f, i) => this.droneOsc[i].frequency.setTargetAtTime(f * k, this.mix.now, 1.5));
+  }
+
+  private note(deg: number): number {
+    const sc = this.th.scale;
+    return D4 * Math.pow(2, (sc[((deg % 5) + 5) % 5] + 12 * Math.floor(deg / 5) + this.th.root) / 12);
+  }
+
   setScene(s: Scene): void {
     if (s === this.scene) return;
     const prev = this.scene;
@@ -101,7 +134,7 @@ export class Music {
       while (this.next < ahead) {
         this.drumStep(this.next, this.step);
         this.step++;
-        this.next += 60 / this.tempo / 4;
+        this.next += 60 / (this.tempo * this.th.tempoMul) / 4;
       }
     }
     if ((this.scene === "title" || this.scene === "fight") && t >= this.phraseAt) {
@@ -122,7 +155,9 @@ export class Music {
     // Denser drums play a little softer each, so the ensemble thickens without swamping the steel.
     const k = 1 - 0.25 * L;
     const od = L > 0.62 || this.phase === 2 ? ODAIKO2 : ODAIKO;
-    if (od[s]) this.odaiko(hum(), od[s] * (0.75 + L * 0.3) * k);
+    if (od[s]) this.odaiko(hum(), od[s] * (0.75 + L * 0.3) * k * this.th.weight);
+    // the rooftop gallops: an extra shime on the off-beats even before the fight heats up
+    if (this.th.gallop && L > 0.25 && (s % 4 === 3 || s % 8 === 6)) this.shime(hum(), 0.45 * Math.min(1, L * 2));
     if (L > 0.5 && NAGADO[s]) this.nagado(hum(), NAGADO[s] * Math.min(1, (L - 0.5) * 3) * k);
     if (L > 0.68 && SHIME[s]) this.shime(hum(), SHIME[s] * Math.min(1, (L - 0.68) * 3.5) * k);
     if (L > 0.45 && KA[s]) this.ka(hum(), KA[s]);
@@ -177,8 +212,8 @@ export class Music {
       deg = Math.max(2, Math.min(9, deg));
       if (i === n - 1) deg = Math.max(2, deg - 1);
       const len = (i === n - 1 ? 2.2 : 0.9 + Math.random() * 0.9) * (busy > 0.5 ? 0.8 : 1);
-      if (Math.random() < 0.3 && busy < 0.6) this.kotoNote(at, deg - 5, 0.45);
-      this.shakuhachi(at, note(deg), len, 0.24 - busy * 0.08);
+      if (Math.random() < this.th.kotoP && busy < 0.6) this.kotoNote(at, deg - 5, 0.45);
+      this.shakuhachi(at, this.note(deg), len, 0.24 - busy * 0.08);
       at += len * (0.85 + Math.random() * 0.2);
     }
     this.lastDeg = deg;
@@ -251,7 +286,7 @@ export class Music {
   }
 
   kotoNote(t: number, deg: number, gain: number): void {
-    this.mix.play(this.flute, t, this.koto, note(deg) / 293.66, gain, 0.7, this.mix.musicVerb);
+    this.mix.play(this.flute, t, this.koto, this.note(deg) / 293.66, gain, 0.7, this.mix.musicVerb);
   }
 
   // ------------------------------------------------------------------ stings
@@ -262,14 +297,14 @@ export class Music {
     const hit = t + 0.72;
     this.odaiko(hit, 1.2, true);
     for (let i = 0; i < 5; i++) this.kotoNote(hit + 0.15 + i * 0.13, [0, 2, 3, 4, 5][i], 0.5);
-    this.shakuhachi(hit + 0.8, note(7), 3.2, 0.22);
-    this.shakuhachi(hit + 0.82, note(5), 3.0, 0.1);
+    this.shakuhachi(hit + 0.8, this.note(7), 3.2, 0.22);
+    this.shakuhachi(hit + 0.82, this.note(5), 3.0, 0.1);
   }
 
   private defeat(t: number): void {
     this.odaiko(t, 0.8, true);
-    this.shakuhachi(t + 0.6, note(4), 1.6, 0.16);
-    this.shakuhachi(t + 2.1, note(2) * 0.985, 3, 0.14);
+    this.shakuhachi(t + 0.6, this.note(4), 1.6, 0.16);
+    this.shakuhachi(t + 2.1, this.note(2) * 0.985, 3, 0.14);
   }
 
   /** The death moment: a falling bend on the flute over a deep drum (the "死" beat). */
@@ -301,7 +336,7 @@ export class Music {
         g.disconnect();
       };
     }
-    this.shakuhachi(t + 0.3, note(6), 0.5, 0.18);
-    this.shakuhachi(t + 0.8, note(4) * 0.97, 1.8, 0.16);
+    this.shakuhachi(t + 0.3, this.note(6), 0.5, 0.18);
+    this.shakuhachi(t + 0.8, this.note(4) * 0.97, 1.8, 0.16);
   }
 }

@@ -31,7 +31,7 @@ If a call fails, the same rules code runs locally and canned lines are used. The
 | Kazemaru, the Spear of the Wind | Reach fighter | Lunges across the room, springs away |
 | Kurogane, the Hollow Shogun | Shinobi-trained master | Vanishes in smoke, throws a fan of shuriken |
 
-Each has a different voice (browser speech, with subtitles; Settings > Sound turns it down) and ends with its own finisher: *Through the Heart*, *Wind's End*, *The Last Blossom*. The Sekiro-style tricks are the game's own picks; the model never plans them.
+Each arena has its own music (key, scale and pace). Each general has a different voice (browser speech, with subtitles; Settings > Sound turns it down) and ends with its own finisher: *Through the Heart*, *Wind's End*, *The Last Blossom*. The Sekiro-style tricks are the game's own picks; the model never plans them.
 
 ## Run it
 
@@ -65,7 +65,7 @@ $env:MUBIT_PER_MINUTE="6"; pnpm start             # live play
 
 `general_plan` is **frozen** once seeded: Mubit groups calls into a task by model, instructions and output format, so any edit starts a new empty task. `server/test/frozen.test.ts` pins the hash. Mubit keeps examples, and trains a small adapter for the task at 25 kept examples. Whether an adapter then serves live traffic is not documented by Mubit, so the game does not depend on it.
 
-How the models are used, what goes in and out, and call sizes: [`docs/llm.md`](docs/llm.md). System flowchart: [`docs/architecture.md`](docs/architecture.md).
+The full story (why a model, what Mubit adds, judging self-assessment, gaps): [`docs/story.md`](docs/story.md). How the models are used, what goes in and out, and call sizes: [`docs/llm.md`](docs/llm.md). System flowchart: [`docs/architecture.md`](docs/architecture.md).
 
 ## Controls
 
