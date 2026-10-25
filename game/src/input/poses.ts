@@ -69,8 +69,27 @@ export function classify(f: number[], set: PoseSet): Match | null {
   return best;
 }
 
+/** Add a freshly captured pose and drop the stale ones: the old pose for the same action, and any other pose whose shape is now ambiguous with it. */
+export function withPose(poses: Pose[], added: Pose): Pose[] {
+  const alike = (p: Pose) => p.samples.some((s) => added.samples.some((n) => dist(s, n) < POSE.maxDist));
+  return [...poses.filter((p) => p.action !== added.action && !alike(p)), added];
+}
+
 export class PoseTracker {
-  set: PoseSet = { poses: [] };
+  private poseSet: PoseSet = { poses: [] };
+  get set(): PoseSet {
+    return this.poseSet;
+  }
+  /** Replacing the poses also forgets what was held and any cooldowns, so nothing stale fires. */
+  set set(v: PoseSet) {
+    this.poseSet = v;
+    this.seen = null;
+    this.count = 0;
+    this.active = null;
+    this.off = 0;
+    this.cool = {};
+    this.current = null;
+  }
   /** What is recognised right now (for the trainer's live readout). */
   current: Match | null = null;
   private seen: string | null = null;

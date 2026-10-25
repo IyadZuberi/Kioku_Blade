@@ -57,3 +57,16 @@ describe("poses", () => {
     expect(ev).toEqual([]);
   });
 });
+
+import { withPose } from "../src/input/poses";
+describe("withPose", () => {
+  it("replaces the old pose of the same action and any pose it is now ambiguous with", () => {
+    const a = hand(1), b = hand(0), c = hand(0.5, 0.7, 4);
+    const old = [pose("a", "block", a), pose("b", "attack", b)];
+    const next = withPose(old, pose("n", "block", a));
+    expect(next.map((p) => p.id)).toEqual(["b", "n"]); // old block gone
+    const dup = withPose(old, pose("d", "jump", b)); // same shape as attack: attack is dropped
+    expect(dup.map((p) => p.id)).toEqual(["a", "d"]);
+    expect(withPose(old, pose("e", "dodge", c)).length).toBe(3);
+  });
+});

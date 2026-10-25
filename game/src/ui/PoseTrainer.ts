@@ -5,7 +5,7 @@
  */
 import { LATIN_FONT } from "./brush";
 import type { GestureFrame, GestureHandle } from "../input/gestures";
-import { classify, poseFeatures, savePoses, type Pose, type PoseAction } from "../input/poses";
+import { classify, poseFeatures, savePoses, withPose, type Pose, type PoseAction } from "../input/poses";
 
 const W = 420;
 const H = 315;
@@ -179,8 +179,8 @@ export class PoseTrainer {
         if (r.samples.length >= 8) {
           const step = Math.max(1, Math.floor(r.samples.length / 24));
           const pose: Pose = { id: `p${Date.now()}`, name: r.action, action: r.action, samples: r.samples.filter((_, i) => i % step === 0) };
-          // one pose per action: a new capture replaces the old one of that action
-          this.set([...h.poses.set.poses.filter((p) => p.action !== r.action), pose]);
+          // a new capture replaces the old pose of that action and any pose that looks the same as it
+          this.set(withPose(h.poses.set.poses, pose));
         } else banner = "No hand seen. Try again.";
       }
     }
