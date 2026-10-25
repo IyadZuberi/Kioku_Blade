@@ -10,7 +10,7 @@
  *  5. picks the CONDITION under which he can be hurt, aimed at the player's favourite style (they must change it),
  *  6. unlocks the next SKILLS: feints, swings of uneven speed, delayed strikes, answering a dodge...
  */
-import type { StatsSummary } from "@gr/shared";
+import type { BrainDigest, Forge, StatsSummary } from "@gr/shared";
 import { arsenalMoves, NO_RANGE, preferFor, SPECIALS, tacticOf, usableCombos, type Combo, type RangeBook } from "./arsenal";
 
 export type Cond = "none" | "afterDeflect" | "afterDodge" | "whenOpen" | "guardBroken";
@@ -40,6 +40,10 @@ export interface Brain {
   seed: number;
   /** Where the player fights and which distance has hurt them more (see arsenal.ts tacticOf). */
   range: RangeBook;
+  /** What the language model designed for him after the last duel (checked; see shared/forge.ts). */
+  forge?: Forge;
+  /** Moves the model taught him, kept for good. */
+  taught?: string[];
 }
 
 export const FRESH: Brain = { v: 1, duels: 0, wins: 0, level: 0, style: { aggression: 0, guard: 0, deflect: 0, dodge: 0, jump: 0, heal: 0 }, moves: {}, cond: "none", condRun: 0, seed: 1, range: NO_RANGE };
@@ -98,7 +102,7 @@ export function learn(b: Brain, s: StatsSummary, used: Record<string, number>, r
   // the range book fades a little each duel, so a player who changes where they fight is noticed
   const old = b.range ?? NO_RANGE;
   const book: RangeBook = { nearT: old.nearT * 0.85 + range.nearT, farT: old.farT * 0.85 + range.farT, hitNear: old.hitNear * 0.85 + range.hitNear, hitFar: old.hitFar * 0.85 + range.hitFar };
-  return { v: 1, duels: b.duels + 1, wins: b.wins + (s.victory ? 1 : 0), level, style, moves, cond, condRun: cond === b.cond ? b.condRun + 1 : 0, seed: b.seed + 7919, range: book };
+  return { v: 1, duels: b.duels + 1, wins: b.wins + (s.victory ? 1 : 0), level, style, moves, cond, condRun: cond === b.cond ? b.condRun + 1 : 0, seed: b.seed + 7919, range: book, forge: b.forge, taught: b.taught };
 }
 
 /** What the brain asks of the fight (applied in Game.beginLearning and read by Boss). */
@@ -110,8 +114,10 @@ export interface Behaviour {
   extras: string[];
   /** Press in close, make them chase, or no read yet. */
   tactic: "crowd" | "kite" | "mixed";
-  /** Combos he plays from the hardest fights, by name. */
+  /** Combos he plays: the model's own designs first, then ones from the hardest fights, by name. */
   named: Combo[];
+  /** The model's note on what it decided (shown on the council screen). */
+  forgeNote: string;
   /** × each move's pick weight (moves that landed on this player up, moves that never land down). */
   weights: Record<string, number>;
   chains: string[][];
@@ -198,19 +204,22 @@ export function chainsOf(b: Brain, moves: readonly string[], w: Record<string, n
 
 export function behaviourOf(b: Brain, baseMoves: readonly string[]): Behaviour {
   const L = b.level;
-  const moves = arsenalMoves(baseMoves, L);
+  const moves = arsenalMoves(baseMoves, L, b.taught);
   const w = weightsOf(b, moves);
-  const tactic = tacticOf(b.range ?? NO_RANGE);
+  const f = b.forge;
+  const tactic = f && f.tactic !== "mixed" ? f.tactic : tacticOf(b.range ?? NO_RANGE);
   // real combos first (a few more of them, and a different few each duel), then ones he makes up
   const pool = L >= 1 ? usableCombos(moves, preferFor(tactic)) : [];
   const take = Math.min(pool.length, 1 + Math.floor(L / 4));
-  const named = Array.from({ length: take }, (_, i) => pool[(b.duels + i) % pool.length]);
+  const own: Combo[] = (f?.combos ?? []).filter((c) => c.moves.every((m) => moves.includes(m))).map((c, i) => ({ id: `forge-${i}`, name: c.name, from: "his own design (language model)", moves: c.moves, range: "mixed", why: "Designed after reading how you fight.", answer: "" }));
+  const named = [...own, ...Array.from({ length: take }, (_, i) => pool[(b.duels + i) % pool.length])];
   return {
     level: L,
     moves,
     extras: moves.filter((m) => SPECIALS.has(m)),
     tactic,
     named,
+    forgeNote: f?.note ?? "",
     weights: w,
     chains: L >= 1 ? [...named.map((c) => c.moves), ...chainsOf(b, moves, w)] : [],
     chainP: L < 1 ? 0 : clamp(0.2 + 0.04 * L, 0.2, 0.85),
@@ -283,3 +292,33 @@ export function saveBrain(nick: string, boss: number, b: Brain, storage: Pick<St
     /* private mode: he forgets when the tab closes */
   }
 }
+
+/** Take in what the language model designed (already checked on the server and again here): its combos, tactic, condition and the move it taught him. */
+export function applyForge(b: Brain, f: Forge): Brain {
+  const taught = f.teach !== "none" && !(b.taught ?? []).includes(f.teach) ? [...(b.taught ?? []), f.teach] : (b.taught ?? []);
+  return { ...b, forge: f, taught, cond: f.cond !== "none" && b.level >= 2 ? f.cond : b.cond };
+}
+
+/** The small, numeric digest the model is shown (no free text from the player, ever). */
+export function digestOf(b: Brain, boss: number, won: boolean, moves: readonly string[]): BrainDigest {
+  const r = b.range ?? NO_RANGE;
+  const t = r.nearT + r.farT;
+  const stats = Object.entries(b.moves).filter(([, s]) => s.used >= 2);
+  const rate = (s: { used: number; hit: number }) => s.hit / s.used;
+  const st = b.style;
+  return {
+    boss,
+    lvl: Math.round(b.level * 10) / 10,
+    duels: b.duels,
+    won,
+    style: { agg: r2(st.aggression), guard: r2(st.guard), defl: r2(st.deflect), dodge: r2(st.dodge), jump: r2(st.jump), heal: r2(st.heal) },
+    near: t ? r2(r.nearT / t) : 0.5,
+    hitNear: Math.round((r.hitNear / Math.max(1, r.nearT)) * 10 * 10) / 10,
+    hitFar: Math.round((r.hitFar / Math.max(1, r.farT)) * 10 * 10) / 10,
+    moves: [...moves],
+    works: stats.filter(([, s]) => rate(s) >= 0.3).sort((a, c) => rate(c[1]) - rate(a[1])).slice(0, 4).map(([m]) => m),
+    failed: stats.filter(([, s]) => s.used >= 3 && s.hit === 0).slice(0, 4).map(([m]) => m),
+    cond: b.cond,
+  };
+}
+const r2 = (x: number) => Math.round(x * 100) / 100;

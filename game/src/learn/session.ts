@@ -1,3 +1,4 @@
+import type { BrainDigest, Forge } from "@gr/shared";
 import { computeHabits, rulesPlan, type HabitScore, type Plan, type StatsSummary } from "@gr/shared";
 
 export interface PlanResult {
@@ -15,6 +16,8 @@ export interface PlanResult {
   model?: string;
   /** What he says next duel, written by the model about this player (empty strings: use the canned line). */
   lines?: { dossier: string; greeting: string; parry: string; fall: string; win: string; source: "mubit" | "local" };
+  /** The arsenal the language model designed for him after this duel (checked by the server; the game checks again). */
+  forge?: Forge & { model?: string; requestId?: string };
   /** His own notes on this player (the model's), shown on the council screen. */
   dossier?: string;
 }
@@ -28,6 +31,8 @@ export interface PlanRequest {
   bossStreak?: number;
   /** The level the game computed itself (learn/remembers.ts): what the plan falls back on when the server is away. */
   localLevel?: number;
+  /** A small numeric digest of what the general has learned (the language model designs his arsenal from it). */
+  brain?: BrainDigest;
 }
 
 const API = (import.meta as { env?: { VITE_API?: string } }).env?.VITE_API ?? "";

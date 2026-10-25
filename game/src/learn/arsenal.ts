@@ -52,8 +52,9 @@ export const UNLOCKS: [number, string][] = [
 export const SPECIALS = new Set(["lunge", "backflip", "vanish", "stance"]);
 
 /** His move list at this level: his own, plus what he has learned. */
-export function arsenalMoves(base: readonly string[], level: number): string[] {
+export function arsenalMoves(base: readonly string[], level: number, taught: readonly string[] = []): string[] {
   const out = [...base];
+  for (const m of taught) if (!out.includes(m)) out.push(m); // moves the language model chose to teach him
   for (const [need, m] of UNLOCKS) if (level >= need && !out.includes(m)) out.push(m);
   return out;
 }

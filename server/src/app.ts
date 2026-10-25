@@ -11,6 +11,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseCsv } from "./csv";
 import { percentile, readSummary } from "./evalRun";
+import { cleanForge, parseDigest, type BrainDigest, type Forge } from "@gr/shared";
 import { cleanNickname, parseStats, sessionSlug } from "./sanitize";
 
 export interface PlanCall {
@@ -28,6 +29,8 @@ export interface Deps {
   callPlan: (input: PlanInput, sessionId: string) => Promise<PlanCall>;
   /** The general's lines and notes (task general_speech). Optional: without it the canned lines are used. */
   callSpeech?: (input: SpeechInput, sessionId: string) => Promise<PlanCall>;
+  /** The general's arsenal design (task general_forge). Optional: without it the game uses its own arsenal. */
+  callForge?: (input: BrainDigest, sessionId: string) => Promise<PlanCall>;
   /** Speech for model-written lines (local Kokoro sidecar). Optional: without it the game shows subtitles only. */
   say?: (who: string, text: string) => Promise<Buffer | null>;
   /** Where data/calls.csv and data/eval/summary.csv live (default ../data). */
@@ -53,6 +56,8 @@ export interface FightEndResponse {
   lines?: Speech & { source: "mubit" | "local" };
   /** What he now knows of this player (the model's own notes; shown on the council screen). */
   dossier?: string;
+  /** The arsenal the model designed for him (already checked); absent when the call failed or none was asked for. */
+  forge?: Forge & { model?: string; requestId?: string };
 }
 
 const FIGHT_ID = /^[\w-]{1,64}$/;
@@ -76,7 +81,7 @@ export function createApp(deps: Deps) {
 
   const inflight = new Map<string, Promise<FightEndResponse>>();
 
-  async function fightEnd(fightId: string, nickname: string, stats: StatsSummary, boss: BossId, bossStreak: number): Promise<FightEndResponse> {
+  async function fightEnd(fightId: string, nickname: string, stats: StatsSummary, boss: BossId, bossStreak: number, digest: BrainDigest | null): Promise<FightEndResponse> {
     const fightHabits = computeHabits(stats);
     const player = updatePlayer(db, nickname, fightHabits, stats.victory);
     // Per-player ramp: every duel (won or lost) raises the level; a win streak raises it faster.
@@ -115,10 +120,13 @@ export function createApp(deps: Deps) {
     };
     const safe = (p: Promise<PlanCall>): Promise<PlanCall> => p.catch((e) => ({ out: undefined, ok: false, latencyMs: 0, error: e instanceof Error ? e.message : String(e) }));
     // The plan and the general's words are two separate model calls, made together.
-    const [call, speechCall] = await Promise.all([
+    const [call, speechCall, forgeCall] = await Promise.all([
       safe(Promise.resolve().then(() => deps.callPlan(input, sessionId))),
       deps.callSpeech ? safe(Promise.resolve().then(() => deps.callSpeech!(speechIn, `gr-speech-${sessionSlug(nickname)}-${fightId}`))) : Promise.resolve(null),
+      deps.callForge && digest ? safe(Promise.resolve().then(() => deps.callForge!(digest, `gr-forge-${sessionSlug(nickname)}-${fightId}`))) : Promise.resolve(null),
     ]);
+    // The arsenal: the model's design, checked against what he can actually play (never trusted as it came).
+    const forge = forgeCall?.ok && digest ? { ...cleanForge(forgeCall.out, { moves: digest.moves, level: digest.lvl, cond: digest.cond }), model: forgeCall.model, requestId: forgeCall.requestId } : undefined;
     // Notes: the model's rewrite when it answered, otherwise one built from the habit evidence.
     const spoken = speechCall?.ok ? cleanSpeech(speechCall.out) : null;
     const lines = spoken ?? fallbackSpeech(speechIn);
@@ -158,6 +166,7 @@ export function createApp(deps: Deps) {
       model: call.ok ? call.model : undefined,
       lines: { ...lines, source: spoken ? "mubit" : "local" },
       dossier: dossier || undefined,
+      forge,
     };
     db.prepare("INSERT INTO fights(fight_id, nickname, ts, stats, source, valid, latency_ms, request_id, boss_level, response, input) VALUES(?,?,?,?,?,?,?,?,?,?,?)").run(
       fightId, nickname, new Date().toISOString(), JSON.stringify(stats), source, valid ? 1 : 0, res.latencyMs, res.requestId ?? null, level, JSON.stringify(res), JSON.stringify(input),
@@ -217,7 +226,7 @@ export function createApp(deps: Deps) {
     if (!p) {
       const boss = bossOf(b.boss);
       const streak = typeof b.bossStreak === "number" && Number.isFinite(b.bossStreak) ? Math.min(99, Math.max(0, Math.floor(b.bossStreak))) : 0;
-      p = fightEnd(fightId, nickname, stats, boss, streak).finally(() => inflight.delete(fightId));
+      p = fightEnd(fightId, nickname, stats, boss, streak, parseDigest(b.brain)).finally(() => inflight.delete(fightId));
       inflight.set(fightId, p);
     }
     try {

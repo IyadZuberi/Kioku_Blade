@@ -58,8 +58,9 @@ import { applyPlan } from "../learn/planLoader";
 import { fetchGlobal, getNickname, newFightId, requestPlan, type PlanResult } from "../learn/session";
 import { mark, summarize, type StatsMark } from "../learn/summary";
 import { levelOf, loadMemory, NOTHING, remember, saveMemory, type Remembered } from "../learn/remembers";
+import { cleanForge } from "@gr/shared";
 import { NO_RANGE, type RangeBook } from "../learn/arsenal";
-import { behaviourOf, COND_TEXT, learn as learnBrain, loadBrain, readingOf, saveBrain, vulnerable, type Brain, type Cond } from "../learn/brain";
+import { applyForge, digestOf, behaviourOf, COND_TEXT, learn as learnBrain, loadBrain, readingOf, saveBrain, vulnerable, type Brain, type Cond } from "../learn/brain";
 import { applyDifficulty, DIFFICULTY, DIFFICULTY_NAMES, DIFFICULTY_PRESETS, type DifficultyName, initialDifficulty, isDifficulty, overrideDifficulty, rememberDifficulty } from "./difficulty";
 import { CameraRig } from "./CameraRig";
 import { KICK_REACH, PLAYER_MAX, Player, vitalityRegen } from "./Player";
@@ -219,8 +220,9 @@ export class Game {
     const skills = beh.skills.length ? ` New in him: ${beh.skills[beh.skills.length - 1]}.` : "";
     const tactic = beh.tactic === "kite" ? " You fight close, so he will keep away and cut from range." : beh.tactic === "crowd" ? " You keep your distance, so he will crowd you." : "";
     const combo = beh.named.length ? ` He has learned ${beh.named[0].name} (${beh.named[0].from.split(":")[0]}).` : "";
+    const forged = beh.forgeNote ? ` The war council's designer says: ${beh.forgeNote}` : "";
     const cond = br.cond !== "none" ? ` Next time ${COND_TEXT[br.cond].replace("Shielded. ", "he is shielded: ").toLowerCase()}` : "";
-    return `${readingOf(br)} Level ${br.level.toFixed(1)}: he parries ${learned.parryPct}% of long strings, ${learned.speedPct >= 0 ? "+" : ""}${learned.speedPct}% faster, ${beh.chains.length ? beh.chains[0].length : 2}-move combos.${skills}${combo}${tactic}${cond}`.trim();
+    return `${readingOf(br)} Level ${br.level.toFixed(1)}: he parries ${learned.parryPct}% of long strings, ${learned.speedPct >= 0 ? "+" : ""}${learned.speedPct}% faster, ${beh.chains.length ? beh.chains[0].length : 2}-move combos.${skills}${combo}${forged}${tactic}${cond}`.trim();
   }
   private lastSneer = -99;
   /** A line the model wrote for this general about this player ("" until the first duel with him, or when its call failed). */
@@ -558,11 +560,19 @@ export class Game {
     this.learn.state = "pending";
     this.councilReady = null;
     if (!summary.victory) this.council.thinking(); // a win shows it after the fall (see the end card)
-    void requestPlan({ nickname: getNickname(), fightId, fightNumber: this.fightsPlayed, stats: summary, boss, bossStreak: streak, localLevel: levelOf(this.mem, streak) }).then((r) => {
+    const learnt = this.brainOf(boss);
+    const digest = digestOf(learnt, boss, summary.victory, behaviourOf(learnt, [...this.bossDef.moves, ...this.bossDef.extra]).moves);
+    void requestPlan({ nickname: getNickname(), fightId, fightNumber: this.fightsPlayed, stats: summary, boss, bossStreak: streak, localLevel: levelOf(this.mem, streak), brain: digest }).then((r) => {
       if (this.learn.fightId !== fightId) return; // a newer fight already started
       this.learn.result = r;
       this.learn.boss = boss;
       this.learn.state = "ready";
+      if (r.forge) {
+        // the language model's design for his next arsenal: checked again here, then kept for good
+        const checked = cleanForge(r.forge, { moves: digest.moves, level: digest.lvl, cond: digest.cond });
+        this.brains[boss] = applyForge(this.brainOf(boss), checked);
+        saveBrain(getNickname(), boss, this.brains[boss]!);
+      }
       if (r.lines?.source === "mubit") for (const k of ["greeting", "parry", "fall", "win"] as const) this.subs.voice.prefetch(r.lines[k], speakerOf(boss)); // have the server voice his new lines now, not when he speaks them
       const present = (): void => {
         this.council.show(r, this.prevHabits, `He has fought you ${this.mem.fights} ${this.mem.fights === 1 ? "time" : "times"}. ${this.brainText()}`);

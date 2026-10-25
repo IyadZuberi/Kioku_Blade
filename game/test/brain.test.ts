@@ -111,3 +111,41 @@ describe("storage", () => {
     expect(loadBrain("p", 3, st)).toEqual(FRESH);
   });
 });
+
+import { applyForge, digestOf } from "../src/learn/brain";
+import { parseDigest } from "@gr/shared";
+
+describe("the language model's design", () => {
+  const base = (): Brain => ({ ...FRESH, level: 6, duels: 3, cond: "afterDodge", range: { nearT: 40, farT: 4, hitNear: 5, hitFar: 0 } });
+  const forge = { combos: [{ name: "Broken Rhythm", moves: ["comboDelay", "thrust", "combo", "overhead"] }], tactic: "kite" as const, cond: "whenOpen" as const, teach: "windSlash", note: "He keeps away now." };
+  const MV = ["leap", "combo", "comboDelay", "overhead", "thrust", "sweep", "grab", "flurry"];
+  it("its combos are played first and named as its own, the move it teaches joins his arsenal for good, and its note is kept", () => {
+    const b = applyForge(base(), forge);
+    expect(b.taught).toEqual(["windSlash"]);
+    expect(b.cond).toBe("whenOpen");
+    const beh = behaviourOf(b, MV);
+    expect(beh.moves).toContain("windSlash");
+    expect(beh.named[0]).toMatchObject({ name: "Broken Rhythm", from: "his own design (language model)" });
+    expect(beh.chains[0]).toEqual(forge.combos[0].moves);
+    expect(beh.tactic).toBe("kite");
+    expect(beh.forgeNote).toBe("He keeps away now.");
+    // teaching twice does not duplicate, and it survives the next duel
+    expect(applyForge(b, forge).taught).toEqual(["windSlash"]);
+    expect(learn(b, stats(), {}).taught).toEqual(["windSlash"]);
+  });
+  it("a designed combo he cannot play is skipped, and no design leaves the deterministic arsenal in place", () => {
+    const beh = behaviourOf(applyForge(base(), { ...forge, teach: "none", combos: [{ name: "Ghost", moves: ["vanish", "leap", "combo"] }] }), MV);
+    expect(beh.named.some((c) => c.name === "Ghost")).toBe(false);
+    expect(behaviourOf(base(), MV).forgeNote).toBe("");
+  });
+  it("the digest is small, numeric and survives the server's parser unchanged", () => {
+    let b = learn(FRESH, stats({ hitsByMove: { thrust: 4 }, deflects: 9 }), { thrust: 5, sweep: 4 }, { nearT: 30, farT: 5, hitNear: 3, hitFar: 0 });
+    b = { ...b, level: 6 };
+    const d = digestOf(b, 2, true, MV);
+    expect(d.works).toContain("thrust");
+    expect(d.failed).toContain("sweep");
+    expect(d.near).toBeGreaterThan(0.8);
+    expect(JSON.stringify(d).length).toBeLessThan(600);
+    expect(parseDigest(JSON.parse(JSON.stringify(d)))).toEqual(d);
+  });
+});
