@@ -8,6 +8,7 @@ import { wavedash } from "./wavedash";
 import { sendOverride } from "./learn/session";
 import { ControlsPanel } from "./ui/ControlsPanel";
 import { PoseTrainer } from "./ui/PoseTrainer";
+import { PauseMenu } from "./ui/PauseMenu";
 import type { GestureHandle } from "./input/gestures";
 import { startGamepad } from "./input/gamepad";
 
@@ -36,6 +37,30 @@ controls.onPractice = () => {
   else void toggleGestures().then(() => gestures && trainer.open(gestures));
 };
 setInterval(() => controls.showChip(menuState()), 250);
+const pauseMenu = new PauseMenu(hud, {
+  canPause: () => game.inDuel,
+  pause: () => {
+    game.input.releaseAll();
+    game.audio.setDuck(0.25);
+    game.pause();
+  },
+  resume: () => {
+    game.audio.setDuck(1);
+    game.resume();
+  },
+  forfeit: () => game.forfeit(),
+  hands: { on: () => !!gestures, toggle: () => toggleGestures(), train: () => gestures && trainer.open(gestures) },
+  volumes: {
+    get: () => ({ ...game.audio.volumes, voice: game.subs.voice.enabled ? game.subs.voice.volume : 0, muted: game.audio.isMuted }),
+    set: (v) => {
+      game.audio.setVolumes({ master: v.master, music: v.music, sfx: v.sfx });
+      game.audio.setMuted(v.muted);
+      game.subs.voice.set(v.voice > 0, v.voice);
+    },
+  },
+  openControls: () => controls.open(),
+});
+void pauseMenu;
 window.addEventListener("gamepadconnected", () => game.council.flash("Controller connected"));
 
 // Optional hand gestures: ?gestures=1 or the G key. Mouse and keyboard always work.

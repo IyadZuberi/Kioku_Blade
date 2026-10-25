@@ -2208,6 +2208,22 @@ export class Game {
     this.loop.stop();
   }
 
+  /** True while a duel is on (the pause menu may open). */
+  get inDuel(): boolean {
+    return (this.state === "fight" || this.state === "deathblow") && !this.paused;
+  }
+
+  /** The pause menu's way out: the duel counts as a defeat (he learns from it), and it is back to the title. */
+  forfeit(): void {
+    if (this.fightMark) {
+      this.stats.victory = false;
+      this.stats.defeats++;
+      this.endLearning();
+    }
+    this.audio.setDuck(1);
+    this.toTitle();
+  }
+
   resume(): void {
     if (!this.paused) return;
     this.paused = false;

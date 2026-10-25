@@ -27,7 +27,7 @@ const CSS = `
 #ctl-chip.on { display: block; }
 #ctl-chip kbd { margin-left: 8px; padding: 1px 6px; border: 1px solid rgba(239,231,218,0.4); border-radius: 3px; font: 11px ${LATIN_FONT}; color: #d9cdb9; }
 #ctl-chip:hover { border-color: rgba(239,231,218,0.85); }
-#ctl { pointer-events: auto; position: fixed; inset: 0; z-index: 60; display: none; align-items: center; justify-content: center; background: rgba(8,6,9,0.78); }
+#ctl { pointer-events: auto; position: fixed; inset: 0; z-index: 68; display: none; align-items: center; justify-content: center; background: rgba(8,6,9,0.78); }
 #ctl.on { display: flex; }
 #ctl .win { width: min(92vw, 880px); max-height: 88vh; display: flex; flex-direction: column; background: linear-gradient(180deg, #17121a 0%, #100d12 100%); color: #efe7da; font-family: ${LATIN_FONT};
   border-top: 1px solid rgba(196,55,42,0.9); box-shadow: 0 24px 80px rgba(0,0,0,0.6); }
