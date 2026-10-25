@@ -513,6 +513,7 @@ export class Game {
       this.learn.result = r;
       this.learn.boss = boss;
       this.learn.state = "ready";
+      if (r.lines?.source === "mubit") for (const k of ["greeting", "parry", "fall", "win"] as const) this.subs.voice.prefetch(r.lines[k], speakerOf(boss)); // have the server voice his new lines now, not when he speaks them
       const present = (): void => {
         const learned = learnedSummary(this.bossDef, DIFFICULTY_PRESETS[this.difficulty], levelOf(this.mem, this.progress.streak), LEARN_CEILING[this.difficulty]);
         this.council.show(r, this.prevHabits, `He has fought you ${this.mem.fights} ${this.mem.fights === 1 ? "time" : "times"}. Next duel he parries ${learned.parryPct}% of long strings and moves ${learned.speedPct >= 0 ? "+" : ""}${learned.speedPct}% faster.`);

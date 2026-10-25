@@ -115,7 +115,7 @@ export class Subtitles {
       if (this.i !== at) return;
       clearTimeout(this.timer);
       this.timer = window.setTimeout(() => this.advance(), 700);
-    });
+    }, l.id);
     this.timer = window.setTimeout(() => this.advance(), spoken ? Math.max(wait, l.text.length * 140 + 4000) : wait);
   }
 

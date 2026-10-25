@@ -306,7 +306,7 @@ export class ControlsPanel {
     mute.append(box, document.createTextNode("Mute everything (M)"));
     this.rows.appendChild(mute);
     const vc = this.voice;
-    if (vc?.supported) {
+    if (vc) {
       const row = document.createElement("label");
       row.className = "snd";
       const name = document.createElement("span");
@@ -323,7 +323,7 @@ export class ControlsPanel {
         out.textContent = `${input.value}%`;
         vc.set(+input.value > 0, +input.value / 100);
       });
-      input.addEventListener("change", () => vc.speak("The blade remembers.", "masatora"));
+      input.addEventListener("change", () => vc.speak("My memory ends here.", "masatora", undefined, "f1-1"));
       row.append(name, input, out);
       this.rows.appendChild(row);
     }

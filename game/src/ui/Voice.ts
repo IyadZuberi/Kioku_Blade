@@ -1,46 +1,44 @@
 /**
- * Spoken voices for the characters, with the browser's own speech synthesis (free, offline, no
- * files shipped). Each speaker gets a pitch and pace; the lines are the subtitles, including the
- * ones the model writes. Off when sound is muted or the player turns voices off in Settings > Sound.
+ * Character voices: real human-sounding speech from Kokoro (open-source neural TTS, Apache-2.0).
+ *  - Every fixed story line is pre-rendered (tools/make-voices.mjs) into public/assets/voice/<line id>.wav.
+ *  - Lines the model writes are spoken by the same voices, made by the local server (POST /api/voice, which
+ *    runs server/voice/tts_server.py). If that is not running, those lines are subtitles only.
+ * No robotic browser speech anywhere. Off when sound is muted or voices are turned off in Settings > Sound.
  */
 import type { Speaker } from "../game/story";
 
-/** pitch 0..2, rate 0.1..10 (1 = normal). Deep and slow for the shogun, quick and sharp for the spear fighter. */
-const PROFILE: Record<Speaker, { pitch: number; rate: number; male: boolean }> = {
-  narrator: { pitch: 0.75, rate: 0.9, male: true },
-  kaede: { pitch: 1.05, rate: 1, male: false },
-  masatora: { pitch: 0.6, rate: 0.85, male: true },
-  kazemaru: { pitch: 1.0, rate: 1.08, male: true },
-  kurogane: { pitch: 0.2, rate: 0.72, male: true },
-};
+const BASE = (import.meta as { env?: { BASE_URL?: string } }).env?.BASE_URL ?? "/";
+const API = (import.meta as { env?: { VITE_API?: string } }).env?.VITE_API ?? "";
 const KEY = "kioku.voice";
-const MALE = /david|mark|daniel|alex|james|george|google uk english male|male|fred|thomas|guy/i;
-const FEMALE = /zira|susan|samantha|female|hazel|karen|victoria|fiona|moira/i;
+const GAIN = 1.8; // the renders peak near 0.5
 
 export class Voice {
   /** Set by main: true while all sound is muted. */
   muted: () => boolean = () => false;
   private on = true;
   private vol = 0.9;
-  private voices: SpeechSynthesisVoice[] = [];
-  private readonly synth: SpeechSynthesis | null = typeof speechSynthesis === "undefined" ? null : speechSynthesis;
+  private manifest: Record<string, { file: string }> | null = null;
+  private ctx: AudioContext | null = null;
+  private src: AudioBufferSourceNode | null = null;
+  private made = new Map<string, Promise<AudioBuffer | null>>();
   private token = 0;
 
   constructor() {
     try {
       const s = JSON.parse(localStorage.getItem(KEY) ?? "null") as { on: boolean; vol: number } | null;
-      if (s) (this.on = !!s.on), (this.vol = Math.min(1, Math.max(0, s.vol)));
+      if (s) {
+        this.on = !!s.on;
+        this.vol = Math.min(1, Math.max(0, s.vol));
+      }
     } catch {
       /* storage blocked: defaults */
     }
-    const load = () => (this.voices = (this.synth?.getVoices() ?? []).filter((v) => /^en/i.test(v.lang)));
-    load();
-    this.synth?.addEventListener?.("voiceschanged", load);
+    void fetch(`${BASE}assets/voice/manifest.json`)
+      .then((r) => r.json())
+      .then((m) => (this.manifest = m))
+      .catch(() => {});
   }
 
-  get supported(): boolean {
-    return !!this.synth;
-  }
   get enabled(): boolean {
     return this.on;
   }
@@ -58,33 +56,62 @@ export class Voice {
     }
   }
 
-  private pick(male: boolean): SpeechSynthesisVoice | undefined {
-    const want = male ? MALE : FEMALE;
-    const skip = male ? FEMALE : MALE;
-    return this.voices.find((v) => want.test(v.name) && !skip.test(v.name)) ?? this.voices.find((v) => !skip.test(v.name)) ?? this.voices[0];
+  private context(): AudioContext {
+    return (this.ctx ??= new AudioContext());
   }
 
-  /** Speak one line. `end` runs when it finishes (or at once if there is no voice); returns false when nothing will be spoken. */
-  speak(text: string, who: Speaker, end?: () => void): boolean {
+  /** Fetch (pre-rendered) or ask the server for (model-written) one line; cached, so a line prepared early plays at once. */
+  private render(text: string, who: Speaker, id: string): Promise<AudioBuffer | null> {
+    const key = id || `${who}|${text}`;
+    let p = this.made.get(key);
+    if (!p) {
+      p = (async () => {
+        const f = id && this.manifest?.[id]?.file;
+        const r = f
+          ? await fetch(`${BASE}assets/voice/${f}`)
+          : await fetch(`${API}/api/voice`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ who, text }), signal: AbortSignal.timeout(30000) });
+        if (r.status !== 200) return null; // 204: no voice server running
+        return this.context().decodeAudioData(await r.arrayBuffer());
+      })().catch(() => null);
+      this.made.set(key, p);
+    }
+    return p;
+  }
+
+  /** Have a model-written line synthesized in the background, so it plays at once when he says it. */
+  prefetch(text: string, who: Speaker): void {
+    if (text && this.on) void this.render(text, who, "");
+  }
+
+  /** Speak one line; `end` runs when it finishes (or at once if there is no voice for it). Returns false when nothing will be spoken. */
+  speak(text: string, who: Speaker, end?: () => void, id = ""): boolean {
     this.stop();
-    if (!this.synth || !this.on || this.vol <= 0 || this.muted() || !text) return false;
-    const p = PROFILE[who];
-    const u = new SpeechSynthesisUtterance(text);
-    const v = this.pick(p.male);
-    if (v) u.voice = v;
-    u.pitch = p.pitch;
-    u.rate = p.rate;
-    u.volume = this.vol;
+    if (!this.on || this.vol <= 0 || this.muted() || !text) return false;
     const me = ++this.token;
-    const done = () => me === this.token && end?.();
-    u.onend = done;
-    u.onerror = done;
-    this.synth.speak(u);
+    void this.render(text, who, id).then((buf) => {
+      if (me !== this.token) return;
+      if (!buf) return end?.();
+      const c = this.context();
+      void c.resume();
+      const s = c.createBufferSource();
+      s.buffer = buf;
+      const g = c.createGain();
+      g.gain.value = this.vol * GAIN;
+      s.connect(g).connect(c.destination);
+      s.onended = () => me === this.token && end?.();
+      this.src = s;
+      s.start();
+    });
     return true;
   }
 
   stop(): void {
     this.token++;
-    this.synth?.cancel();
+    try {
+      this.src?.stop();
+    } catch {
+      /* already stopped */
+    }
+    this.src = null;
   }
 }

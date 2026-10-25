@@ -1,0 +1,14 @@
+<!doctype html><meta charset="utf-8"><title>voice render</title>
+<script type="module">
+  import { KokoroTTS } from "kokoro-js";
+  let tts;
+  window.load = async () => { tts = await KokoroTTS.from_pretrained("onnx-community/Kokoro-82M-v1.0-ONNX", { dtype: "q8", device: "wasm" }); return Object.keys(tts.voices).join(","); };
+  window.say = async (text, voice, speed) => {
+    const a = await tts.generate(text, { voice, speed });
+    const wav = new Uint8Array(a.toWav());
+    let s = "";
+    for (let i = 0; i < wav.length; i += 0x8000) s += String.fromCharCode(...wav.subarray(i, i + 0x8000));
+    return btoa(s);
+  };
+  window.ready = true;
+</script>

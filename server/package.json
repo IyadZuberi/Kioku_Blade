@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "gen:seed": "tsx scripts/gen_seed.ts",
     "gen:heldout": "tsx scripts/gen_heldout.ts",
-    "eval": "tsx scripts/eval.ts"
+    "eval": "tsx scripts/eval.ts",
+    "voice": "python voice/tts_server.py"
   },
   "dependencies": {
     "@gr/shared": "workspace:*",

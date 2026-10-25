@@ -8,3 +8,6 @@ data/eval/
 
 game/public/mediapipe
 data/*.sqlite*
+
+data/voice-cache/
+server/voice/models/

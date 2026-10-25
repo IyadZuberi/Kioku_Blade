@@ -1,0 +1,106 @@
+{
+ "a1": {
+  "file": "a1.wav",
+  "text": "You return. I watched how you fought. This time I know your rhythm."
+ },
+ "a2": {
+  "file": "a2.wav",
+  "text": "Again? The wind remembers every step you took."
+ },
+ "a3": {
+  "file": "a3.wav",
+  "text": "Every time you fall, I learn you better."
+ },
+ "f1-1": {
+  "file": "f1-1.wav",
+  "text": "My memory... ends here."
+ },
+ "f1-2": {
+  "file": "f1-2.wav",
+  "text": "One."
+ },
+ "f2-1": {
+  "file": "f2-1.wav",
+  "text": "The wind... stops..."
+ },
+ "f2-2": {
+  "file": "f2-2.wav",
+  "text": "Two."
+ },
+ "f3-1": {
+  "file": "f3-1.wav",
+  "text": "The blossoms... fall..."
+ },
+ "f3-2": {
+  "file": "f3-2.wav",
+  "text": "It is finished. Rest now, Kiri."
+ },
+ "m1-1": {
+  "file": "m1-1.wav",
+  "text": "The girl from Kiri. I remember the night your village burned."
+ },
+ "m1-2": {
+  "file": "m1-2.wav",
+  "text": "Then remember this, Masatora. I have come for all three of you."
+ },
+ "m1-3": {
+  "file": "m1-3.wav",
+  "text": "Show me your blade. I will learn every cut of it."
+ },
+ "m2-1": {
+  "file": "m2-1.wav",
+  "text": "Masatora fell to you? Then the wind has carried your name up to these roofs."
+ },
+ "m2-2": {
+  "file": "m2-2.wav",
+  "text": "Your spear burned our fields, Kazemaru. Tonight it breaks, up here, with no one to hear."
+ },
+ "m2-3": {
+  "file": "m2-3.wav",
+  "text": "A sword cannot reach where my spear begins. Come, little ghost."
+ },
+ "m3-1": {
+  "file": "m3-1.wav",
+  "text": "So. The last ember of Kiri comes to die under my cherry trees."
+ },
+ "m3-2": {
+  "file": "m3-2.wav",
+  "text": "Kurogane. You gave the order. You held the torch."
+ },
+ "m3-3": {
+  "file": "m3-3.wav",
+  "text": "I have given a thousand orders, and I remember everyone who knelt. Kneel."
+ },
+ "pro-1": {
+  "file": "pro-1.wav",
+  "text": "Twelve winters ago, three generals rode into the mountain village of Kiri."
+ },
+ "pro-2": {
+  "file": "pro-2.wav",
+  "text": "By dawn it was ash. They wrote down the name of every warrior who stood against them."
+ },
+ "pro-3": {
+  "file": "pro-3.wav",
+  "text": "They call themselves the Order of the Remembering Blade. They never forget a fighter. They study you, and they learn."
+ },
+ "pro-4": {
+  "file": "pro-4.wav",
+  "text": "One child lived. Kaede took up her father's sword, and she has come for them."
+ },
+ "pro-5": {
+  "file": "pro-5.wav",
+  "text": "Three gates. Three generals. And each one will remember how you fight."
+ },
+ "t1": {
+  "file": "t1.wav",
+  "text": "I will remember how you fell."
+ },
+ "t2": {
+  "file": "t2.wav",
+  "text": "Too slow. The wind remembers."
+ },
+ "t3": {
+  "file": "t3.wav",
+  "text": "Rise again, girl. I will learn you again."
+ }
+}

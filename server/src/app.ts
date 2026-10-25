@@ -28,6 +28,8 @@ export interface Deps {
   callPlan: (input: PlanInput, sessionId: string) => Promise<PlanCall>;
   /** The general's lines and notes (task general_speech). Optional: without it the canned lines are used. */
   callSpeech?: (input: SpeechInput, sessionId: string) => Promise<PlanCall>;
+  /** Speech for model-written lines (local Kokoro sidecar). Optional: without it the game shows subtitles only. */
+  say?: (who: string, text: string) => Promise<Buffer | null>;
   /** Where data/calls.csv and data/eval/summary.csv live (default ../data). */
   dataDir?: string;
   /** Secret for the host-only /api/override (default env HOST_TOKEN). Unset = the endpoint is disabled. */
@@ -266,6 +268,15 @@ export function createApp(deps: Deps) {
     }
     const v = validatePlan(call.out, input.limits, rulesPlan(input.habits, input.bossLevel, input.unlocked), input.unlocked);
     res.json({ ok: true, plan: v.plan, valid: v.valid, requestId: call.requestId });
+  });
+
+  // One spoken line (WAV) for a model-written subtitle. 204 when no voice is available.
+  app.post("/api/voice", async (req: Request, res: Response) => {
+    const { who, text } = (req.body ?? {}) as { who?: unknown; text?: unknown };
+    if (!deps.say || typeof who !== "string" || typeof text !== "string" || text.length > 400) return res.status(204).end();
+    const wav = await deps.say(who, text).catch(() => null);
+    if (!wav) return res.status(204).end();
+    res.type("audio/wav").send(wav);
   });
 
   // Stored real plans for demo fallback (Wi-Fi or Mubit down). Always labelled "replay".
