@@ -11,6 +11,7 @@
  *  6. unlocks the next SKILLS: feints, swings of uneven speed, delayed strikes, answering a dodge...
  */
 import type { StatsSummary } from "@gr/shared";
+import { arsenalMoves, NO_RANGE, preferFor, SPECIALS, tacticOf, usableCombos, type Combo, type RangeBook } from "./arsenal";
 
 export type Cond = "none" | "afterDeflect" | "afterDodge" | "whenOpen" | "guardBroken";
 export interface Style {
@@ -37,9 +38,11 @@ export interface Brain {
   /** Duels in a row he has been hidden behind the same condition. */
   condRun: number;
   seed: number;
+  /** Where the player fights and which distance has hurt them more (see arsenal.ts tacticOf). */
+  range: RangeBook;
 }
 
-export const FRESH: Brain = { v: 1, duels: 0, wins: 0, level: 0, style: { aggression: 0, guard: 0, deflect: 0, dodge: 0, jump: 0, heal: 0 }, moves: {}, cond: "none", condRun: 0, seed: 1 };
+export const FRESH: Brain = { v: 1, duels: 0, wins: 0, level: 0, style: { aggression: 0, guard: 0, deflect: 0, dodge: 0, jump: 0, heal: 0 }, moves: {}, cond: "none", condRun: 0, seed: 1, range: NO_RANGE };
 
 const clamp = (x: number, a: number, b: number) => Math.min(b, Math.max(a, x));
 const PERIL = new Set(["thrust", "sweep", "grab", "lunge"]);
@@ -81,7 +84,7 @@ export function chooseCond(style: Style, prev: Cond, won: boolean): Cond {
 }
 
 /** One finished duel: returns the new brain (the old one is left alone). */
-export function learn(b: Brain, s: StatsSummary, used: Record<string, number>): Brain {
+export function learn(b: Brain, s: StatsSummary, used: Record<string, number>, range: RangeBook = NO_RANGE): Brain {
   const first = b.duels === 0;
   const style = first ? styleOf(s) : blend(b.style, styleOf(s), 0.55);
   const moves: Record<string, MoveStat> = {};
@@ -92,12 +95,23 @@ export function learn(b: Brain, s: StatsSummary, used: Record<string, number>): 
   const gain = 1 + (s.victory ? 0.7 : 0.25) + (s.hitsTaken <= 2 ? 0.6 : 0) + (s.victory && s.fightSeconds < 40 ? 0.5 : 0);
   const level = b.level + gain;
   const cond = level < 2 ? "none" : chooseCond(style, b.cond, s.victory);
-  return { v: 1, duels: b.duels + 1, wins: b.wins + (s.victory ? 1 : 0), level, style, moves, cond, condRun: cond === b.cond ? b.condRun + 1 : 0, seed: b.seed + 7919 };
+  // the range book fades a little each duel, so a player who changes where they fight is noticed
+  const old = b.range ?? NO_RANGE;
+  const book: RangeBook = { nearT: old.nearT * 0.85 + range.nearT, farT: old.farT * 0.85 + range.farT, hitNear: old.hitNear * 0.85 + range.hitNear, hitFar: old.hitFar * 0.85 + range.hitFar };
+  return { v: 1, duels: b.duels + 1, wins: b.wins + (s.victory ? 1 : 0), level, style, moves, cond, condRun: cond === b.cond ? b.condRun + 1 : 0, seed: b.seed + 7919, range: book };
 }
 
 /** What the brain asks of the fight (applied in Game.beginLearning and read by Boss). */
 export interface Behaviour {
   level: number;
+  /** His whole move list at this level (his own plus what he has learned). */
+  moves: string[];
+  /** The tricks among them (lunge, backflip, vanish, stance) the boss class plays itself. */
+  extras: string[];
+  /** Press in close, make them chase, or no read yet. */
+  tactic: "crowd" | "kite" | "mixed";
+  /** Combos he plays from the hardest fights, by name. */
+  named: Combo[];
   /** × each move's pick weight (moves that landed on this player up, moves that never land down). */
   weights: Record<string, number>;
   chains: string[][];
@@ -130,9 +144,12 @@ export const SKILLS: [number, string][] = [
 export function weightsOf(b: Brain, moves: readonly string[]): Record<string, number> {
   const w: Record<string, number> = {};
   const st = b.style;
+  const tactic = tacticOf(b.range ?? NO_RANGE);
   for (const m of moves) {
     const s = b.moves[m];
     let x = 1;
+    if (tactic === "kite" && (m === "windSlash" || m === "lunge" || m === "backflip" || m === "waterfowl")) x *= 1.5;
+    if (tactic === "crowd" && (m === "leap" || m === "combo" || m === "flurry" || m === "kick" || m === "grab")) x *= 1.4;
     if (s && s.used >= 2) x = 0.55 + 1.6 * (s.hit / s.used); // never lands: 0.55; lands every time: 2.15
     if (st.deflect > 0.3 && (m === "comboDelay" || m === "grab" || m === "flurry")) x *= 1 + st.deflect;
     if (st.guard > 0.25 && (m === "grab" || m === "kick" || m === "thrust" || m === "sweep")) x *= 1 + st.guard * 1.2;
@@ -179,13 +196,23 @@ export function chainsOf(b: Brain, moves: readonly string[], w: Record<string, n
   return out;
 }
 
-export function behaviourOf(b: Brain, moves: readonly string[]): Behaviour {
+export function behaviourOf(b: Brain, baseMoves: readonly string[]): Behaviour {
   const L = b.level;
+  const moves = arsenalMoves(baseMoves, L);
   const w = weightsOf(b, moves);
+  const tactic = tacticOf(b.range ?? NO_RANGE);
+  // real combos first (a few more of them, and a different few each duel), then ones he makes up
+  const pool = L >= 1 ? usableCombos(moves, preferFor(tactic)) : [];
+  const take = Math.min(pool.length, 1 + Math.floor(L / 4));
+  const named = Array.from({ length: take }, (_, i) => pool[(b.duels + i) % pool.length]);
   return {
     level: L,
+    moves,
+    extras: moves.filter((m) => SPECIALS.has(m)),
+    tactic,
+    named,
     weights: w,
-    chains: L >= 1 ? chainsOf(b, moves, w) : [],
+    chains: L >= 1 ? [...named.map((c) => c.moves), ...chainsOf(b, moves, w)] : [],
     chainP: L < 1 ? 0 : clamp(0.2 + 0.04 * L, 0.2, 0.85),
     feintP: L < 1 ? 0 : clamp(0.04 * L + 0.1 * b.style.deflect, 0, 0.5),
     jitter: L < 2 ? 0 : clamp(0.04 + 0.018 * L + 0.12 * b.style.deflect, 0, 0.4),

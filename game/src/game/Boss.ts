@@ -551,6 +551,12 @@ export class Boss {
           // The shinobi fell: step back and wait, blade lowered (he keeps his vitality and posture).
           want = dist < 5.5 ? to.clone().normalize().multiplyScalar(-1.3) : side.multiplyScalar(0.4);
           this.cooldown = Math.max(this.cooldown, 1.1);
+        } else if (this.brain?.tactic === "kite" && dist < 5.2) {
+          // he has learned this player is at home up close: he keeps his distance and makes them chase
+          want = to.clone().normalize().multiplyScalar(-1.9).addScaledVector(side, 0.5);
+        } else if (this.brain?.tactic === "crowd" && dist > 2.6) {
+          // ...and a player who keeps away is crowded
+          want = to.clone().normalize().multiplyScalar(dist > 6 ? 3.4 : 2.3).addScaledVector(side, 0.3);
         } else if (dist > 3.6) want = to.clone().normalize().multiplyScalar(dist > 6 ? (this.phase === 2 ? 3.2 : 2.6) : 1.7).addScaledVector(side, 0.3);
         else if (dist < 2.0) want = to.clone().normalize().multiplyScalar(-1.2);
         else want = side.multiplyScalar(this.phase === 2 ? 1.2 : 0.9);

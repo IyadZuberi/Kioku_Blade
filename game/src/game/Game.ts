@@ -58,6 +58,7 @@ import { applyPlan } from "../learn/planLoader";
 import { fetchGlobal, getNickname, newFightId, requestPlan, type PlanResult } from "../learn/session";
 import { mark, summarize, type StatsMark } from "../learn/summary";
 import { levelOf, loadMemory, NOTHING, remember, saveMemory, type Remembered } from "../learn/remembers";
+import { NO_RANGE, type RangeBook } from "../learn/arsenal";
 import { behaviourOf, COND_TEXT, learn as learnBrain, loadBrain, readingOf, saveBrain, vulnerable, type Brain, type Cond } from "../learn/brain";
 import { applyDifficulty, DIFFICULTY, DIFFICULTY_NAMES, DIFFICULTY_PRESETS, type DifficultyName, initialDifficulty, isDifficulty, overrideDifficulty, rememberDifficulty } from "./difficulty";
 import { CameraRig } from "./CameraRig";
@@ -194,6 +195,11 @@ export class Game {
   private sinceDeflectAt = -99;
   private sinceDodgeAt = -99;
   private shieldRung = -9;
+  /** This fight's range book: seconds the player spent near / far, and hits he landed at each. */
+  private fightRange: RangeBook = { ...NO_RANGE };
+  private near(): boolean {
+    return Math.hypot(this.player.pos.x - this.boss.pos.x, this.player.pos.z - this.boss.pos.z) < 3.4;
+  }
   private brainOf(id: number): Brain {
     return (this.brains[id] ??= loadBrain(getNickname(), id));
   }
@@ -211,8 +217,10 @@ export class Game {
     const learned = learnedSummary(this.bossDef, DIFFICULTY_PRESETS[this.difficulty], br.level, LEARN_CEILING[this.difficulty]);
     const beh = behaviourOf(br, [...this.bossDef.moves, ...this.bossDef.extra]);
     const skills = beh.skills.length ? ` New in him: ${beh.skills[beh.skills.length - 1]}.` : "";
+    const tactic = beh.tactic === "kite" ? " You fight close, so he will keep away and cut from range." : beh.tactic === "crowd" ? " You keep your distance, so he will crowd you." : "";
+    const combo = beh.named.length ? ` He has learned ${beh.named[0].name} (${beh.named[0].from.split(":")[0]}).` : "";
     const cond = br.cond !== "none" ? ` Next time ${COND_TEXT[br.cond].replace("Shielded. ", "he is shielded: ").toLowerCase()}` : "";
-    return `${readingOf(br)} Level ${br.level.toFixed(1)}: he parries ${learned.parryPct}% of long strings, ${learned.speedPct >= 0 ? "+" : ""}${learned.speedPct}% faster, ${beh.chains.length ? beh.chains[0].length : 2}-move combos.${skills}${cond}`.trim();
+    return `${readingOf(br)} Level ${br.level.toFixed(1)}: he parries ${learned.parryPct}% of long strings, ${learned.speedPct >= 0 ? "+" : ""}${learned.speedPct}% faster, ${beh.chains.length ? beh.chains[0].length : 2}-move combos.${skills}${combo}${tactic}${cond}`.trim();
   }
   private lastSneer = -99;
   /** A line the model wrote for this general about this player ("" until the first duel with him, or when its call failed). */
@@ -517,9 +525,11 @@ export class Game {
     this.condWindow = beh.window;
     this.sinceDeflectAt = this.sinceDodgeAt = -99;
     this.subs.cond(COND_TEXT[this.cond]);
-    this.boss.canWind = this.bossDef.moves.includes("windSlash");
+    this.fightRange = { ...NO_RANGE };
+    // his arsenal at this level: his own moves plus what he has learned (a thrown cut, a lunge, a smoke bomb...)
+    this.boss.canWind = beh.moves.includes("windSlash");
     this.boss.windFan = this.bossDef.id === 3; // Kurogane throws a fan of three shuriken
-    this.boss.extras = this.bossDef.extra;
+    this.boss.extras = [...new Set([...this.bossDef.extra, ...beh.extras])];
     this.boss.setOpening([this.bossDef.opening]);
     if (this.learn.result && this.learn.boss === this.bossDef.id) applyPlan(this.learn.result.plan, this.boss);
     // Gesture mode: webcam latency eats the deflect window, so widen it (never tighten).
@@ -536,7 +546,7 @@ export class Game {
     const boss = this.bossDef.id;
     const streak = summary.victory ? this.progress.streak + 1 : 0;
     // He remembers this duel whatever its result: the next one is harder, and different (new combos, a new condition).
-    this.brains[boss] = learnBrain(this.brainOf(boss), summary, this.boss.usedMoves);
+    this.brains[boss] = learnBrain(this.brainOf(boss), summary, this.boss.usedMoves, this.fightRange);
     saveBrain(getNickname(), boss, this.brains[boss]!);
     this.subs.cond("");
     this.mem = remember(this.mem, summary.victory);
@@ -1038,6 +1048,7 @@ export class Game {
     b.sense.airborne = p.airborne;
     p.update(g, inp, this.cam.moveYaw, b.pos, this.locked);
     b.update(g, p.pos, false);
+    this.fightRange[this.near() ? "nearT" : "farT"] += g;
     // Held by the throat through the throw.
     if (p.state === "thrown" && b.state === "throw") {
       const fw = _a.set(Math.sin(b.yaw), 0, Math.cos(b.yaw));
@@ -1207,6 +1218,7 @@ export class Game {
     const p = this.player;
     const h = ATTACKS.grab.hits[0];
     this.stats.hitsTaken++;
+    this.fightRange[this.near() ? "hitNear" : "hitFar"]++;
     this.stats.hitLog.push(`thrown ${this.boss.phase}`);
     p.health = Math.max(0, p.health - h.dmg * DIFFICULTY.playerDamage);
     p.posture = Math.min(99, p.posture + h.posture * 0.5);
@@ -1467,6 +1479,7 @@ export class Game {
   private damage(h: HitDef): void {
     const p = this.player;
     this.stats.hitsTaken++;
+    this.fightRange[this.near() ? "hitNear" : "hitFar"]++;
     const pt = this.input.peekPressTime("block");
     this.stats.hitLog.push(`${p.state}@${p.stateT.toFixed(2)} ${this.boss.moveName || this.boss.attack?.name || "?"} press-${pt === undefined ? "none" : (this.gameTime - pt).toFixed(3)} win=${this.input.deflectWindow.toFixed(3)}`);
     // A broken posture leaves him wide open: hits land harder.
