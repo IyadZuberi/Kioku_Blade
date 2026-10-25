@@ -33,8 +33,8 @@ export function habitBars(prev: HabitScore[], now: HabitScore[]): Bar[] {
 export const highMoves = (plan: Plan): Move[] => MOVES.filter((m) => plan.emphasis[m] === "high");
 
 /** Honest provenance line: where this plan came from. */
-export function sourceLine(r: { source: "mubit" | "rules" | "local" | "replay"; latencyMs: number; requestId?: string; valid: boolean }): string {
-  if (r.source === "mubit") return `planned by mubit · ${r.latencyMs} ms${r.requestId ? " · " + r.requestId : ""}${r.valid ? "" : " · clamped"}`;
+export function sourceLine(r: { source: "mubit" | "rules" | "local" | "replay"; latencyMs: number; requestId?: string; valid: boolean; model?: string }): string {
+  if (r.source === "mubit") return `planned by mubit${r.model ? " (" + r.model + ")" : ""} · ${r.latencyMs} ms${r.requestId ? " · " + r.requestId : ""}${r.valid ? "" : " · clamped"}`;
   if (r.source === "replay") return "replay of a stored plan (not a live call)";
   if (r.source === "rules") return "planned by the rules table (mubit off or unreachable)";
   return "planned locally (offline)";

@@ -37,3 +37,18 @@ describe("plan backup model", () => {
     expect(b.seen.length).toBe(1);
   });
 });
+
+import { makeCallSpeech } from "../src/mubitSpeech";
+
+describe("speech call cap", () => {
+  it("stops paid speech calls beyond the per-minute cap (canned lines are used then)", async () => {
+    process.env.MUBIT_LIVE = "1";
+    let n = 0;
+    const call = (async () => (n++, { out: { dossier: "", greeting: "", parry: "", fall: "", win: "" }, ok: true, latencyMs: 1 })) as unknown as typeof callTask;
+    const speak = makeCallSpeech({ call, log: () => {}, perMinute: 2 });
+    const r = [await speak({} as any, "a"), await speak({} as any, "b"), await speak({} as any, "c")];
+    expect(r.map((x) => x.ok)).toEqual([true, true, false]);
+    expect(r[2].error).toMatch(/rate limit/);
+    expect(n).toBe(2);
+  });
+});

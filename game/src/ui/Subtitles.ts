@@ -19,6 +19,9 @@ const CSS = `
 #subs.prologue .text { font: italic 3.4vmin/1.55 ${LATIN_FONT}; color: #e9e0d2; }
 #subs.prologue .text { animation: subIn 0.9s ease both; }
 @keyframes subIn { from { opacity: 0; transform: translateY(0.8vh); } to { opacity: 1; transform: none; } }
+#say { position: fixed; left: 50%; top: 21vh; transform: translateX(-50%); z-index: 43; pointer-events: none; opacity: 0; transition: opacity 0.25s ease; max-width: 60ch; text-align: center;
+  font: italic 600 3.2vmin/1.2 ${LATIN_FONT}; text-shadow: 0 2px 8px #000, 0 0 2px #000; }
+#say.on { opacity: 1; }
 #fincap { position: fixed; left: 0; right: 0; top: 16vh; z-index: 44; text-align: center; pointer-events: none; opacity: 0; font: italic 600 5.2vmin/1 ${LATIN_FONT};
   letter-spacing: 0.14em; color: #f4ede2; text-shadow: 0 0 2.4vmin rgba(160,20,10,0.8), 0 2px 6px #000; transition: opacity 0.5s ease, letter-spacing 2.4s ease; }
 #fincap.on { opacity: 1; letter-spacing: 0.3em; }
@@ -108,6 +111,23 @@ export class Subtitles {
 
   private clearLine(): void {
     clearTimeout(this.timer);
+  }
+
+  private sayTimer = 0;
+  private readonly sayEl = (() => {
+    const e = document.createElement("div");
+    e.id = "say";
+    document.body.appendChild(e);
+    return e;
+  })();
+
+  /** One line in the General's voice during the fight (never captures a key; fades by itself). */
+  say(text: string, who: Speaker, ms = 2600): void {
+    clearTimeout(this.sayTimer);
+    this.sayEl.textContent = text;
+    this.sayEl.style.color = COLOR[who];
+    this.sayEl.classList.add("on");
+    this.sayTimer = window.setTimeout(() => this.sayEl.classList.remove("on"), ms);
   }
 
   /** The finisher's name, large over the slow motion. */

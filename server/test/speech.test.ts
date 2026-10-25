@@ -48,7 +48,7 @@ describe("general_speech in the fight-end loop", () => {
     expect(a.source).toBe("mubit");
     expect(a.lines.source).toBe("local");
     expect(a.lines.greeting).toBe("");
-    expect(a.dossier).toMatch(/Tends to/);
+    expect(a.dossier).toMatch(/Last duel:/);
   });
   it("a failed or garbage speech call changes nothing else", async () => {
     const { post } = boot(async () => ({ out: undefined, ok: false, latencyMs: 1, error: "429" }));

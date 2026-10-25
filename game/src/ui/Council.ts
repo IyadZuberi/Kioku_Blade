@@ -146,6 +146,7 @@ export class Council {
       el("div", "c-next", b, parts.join("  —  "));
     }
     if (learned) el("div", "c-next", b, learned);
+    if (r.dossier) el("div", "c-line", b, `His notes on you: ${r.dossier}`);
     if (r.plan.taunt) el("div", "c-taunt", b, `“${r.plan.taunt}”`);
     const bars = habitBars(prev, r.habits);
     if (bars.length) {

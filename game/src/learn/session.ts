@@ -11,6 +11,12 @@ export interface PlanResult {
   habits: HabitScore[];
   latencyMs: number;
   requestId?: string;
+  /** Which model wrote the plan (the backup model when the main provider was out of tokens). */
+  model?: string;
+  /** What he says next duel, written by the model about this player (empty strings: use the canned line). */
+  lines?: { dossier: string; greeting: string; parry: string; fall: string; win: string; source: "mubit" | "local" };
+  /** His own notes on this player (the model's), shown on the council screen. */
+  dossier?: string;
 }
 
 export interface PlanRequest {

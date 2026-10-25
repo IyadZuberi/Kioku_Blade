@@ -185,6 +185,12 @@ export class Game {
   private progressFor = "";
   /** What the General remembers of this player: every duel, won or lost (learn/remembers.ts). */
   mem: Remembered = { ...NOTHING };
+  private lastSneer = -99;
+  /** A line the model wrote for this general about this player ("" until the first duel with him, or when its call failed). */
+  private spoken(kind: "greeting" | "parry" | "fall" | "win"): string {
+    const r = this.learn.result;
+    return r && this.learn.boss === this.bossDef.id && r.lines?.source === "mubit" ? r.lines[kind] : "";
+  }
   /** A win's council text, waiting for the fall to finish. */
   private councilReady: (() => void) | null = null;
   private cardFor = 0;
@@ -808,7 +814,9 @@ export class Game {
     const first = !storyFlag(`met${id}`);
     setStoryFlag(`met${id}`);
     const taunt = this.learn.result && this.learn.boss === id ? this.learn.result.plan.taunt : "";
-    const lines: Line[] = first ? MEET[id] : [taunt ? { id: "", who: speakerOf(id), text: taunt } : AGAIN[id]];
+    // his own words, written by the model about this player after the last duel, win over the canned line
+    const written = this.spoken("greeting");
+    const lines: Line[] = first ? MEET[id] : [written ? { id: "", who: speakerOf(id), text: written } : taunt ? { id: "", who: speakerOf(id), text: taunt } : AGAIN[id]];
     this.input.disarmPrompt();
     this.hud.showTitle(false);
     this.hud.hideEnd();
@@ -1500,6 +1508,11 @@ export class Game {
           p.ch.bounce();
           p.deflected();
           b.counter();
+          const sneer = this.spoken("parry");
+          if (sneer && this.gameTime - this.lastSneer > 6) {
+            this.lastSneer = this.gameTime;
+            this.subs.say(sneer, speakerOf(this.bossDef.id));
+          }
         }
       }
     } else return;
@@ -1592,7 +1605,8 @@ export class Game {
 
   private trueDeath(): void {
     this.go("defeat");
-    this.subs.play([TRIUMPH[this.bossDef.id]], () => {});
+    const gloat = this.spoken("win");
+    this.subs.play([gloat ? { id: "", who: speakerOf(this.bossDef.id), text: gloat } : TRIUMPH[this.bossDef.id]], () => {});
     this.stats.defeats++;
     this.endLearning();
     this.hud.showEnd("defeat");
@@ -1768,7 +1782,9 @@ export class Game {
       wavedash.achieve("VICTORY");
       if (this.difficulty === "hard") wavedash.achieve("VICTORY_HARD");
       if (this.stats.deaths === this.fightStartDeaths) wavedash.achieve("NO_DEATH");
-      this.subs.play(FALL[this.bossDef.id], () => {});
+      const last = this.spoken("fall");
+      const fall = FALL[this.bossDef.id];
+      this.subs.play(last ? [{ id: "", who: speakerOf(this.bossDef.id), text: last }, ...fall.slice(1)] : fall, () => {});
       p.enter("victory");
       p.setClip("victory", 0.4);
       b.enter("dead");

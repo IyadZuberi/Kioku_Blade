@@ -23,7 +23,7 @@ for (let n = 0; n < duels; n++) {
     await new Promise((res) => { const t0 = performance.now(); const id = setInterval(() => { if (g.learn.state === "ready" || performance.now() - t0 > 15000) { clearInterval(id); res(); } }, 100); });
     g.pause();
     const res = g.learn.result;
-    return { state: g.state, source: res?.source, valid: res?.valid, level: res?.bossLevel, req: res?.requestId, intel: res?.plan?.intel, taunt: res?.plan?.taunt, focus: res?.plan?.focus_habit, opens: res?.plan?.opening_strings, tempo: res?.plan?.tempo_step, gap: res?.plan?.gap_step, mem: { ...g.mem } };
+    return { state: g.state, source: res?.source, valid: res?.valid, level: res?.bossLevel, req: res?.requestId, intel: res?.plan?.intel, taunt: res?.plan?.taunt, focus: res?.plan?.focus_habit, opens: res?.plan?.opening_strings, model: res?.model, lines: res?.lines, dossier: res?.dossier, tempo: res?.plan?.tempo_step, gap: res?.plan?.gap_step, mem: { ...g.mem } };
   });
   // the next duel's General, as the game would build him
   const next = await page.evaluate(() => {
@@ -40,6 +40,8 @@ for (const r of rows) {
   console.log(`  he read: ${r.focus}  opens ${JSON.stringify(r.opens)}  tempo ${r.tempo} gap ${r.gap}`);
   console.log(`  intel: ${r.intel}`);
   console.log(`  taunt: ${r.taunt}`);
+  console.log(`  model: ${r.model ?? "-"}   his words next duel: ${r.lines?.source === "mubit" ? JSON.stringify({ greeting: r.lines.greeting, parry: r.lines.parry, fall: r.lines.fall, win: r.lines.win }) : "(canned)"}`);
+  console.log(`  his notes on you: ${r.dossier ?? "-"}`);
   console.log(`  remembers: ${JSON.stringify(r.mem)}`);
   console.log(`  next duel: parries a 3-cut string ${Math.round(r.next.parry3 * 100)}%, answers after ${r.next.counterDelay}s, openings ${r.next.recover}, tempo p2 ${r.next.tempoP2}, gap p1 ${r.next.gapP1}`);
 }

@@ -90,7 +90,7 @@ export const speakerOf = (b: BossId): string => NAME[b];
 export function fallbackSpeech(i: SpeechInput): Speech {
   const h = i.habits[0];
   return {
-    dossier: h ? `Tends to ${h.evidence}.`.slice(0, 160) : i.dossier,
+    dossier: h ? `Last duel: ${h.evidence}.`.slice(0, 160) : i.dossier,
     greeting: "",
     parry: "",
     fall: "",
