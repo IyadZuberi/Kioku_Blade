@@ -1,65 +1,87 @@
-# Kioku: Blades That Remember (the project is called The General Remembers)
+# Kioku: Blades That Remember
 
-A browser samurai duel (a fork of [shinobi-duel](https://github.com/StarKnightt/shinobi-duel), MIT) whose generals learn. After **every** duel, won or lost, the general is harder the next time, and he has read how you fight. Two layers:
+**A browser samurai duel where the generals learn.** Three duels, three different fighters. After every fight, won or lost, the general has read how you fight and comes back harder. The planning is done by a language model through [Mubit](https://mubit.ai); the sword-fighting is plain code.
 
-1. **Memory in the game** (works offline): every duel is counted (`game/src/learn/remembers.ts`). Each one pulls his guard-and-answer knobs toward the HARD preset: he parries more of your long strings, answers a deflect faster, leaves fewer openings, moves faster and rests less (`bossKnobs` in `game/src/game/bosses.ts`). Never past HARD (the fair, bot-tested ceiling); your deflect windows are never touched. The title and the council screen say it in numbers ("he parries 47% of long strings").
-2. **The war council** (Mubit): after the duel your numbers go to one frozen task, `general_plan`, through [Mubit](https://mubit.ai). It reads your habits (blended with your history) and answers with an enum-only plan: which moves to favour, an opening string, tempo and gap steps, a line of intel and a taunt. Code maps it onto the knobs; a validator keeps it inside the level's limits. If the call fails the same rules code runs locally and the screen says so.
+<p align="center">
+  <img src="docs/notes/arena1.png" width="32%" alt="Arena one: the shrine courtyard">
+  <img src="docs/notes/arena2b.png" width="32%" alt="Arena two: the rooftop at dusk">
+  <img src="docs/notes/arena3b.png" width="32%" alt="Arena three: the sakura garden">
+</p>
 
-Each general fights differently (katana duelist with a riposte stance, spear fighter who lunges across the room and springs away, shinobi-style shogun who vanishes in smoke and throws shuriken). Those Sekiro-style tricks are the game's own picks; the model never plans them (the frozen Mubit task names only the shared move list).
+Built for the Night Shift hackathon (London, 23-25 Oct 2026). Repository name: `the-general-remembers`. A fork of [shinobi-duel](https://github.com/StarKnightt/shinobi-duel) (MIT).
 
-Built for the Night Shift hackathon (London, 23-25 Oct 2026). Design: `docs/superpowers/specs/`. Plan: `docs/superpowers/plans/`. Evidence: `docs/verification.md`. Demo: `docs/demo-script.md`. Walkthrough: `docs/walkthrough.md`.
+## The idea
+
+| Layer | What it does | Needs a server? |
+|---|---|---|
+| **Memory in the game** | Every duel is counted. Each one pulls his guard, parry rate, answer speed, openings and tempo toward the HARD preset, never past it. Your deflect windows are never touched. | No |
+| **The war council** (Mubit task `general_plan`) | Your duel numbers go to a model that answers with an enum-only plan: what to favour, how to open, tempo and gap steps, a line of intel and a taunt. A validator clamps it to the level's limits. | Yes |
+| **His voice** (Mubit task `general_speech`) | A second model call writes what he says to you next duel (greeting, parry shout, last words, gloat) and rewrites his private notes on you, which feed the next plan. | Yes |
+
+If a call fails, the same rules code runs locally and canned lines are used. The screen says which. A network call never blocks a frame.
+
+**The generals**
+
+| | Style | Tricks |
+|---|---|---|
+| Masatora, the Garden Duelist | Armoured katana duelist | Riposte stance that deflects everything |
+| Kazemaru, the Spear of the Wind | Reach fighter | Lunges across the room, springs away |
+| Kurogane, the Hollow Shogun | Shinobi-trained master | Vanishes in smoke, throws a fan of shuriken |
+
+Each ends with its own finisher: *Through the Heart*, *Wind's End*, *The Last Blossom*. The Sekiro-style tricks are the game's own picks; the model never plans them.
 
 ## Run it
 
+Node 22+ and pnpm.
+
 ```powershell
 pnpm install
-pnpm -C server start        # http://localhost:8787  (API + /dashboard)
-pnpm -C game dev            # http://localhost:5411  (the game; /api is proxied to the server)
-pnpm test                   # shared + game + server tests
+pnpm -C game dev        # the game, http://localhost:5411
+pnpm -C server start    # optional: API on 8787 (the game works without it)
+pnpm test               # shared + game + server tests
 ```
 
-Node 22+ (uses built-in `node:sqlite`) and pnpm. The server listens on 127.0.0.1 only; set `HOST=0.0.0.0` to let phones on the same network reach it (then also keep `MUBIT_LIVE` off or rely on the 30-live-calls-per-minute cap). The server reads `.env` from the repo root. The game plays without the server: it falls back to the same rules code locally.
+Deploying the game is a static build: `vercel.json` builds `game/dist`. The server is only needed for the Mubit-planned duels.
 
-## Mubit is OFF by default (credits are limited)
+## Mubit setup
 
-Nothing is sent to Mubit unless **both** are set: `MUBIT_LIVE=1` in the server's environment and a key in `.env` (`MUBIT_API_KEY=mbt_...`; copy `.env.example`, which also says where each value comes from). Without them the server answers with the deterministic rules plan and says so on screen.
+Nothing is sent to Mubit unless **both** are set: `MUBIT_LIVE=1` in the server's environment and a key in `.env`.
 
-This project's provider key in Mubit is Groq, so calls go to `https://api.mubit.ai/compat/groq/v1` with model `openai/gpt-oss-120b` (`.env.example`). Groq's free tier allows about 8,000 tokens a minute (about 3 plans), so set `MUBIT_PER_MINUTE=3` for live play; beyond that the rules plan answers and the screen says "planned locally".
-
-Live scripts refuse to run without `MUBIT_LIVE=1` **and** `--yes-live`:
+1. Copy `.env.example` to `.env` (gitignored) and set `MUBIT_API_KEY=mbt_...` (Mubit console, Connect).
+2. The defaults use Mubit's starter-credit model `gpt-6-luna` on `https://api.mubit.ai/openai/v1`. Groq's `gpt-oss-120b` is the backup (needs a Groq key in the Mubit console).
+3. Seed and check, in order (each live script also needs `--yes-live`):
 
 ```powershell
 cd server
-pnpm gen:seed; pnpm gen:heldout                         # local, free: data/seed.json (80), data/heldout.json (60)
-pnpm eval --label baseline                              # local, free: the rules table as a baseline row
-# LIVE (spends credits; in order):
-#   tsx scripts/smoke.ts --yes-live                      one call
-#   tsx scripts/send_seed.ts --yes-live                  80 calls, storage ON: this is what Mubit trains on (done once; ~25 min, paced to the token window)
-#   pnpm eval --label provider --yes-live --notes "..."  60 calls, storage OFF
-$env:MUBIT_LIVE="1"; $env:MUBIT_PER_MINUTE="3"; pnpm -C server start   # live play
+pnpm gen:seed; pnpm gen:heldout
+$env:MUBIT_LIVE="1"
+pnpm exec tsx scripts/smoke.ts --yes-live        # one call
+pnpm exec tsx scripts/send_seed.ts --yes-live    # 80 calls, stored: what Mubit trains on
+$env:MUBIT_PER_MINUTE="6"; pnpm start             # live play
 ```
 
-`server/src/prompts/general_plan.ts` (system prompt + schema + model) is **frozen** now that the seed is sent: any edit starts a new, empty Mubit task. `server/test/frozen.test.ts` pins its hash. Mubit trains an adapter (a small model for this one task) once it keeps 25 examples, and tests it against the provider model's answers; watch Tasks and Adapters in the Mubit console. Whether an adapter then serves live traffic is not documented by Mubit; the game does not depend on it.
+`general_plan` is **frozen** once seeded: Mubit groups calls into a task by model, instructions and output format, so any edit starts a new empty task. `server/test/frozen.test.ts` pins the hash. Mubit keeps examples, and trains a small adapter for the task at 25 kept examples. Whether an adapter then serves live traffic is not documented by Mubit, so the game does not depend on it.
 
-Check the whole loop with real fights: `node game/tools/learncheck.mjs 3 mix` (needs the server live and the preview on 5410).
+How the models are used, what goes in and out, and call sizes: [`docs/llm.md`](docs/llm.md). System flowchart: [`docs/architecture.md`](docs/architecture.md).
 
 ## Controls
 
-Mouse and keyboard (from the base): LMB / J strike, RMB / K guard (tap just before a blow lands to deflect), Shift step, Space jump, R gourd, WASD move, Q lock-on. F1 opens Settings: every control, the moves list (Kaede and each general, with how to answer), sound (master, music, effects, mute).
+Keyboard and mouse: LMB / J strike, RMB / K guard (tap just before a blow lands to deflect), Shift step, Space jump, R gourd, WASD move, Q lock on. Controllers work automatically. **F1** opens Settings: every control, the moves list, and sound (master, music, effects, mute).
 
-Optional hand control (`G`, or `?gestures=1`): your left hand is a movement stick; for everything else you train your own hand poses (F1 > Hands > Train my poses): one pose per action, read from a single camera frame. Poses and video stay in the browser.
+**Hands (optional, `G` or `?gestures=1`).** Your left hand is a movement stick. For everything else you train your own hand poses: F1, Hands, *Train my poses*, pick an action, hold the shape for a second and a half. One pose per action, read from a single camera frame (about 65 ms), and a new pose replaces the old one. Teach a Rest pose so a relaxed hand does nothing. Poses and video stay in your browser.
 
-URL options: `?name=` player name, `?quality=low|high`, `?replay=1` (serve stored plans, labelled replay), `?gestures=1`, `?difficulty=easy|medium|hard`.
-
-Host key: `H` on the end screen teaches the General a rule and re-sends that fight with it. It needs `HOST_TOKEN` set on the server (the game asks for it once per tab); without a token the endpoint is disabled.
+URL options: `?name=` player name, `?quality=low|high`, `?replay=1` (serve stored plans), `?gestures=1`, `?difficulty=easy|medium|hard`.
 
 ## What is where
 
 ```
-game/      the forked duel + learn/ (summary, session, planLoader), ui/Council, input/gestures
-shared/    pure logic used by game and server: habits, plan contract + validator, knob tables, grader
-server/    Express API, node:sqlite memory, Mubit client + frozen task, eval harness, dashboard
-data/      seed.json, heldout.json (committed); calls.csv and eval/ (git-ignored)
+game/      the duel: fighters, bosses, arenas, learn/ (memory, session), ui/, input/ (poses)
+shared/    pure logic used by game and server: habits, plan contract + validator, levels, grader
+server/    Express API, node:sqlite memory, Mubit client, the two tasks, eval harness, dashboard
+data/      seed.json, heldout.json (committed); calls.csv and eval/ are git-ignored
+docs/      llm.md, architecture.md, walkthrough.md, demo-script.md, verification.md
 ```
 
-See `NOTICE.md` for third-party credits and the unresolved asset-licence note.
+## Credits
+
+See [`NOTICE.md`](NOTICE.md): shinobi-duel (MIT), Kenney sound packs (CC0), Poly Haven textures and HDRIs (CC0), three.js, pmndrs postprocessing, N8AO.
