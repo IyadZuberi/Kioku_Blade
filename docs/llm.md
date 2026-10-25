@@ -25,3 +25,15 @@ The **habit classification** (blocks too much, dodges too much, ...) is plain co
 ## Size of the calls
 
 Plan: about 1,300-1,700 prompt tokens (instructions about 650, response schema about 410, the duel's JSON about 300) and about 350-650 completion tokens, of which the reply itself is about 250 and the rest is hidden reasoning. Speech: about 550 prompt, 250-500 completion. Mubit's docs name an "examples too long to train on" outcome but give no number; the console's kept-example count is the check.
+
+## What Mubit adds over calling a model directly
+
+Honest version. The game's **learning** (he gets harder, he remembers you) comes from our own code plus the dossier the model rewrites each duel. That works with any model. Mubit adds a different thing:
+
+1. **It records every call** (request id, tokens, latency) and groups calls with the same model + instructions + output format into a **task**. `general_plan` is one task, `general_speech` another.
+2. **It keeps examples** from those calls and, once a task has enough (25), **trains a small adapter** for it, then tests that adapter against our provider model's answers. A passing adapter is a cheaper, faster model made for exactly this job. Today's plan call costs about 700 input tokens on a large model; the adapter is the way to stop paying that.
+3. **Try models** compares the provider's answer with the adapter's side by side.
+
+So Mubit does not make the boss smarter in the moment; it turns our live traffic into a cheaper specialist model.
+
+**Why the console may show nothing learned.** Per Mubit's docs, training has to be switched on for the workspace: until it is, the console shows no Adapters page and training does not start. Calls made through `compat/groq` also need time to appear, and each task needs 25 kept examples. Check, in order: Requests (are our calls there), Tasks (is there a `general_plan` task and how many kept), Adapters (does the page exist). If there is no Adapters page, the fix is to ask Mubit to turn training on (their "Get help" page). Admin and organization endpoints are refused through the API, so this cannot be checked from code.
