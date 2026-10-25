@@ -74,7 +74,7 @@ The story lines are pre-rendered with Kokoro and shipped in `game/public/assets/
 ```powershell
 python -m venv .venv; .venv\Scripts\pip install kokoro-onnx soundfile
 # download the two model files (about 120 MB, git-ignored) into server/voice/models/ (URLs in server/voice/tts_server.py)
-.venv\Scripts\python serveroice	ts_server.py     # then run the server as usual
+.venvScriptspython serveroice	ts_server.py     # then run the server as usual
 ```
 
 ## Controls
