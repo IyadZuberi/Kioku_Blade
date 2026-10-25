@@ -847,8 +847,8 @@ ${this.brainText()}`);
       this.cardFor = this.progress.boss;
       const def = BOSSES[this.progress.boss];
       this.input.disarmPrompt();
-      this.subs.say(CARD[def.id].text, "narrator", 6000, CARD[def.id].id); // and so is the card
-      this.chapterCard.show(def, () => this.setBoss(def.id), () => this.beginIntro());
+      this.subs.say(CARD[def.id].text, "narrator", 4200, CARD[def.id].id); // and so is the card: it stays up for the line
+      this.chapterCard.show(def, () => this.setBoss(def.id), () => this.beginIntro(), 4400);
       return;
     }
     if (!this.parleyDone) return this.beginParley();

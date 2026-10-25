@@ -34,7 +34,7 @@ const browser = await chromium.launch({ channel: "chrome", headless: true });
 const page = await browser.newPage();
 page.on("console", (m) => m.type() === "error" && console.log("console:", m.text()));
 await page.goto(process.env.RENDER_URL ?? "http://localhost:5420/");
-await page.waitForFunction(() => window.ready, null, { timeout: 60000 });
+await page.waitForFunction(() => window.ready, null, { timeout: 240000 });
 console.log("voices:", await page.evaluate(() => window.load()));
 const manifest = existsSync(`${out}manifest.json`) && !process.argv.includes("--all") ? JSON.parse(readFileSync(`${out}manifest.json`, "utf8")) : {};
 for (const l of uniq) {

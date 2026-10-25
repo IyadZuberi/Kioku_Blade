@@ -105,15 +105,15 @@
  },
  "card-1": {
   "file": "card-1.wav",
-  "text": "Chapter one. The shrine garden. Masatora, the garden duelist, waits among the maples."
+  "text": "Chapter one. The shrine garden. Masatora waits."
  },
  "card-2": {
   "file": "card-2.wav",
-  "text": "Chapter two. The rooftops at dusk. Kazemaru, the spear of the wind, watched you climb."
+  "text": "Chapter two. The rooftops. Kazemaru watched you climb."
  },
  "card-3": {
   "file": "card-3.wav",
-  "text": "Chapter three. The sakura garden. Kurogane, the hollow shogun, has remembered you since the first gate."
+  "text": "Chapter three. The sakura garden. Kurogane remembers you."
  },
  "gate-1": {
   "file": "gate-1.wav",
