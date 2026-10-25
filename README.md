@@ -125,8 +125,9 @@ Order of the Remembering Blade, who "never forget a fighter".
 - **Settings (F1):** every control, the moves list, sound.
 
 <p align="center">
-  <img src="docs/img/demo-pause.jpg" width="49%" alt="The pause menu">
-  <img src="docs/img/demo-settings-moves.jpg" width="49%" alt="Settings: the moves list">
+  <img src="docs/img/demo-pause.jpg" width="32%" alt="The pause menu">
+  <img src="docs/img/demo-poses.jpg" width="32%" alt="Training your own hand poses">
+  <img src="docs/img/demo-settings-moves.jpg" width="32%" alt="Settings: the moves list">
 </p>
 
 ## Run it
@@ -182,7 +183,7 @@ python -m venv .venv; .venv\Scripts\pip install kokoro-onnx soundfile
   validation, the frozen Mubit tasks, fallbacks).
 - `game/tools/fullcheck.mjs`: title, Settings, narrated prologue and chapter cards, parley, keyboard movement, the shield
   banner, pause, finisher, victory, the council screen, the gate and the next chapter, in a real browser with the
-  bot fighting. `pause-check.mjs`, `brain-run.mjs`, `flowperf.mjs` (frame pacing, about 58 fps in fights).
+  bot fighting. `pause-check.mjs`, `pose-check.mjs` (the pose trainer on a fake camera), `brain-run.mjs`, `flowperf.mjs` (frame pacing, about 58 fps in fights).
 - Features list: [`docs/features.md`](docs/features.md). Demo script: [`docs/demo-script.md`](docs/demo-script.md).
 
 ## What is where

@@ -264,10 +264,25 @@ declare global {
   }
 }
 
+/** Opens the pose trainer on a fake camera (no webcam): the returned `feed(hands)` pushes one frame. For checks and demos. */
+async function poseDemo(): Promise<(hands: unknown[]) => void> {
+  const { PoseTracker, loadPoses } = await import("./input/poses");
+  const poses = new PoseTracker();
+  poses.set = loadPoses();
+  const subs = new Set<(f: unknown) => void>();
+  const fake = { hold: false, video: document.createElement("video"), tracker: { axis: { x: 0, y: 0 } }, poses, onFrame: (cb: (f: unknown) => void) => (subs.add(cb), () => subs.delete(cb)), preview() {}, stop() {} } as unknown as GestureHandle;
+  trainer.open(fake);
+  return (hands) => {
+    poses.update(hands as never, performance.now() / 1000);
+    for (const cb of subs) cb({ hands, events: [] });
+  };
+}
+
 window.__duel = {
   ready: false,
   game,
   stats,
+  poseDemo,
   rules: {
     DIFFICULTY,
     DIFFICULTY_PRESETS,
