@@ -143,7 +143,7 @@ const harder = (base: Range, to: Range): Range => [Math.min(base[0], to[0]), Mat
  * Only ever harder, and never past HARD (the tested, fair ceiling); deflect windows and the player's
  * damage are never touched.
  */
-export function bossKnobs(def: BossDef, base: DifficultyValues, level = 0): DifficultyValues {
+export function bossKnobs(def: BossDef, base: DifficultyValues, level = 0, ceiling = 1): DifficultyValues {
   const k = structuredClone(base);
   if (def.picks) {
     k.picks.p1 = normalise(def.picks.p1);
@@ -157,7 +157,8 @@ export function bossKnobs(def: BossDef, base: DifficultyValues, level = 0): Diff
     const g = GAP_BY_STEP[Math.min(3, gapStep)];
     k.gap = { p1: harder(base.gap.p1, g.p1), p2: harder(base.gap.p2, g.p2) };
   }
-  const amount = Math.min(1, (def.lean?.amount ?? 0) + (L / 10) * 0.65);
+  // By level 10 he is at the ceiling: HARD on Hard, most of the way on Medium, about half on Easy
+  const amount = Math.min(ceiling, (def.lean?.amount ?? 0) + (L / 10) * ceiling);
   if (amount > 0) {
     const knobs = new Set<LeanKnob>([...(def.lean?.knobs ?? []), ...(L > 0 ? READS_YOU : []), ...(L >= 7 ? IRON : [])]);
     const hard = DIFFICULTY_PRESETS.hard as Record<string, unknown>;
@@ -171,8 +172,11 @@ export function bossKnobs(def: BossDef, base: DifficultyValues, level = 0): Diff
   return k;
 }
 
+/** How far learning may take him on each difficulty (1 = all the way to the HARD preset). */
+export const LEARN_CEILING = { easy: 0.45, medium: 0.85, hard: 1 } as const;
+
 /** What the General has learned, in words the player can feel (council screen, title). */
-export function learnedSummary(def: BossDef, base: DifficultyValues, level: number): { parryPct: number; speedPct: number } {
-  const k = bossKnobs(def, base, level);
+export function learnedSummary(def: BossDef, base: DifficultyValues, level: number, ceiling = 1): { parryPct: number; speedPct: number } {
+  const k = bossKnobs(def, base, level, ceiling);
   return { parryPct: Math.round(k.bossDeflect[3] * 100), speedPct: Math.round((k.tempo[1] - 1) * 100) };
 }

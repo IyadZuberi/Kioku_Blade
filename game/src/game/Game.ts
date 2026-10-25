@@ -44,7 +44,7 @@ import type { ThemeId } from "../world/themes";
 import { applyBossLook, applyPlayerLook } from "../chars/looks";
 import { ChapterCard } from "../ui/ChapterCard";
 import { bossOf, type BossId } from "@gr/shared";
-import { BOSSES, bossKnobs, learnedSummary, type BossDef } from "./bosses";
+import { BOSSES, bossKnobs, LEARN_CEILING, learnedSummary, type BossDef } from "./bosses";
 import { Hazards, RING, WAVE } from "./hazards";
 import { Gate } from "./Gate";
 import { afterFight, fresh, loadProgress, saveProgress, select as selectProgress, unlockAll, type Progress } from "./progress";
@@ -471,7 +471,7 @@ export class Game {
     this.fightMark = mark(this.stats);
     this.firstHealT = null;
     // The boss's own tuning first, then the war council's plan for THIS boss on top of it.
-    overrideDifficulty(bossKnobs(this.bossDef, structuredClone(DIFFICULTY), levelOf(this.mem, this.progress.streak)));
+    overrideDifficulty(bossKnobs(this.bossDef, structuredClone(DIFFICULTY), levelOf(this.mem, this.progress.streak), LEARN_CEILING[this.difficulty]));
     this.boss.canWind = this.bossDef.moves.includes("windSlash");
     this.boss.windFan = this.bossDef.id === 3; // Kurogane throws a fan of three shuriken
     this.boss.extras = this.bossDef.extra;
@@ -506,7 +506,7 @@ export class Game {
       this.learn.boss = boss;
       this.learn.state = "ready";
       const present = (): void => {
-        const learned = learnedSummary(this.bossDef, DIFFICULTY_PRESETS[this.difficulty], levelOf(this.mem, this.progress.streak));
+        const learned = learnedSummary(this.bossDef, DIFFICULTY_PRESETS[this.difficulty], levelOf(this.mem, this.progress.streak), LEARN_CEILING[this.difficulty]);
         this.council.show(r, this.prevHabits, `He has fought you ${this.mem.fights} ${this.mem.fights === 1 ? "time" : "times"}. Next duel he parries ${learned.parryPct}% of long strings and moves ${learned.speedPct >= 0 ? "+" : ""}${learned.speedPct}% faster.`);
         if (this.advancedTo) this.council.flash(`Chapter ${BOSSES[this.advancedTo].chapter} unlocked: ${BOSSES[this.advancedTo].latin}, ${BOSSES[this.advancedTo].epithet}.`);
         else if (summary.victory && this.bossDef.gate > 0) this.council.flash(`Streak ${this.progress.streak} of ${this.bossDef.gate} against ${this.bossDef.latin}.`);
@@ -719,7 +719,7 @@ export class Game {
     this.council.setChapters(this.progress, (id) => this.selectBoss(id));
     void fetchGlobal().then((g) => {
       if (this.mem.fights) {
-        const learned = learnedSummary(this.bossDef, DIFFICULTY_PRESETS[this.difficulty], levelOf(this.mem, this.progress.streak));
+        const learned = learnedSummary(this.bossDef, DIFFICULTY_PRESETS[this.difficulty], levelOf(this.mem, this.progress.streak), LEARN_CEILING[this.difficulty]);
         this.council.banner(`The General remembers ${this.mem.fights} ${this.mem.fights === 1 ? "duel" : "duels"} against you · he parries ${learned.parryPct}% of long strings`);
       } else if (g) this.council.banner(g.totalFights ? `The General has fought ${g.totalFights} ${g.totalFights === 1 ? "duel" : "duels"} · he is waiting for you` : "The General is waiting for his first duel");
     });

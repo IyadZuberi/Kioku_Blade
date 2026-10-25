@@ -82,3 +82,14 @@ describe("what he has learned", () => {
     expect(knobs.gap.p1[0]).toBeLessThanOrEqual(learned.gap.p1[0]);
   });
 });
+
+describe("learning ceilings by difficulty", () => {
+  it("at level 10 he is hardest on Hard, less on Medium, least on Easy (relative to each preset)", () => {
+    const at = (name: "easy" | "medium" | "hard", c: number) => bossKnobs(BOSSES[1], structuredClone(DIFFICULTY_PRESETS[name]), 10, c);
+    const gain = (name: "easy" | "medium" | "hard", c: number) => at(name, c).bossDeflect[3] - DIFFICULTY_PRESETS[name].bossDeflect[3];
+    expect(gain("easy", 0.45)).toBeGreaterThan(0);
+    expect(at("easy", 0.45).bossDeflect[3]).toBeLessThan(at("medium", 0.85).bossDeflect[3]);
+    expect(at("medium", 0.85).bossDeflect[3]).toBeLessThanOrEqual(DIFFICULTY_PRESETS.hard.bossDeflect[3]);
+    expect(at("hard", 1).bossDeflect[3]).toBe(DIFFICULTY_PRESETS.hard.bossDeflect[3]);
+  });
+});
