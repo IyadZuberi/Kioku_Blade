@@ -424,6 +424,7 @@ export class Game {
   /** Switch the stage (one per boss): scenery, lights, sky, particles and the post-process look. */
   setArena(id: ThemeId): void {
     const s = this.arena.setTheme(id);
+    this.audio.surface = id === 2 ? "step-snow" : id === 3 ? "step-grass" : "step-gravel";
     this.snow.setKind(s.particles);
     this.post.setLook(s.look);
   }

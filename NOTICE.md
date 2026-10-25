@@ -7,3 +7,6 @@
 - **Three.js** (MIT), **pmndrs postprocessing** (Zlib), **N8AO** (ISC).
 - **Mubit** (https://mubit.ai) is the LLM gateway; no Mubit code is bundled.
 
+
+## Sound effects (game/public/assets/audio)
+Recorded effects are from Kenney's "Impact Sounds" and "RPG Audio" packs (kenney.nl), released under CC0 (licence files alongside). They are layered under the game's synthesised sound.

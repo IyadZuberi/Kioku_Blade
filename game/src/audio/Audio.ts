@@ -15,6 +15,7 @@ import { Mix, type Emitter } from "./mix";
 import { Music } from "./music";
 import { makeString, SHAMISEN } from "./synth";
 import { Voices } from "./voice";
+import { Samples, type Group } from "./samples";
 
 interface V3 {
   x: number;
@@ -56,6 +57,9 @@ export class GameAudio {
   private shamisen!: AudioBuffer;
   private ring!: GainNode;
   private chainN = 0;
+  private smp: Samples | null = null;
+  /** The ground underfoot (set per arena): which footstep recordings play. */
+  surface: "step-snow" | "step-grass" | "step-gravel" = "step-gravel";
   private lastDeflect = -9;
   private charge: { nodes: AudioNode[]; srcs: AudioScheduledSourceNode[]; out: GainNode } | null = null;
   private charging = false;
@@ -141,6 +145,7 @@ export class GameAudio {
     this.amb = new Ambience(this.mix);
     this.amb.on = o.ambience ?? true;
     this.shamisen = makeString(ctx, 146.83, SHAMISEN);
+    if (typeof AudioContext !== "undefined" && ctx instanceof AudioContext) this.smp = new Samples(ctx);
     this.ring = ctx.createGain();
     this.ring.connect(this.mix.em.c.in);
   }
@@ -223,6 +228,7 @@ export class GameAudio {
     // Chains: a slight climb (+1.2% a step, capped) with an alternating low/high answer, like a rhythm.
     const pitch = hero ? (1 + Math.min(this.chainN, 4) * 0.012) * (this.chainN % 2 ? 0.965 : 1) * rand(0.985, 1.015) : 0.94 * rand(0.97, 1.03);
     const P = power;
+    this.sample(power >= 0.85 ? "clash-heavy" : power >= 0.45 ? "clash-medium" : "clash-light", d, 0.55 * Math.min(1, 0.4 + power * 0.7), pitch);
     // Crack: a hard, very short broadband click plus a bright sizzle.
     m.noiseHit(d, t, 0.018, "highpass", 1800, 0.7, 0.22 * P, { attack: 0.0005 });
     m.noiseHit(d, t, 0.006, "lowpass", 9000, 0.5, 0.1 * P, { attack: 0.0003 });
@@ -290,6 +296,7 @@ export class GameAudio {
     const m = this.mix;
     const t = m.now;
     const d = m.em.b.in;
+    this.sample("thud", d, armour ? 0.35 : 0.5, armour ? 0.8 : 1);
     // Slice.
     m.noiseHit(d, t, 0.12, "bandpass", 3800, 0.9, 1.4, { to: 1400 });
     // Meat.
@@ -335,6 +342,7 @@ export class GameAudio {
     const t = m.now;
     const boss = from === "boss";
     const d = boss ? m.em.b.in : m.em.p.in;
+    this.sample("slice", d, heavy ? 0.4 : 0.26, boss ? 0.85 : 1.05, 0.1);
     const v = this.swingN++ % 3;
     const j = rand(0.9, 1.1) * (1 + (v - 1) * 0.07);
     const dur = (boss ? (heavy ? 0.46 : 0.32) : heavy ? 0.3 : 0.2) * rand(0.92, 1.08);
@@ -441,6 +449,7 @@ export class GameAudio {
     const m = this.mix;
     const t = m.now;
     const d = m.em.c.in;
+    this.sample("bell", d, 0.5, 0.7, 0.4);
     m.osc(d, t, 72, 46, 2.4, 1.0, { glide: 2.2, verb: 0.3 });
     m.osc(d, t, 144, 92, 1.2, 0.3, { glide: 1.1 });
     m.noiseHit(d, t, 0.45, "lowpass", 420, 0.6, 0.6, { to: 80 });
@@ -460,6 +469,7 @@ export class GameAudio {
     const t = m.now + 0.05;
     const d = m.em.c.in;
     m.osc(d, t, 420, 1900, 0.45, 0.16, { glide: 0.42, attack: 0.03 }); // slide whistle up
+    this.sample("bell", d, 0.35, 1.2, 0.3);
     const notes: [number, number, number][] = [[523.25, 0.0, 0.14], [659.25, 0.14, 0.14], [783.99, 0.28, 0.14], [1046.5, 0.44, 0.7]];
     for (const [f, at, dur] of notes) {
       m.osc(d, t + 0.5 + at, f, f * 1.01, dur, 0.1, { type: "sawtooth", attack: 0.01, verb: 0.15 });
@@ -480,6 +490,12 @@ export class GameAudio {
       m.osc(d, t + at, f, end, dur, 0.13, { type: "sawtooth", attack: 0.05, glide: dur, verb: 0.2 });
       m.osc(d, t + at, f * 0.5, end * 0.5, dur, 0.05, { type: "triangle", attack: 0.05, glide: dur });
     }
+  }
+
+  /** A recorded effect on top of the synth one (silent until it has loaded). */
+  private sample(g: Group, dest: AudioNode, gain: number, rate = 1, verb = 0.15): void {
+    const b = this.smp?.pick(g);
+    if (b && this.ctx) this.mix.play(dest, this.mix.now, b, rate * rand(0.94, 1.06), gain, verb);
   }
 
   /** The single shamisen pluck (Karplus-Strong string, sawari buzz, skin body). */
@@ -505,6 +521,7 @@ export class GameAudio {
     const t = m.now;
     const v = clamp(0.3 + speed / 10, 0.3, 0.9);
     this.step(m.em.p.in, t, v * 1.4, false);
+    this.sample(this.surface, m.em.p.in, v * 0.55, 1, 0.05);
   }
 
   private step(d: AudioNode, t: number, v: number, heavy: boolean): void {
