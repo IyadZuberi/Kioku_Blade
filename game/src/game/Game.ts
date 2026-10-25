@@ -58,6 +58,7 @@ import { applyPlan } from "../learn/planLoader";
 import { fetchGlobal, getNickname, newFightId, requestPlan, type PlanResult } from "../learn/session";
 import { mark, summarize, type StatsMark } from "../learn/summary";
 import { levelOf, loadMemory, NOTHING, remember, saveMemory, type Remembered } from "../learn/remembers";
+import { behaviourOf, COND_TEXT, learn as learnBrain, loadBrain, readingOf, saveBrain, vulnerable, type Brain, type Cond } from "../learn/brain";
 import { applyDifficulty, DIFFICULTY, DIFFICULTY_NAMES, DIFFICULTY_PRESETS, type DifficultyName, initialDifficulty, isDifficulty, overrideDifficulty, rememberDifficulty } from "./difficulty";
 import { CameraRig } from "./CameraRig";
 import { KICK_REACH, PLAYER_MAX, Player, vitalityRegen } from "./Player";
@@ -185,6 +186,34 @@ export class Game {
   private progressFor = "";
   /** What the General remembers of this player: every duel, won or lost (learn/remembers.ts). */
   mem: Remembered = { ...NOTHING };
+  /** What each general has learned of this player (grows without a ceiling; see learn/brain.ts). */
+  private brains: Partial<Record<number, Brain>> = {};
+  /** The condition he can be hurt under this fight, and when the player last deflected / dodged. */
+  private cond: Cond = "none";
+  private condWindow = 2.6;
+  private sinceDeflectAt = -99;
+  private sinceDodgeAt = -99;
+  private shieldRung = -9;
+  private brainOf(id: number): Brain {
+    return (this.brains[id] ??= loadBrain(getNickname(), id));
+  }
+  private onDodged(): void {
+    this.sinceDodgeAt = this.gameTime;
+    this.boss.onPlayerDodge();
+  }
+  private isVulnerable(): boolean {
+    const b = this.boss;
+    return vulnerable(this.cond, { sinceDeflect: this.gameTime - this.sinceDeflectAt, sinceDodge: this.gameTime - this.sinceDodgeAt, open: OPEN.has(b.state) || b.state === "stagger", posture: b.posture, window: this.condWindow });
+  }
+  /** What he has understood and learned, for the council screen and the title (numbers the player can feel). */
+  private brainText(): string {
+    const br = this.brainOf(this.bossDef.id);
+    const learned = learnedSummary(this.bossDef, DIFFICULTY_PRESETS[this.difficulty], br.level, LEARN_CEILING[this.difficulty]);
+    const beh = behaviourOf(br, [...this.bossDef.moves, ...this.bossDef.extra]);
+    const skills = beh.skills.length ? ` New in him: ${beh.skills[beh.skills.length - 1]}.` : "";
+    const cond = br.cond !== "none" ? ` Next time ${COND_TEXT[br.cond].replace("Shielded. ", "he is shielded: ").toLowerCase()}` : "";
+    return `${readingOf(br)} Level ${br.level.toFixed(1)}: he parries ${learned.parryPct}% of long strings, ${learned.speedPct >= 0 ? "+" : ""}${learned.speedPct}% faster, ${beh.chains.length ? beh.chains[0].length : 2}-move combos.${skills}${cond}`.trim();
+  }
   private lastSneer = -99;
   /** A line the model wrote for this general about this player ("" until the first duel with him, or when its call failed). */
   private spoken(kind: "greeting" | "parry" | "fall" | "win"): string {
@@ -479,7 +508,15 @@ export class Game {
     this.fightMark = mark(this.stats);
     this.firstHealT = null;
     // The boss's own tuning first, then the war council's plan for THIS boss on top of it.
-    overrideDifficulty(bossKnobs(this.bossDef, structuredClone(DIFFICULTY), levelOf(this.mem, this.progress.streak), LEARN_CEILING[this.difficulty]));
+    const brain = this.brainOf(this.bossDef.id);
+    const beh = behaviourOf(brain, [...this.bossDef.moves, ...this.bossDef.extra]);
+    overrideDifficulty(bossKnobs(this.bossDef, structuredClone(DIFFICULTY), brain.level, LEARN_CEILING[this.difficulty], beh.weights));
+    this.boss.brain = beh;
+    this.boss.usedMoves = {};
+    this.cond = beh.cond;
+    this.condWindow = beh.window;
+    this.sinceDeflectAt = this.sinceDodgeAt = -99;
+    this.subs.cond(COND_TEXT[this.cond]);
     this.boss.canWind = this.bossDef.moves.includes("windSlash");
     this.boss.windFan = this.bossDef.id === 3; // Kurogane throws a fan of three shuriken
     this.boss.extras = this.bossDef.extra;
@@ -498,7 +535,10 @@ export class Game {
     const fightId = this.learn.fightId;
     const boss = this.bossDef.id;
     const streak = summary.victory ? this.progress.streak + 1 : 0;
-    // He remembers this duel whatever its result: the next one is harder.
+    // He remembers this duel whatever its result: the next one is harder, and different (new combos, a new condition).
+    this.brains[boss] = learnBrain(this.brainOf(boss), summary, this.boss.usedMoves);
+    saveBrain(getNickname(), boss, this.brains[boss]!);
+    this.subs.cond("");
     this.mem = remember(this.mem, summary.victory);
     saveMemory(getNickname(), this.mem);
     const { next, advanced } = afterFight(this.progress, summary.victory);
@@ -515,8 +555,7 @@ export class Game {
       this.learn.state = "ready";
       if (r.lines?.source === "mubit") for (const k of ["greeting", "parry", "fall", "win"] as const) this.subs.voice.prefetch(r.lines[k], speakerOf(boss)); // have the server voice his new lines now, not when he speaks them
       const present = (): void => {
-        const learned = learnedSummary(this.bossDef, DIFFICULTY_PRESETS[this.difficulty], levelOf(this.mem, this.progress.streak), LEARN_CEILING[this.difficulty]);
-        this.council.show(r, this.prevHabits, `He has fought you ${this.mem.fights} ${this.mem.fights === 1 ? "time" : "times"}. Next duel he parries ${learned.parryPct}% of long strings and moves ${learned.speedPct >= 0 ? "+" : ""}${learned.speedPct}% faster.`);
+        this.council.show(r, this.prevHabits, `He has fought you ${this.mem.fights} ${this.mem.fights === 1 ? "time" : "times"}. ${this.brainText()}`);
         if (this.advancedTo) this.council.flash(`Chapter ${BOSSES[this.advancedTo].chapter} unlocked: ${BOSSES[this.advancedTo].latin}, ${BOSSES[this.advancedTo].epithet}.`);
         else if (summary.victory && this.bossDef.gate > 0) this.council.flash(`Streak ${this.progress.streak} of ${this.bossDef.gate} against ${this.bossDef.latin}.`);
       };
@@ -622,6 +661,7 @@ export class Game {
       },
       (kind) => {
         this.stats.dodged++;
+        this.onDodged();
         this.nearMiss(kind === "ring");
       },
     );
@@ -728,7 +768,7 @@ export class Game {
     this.council.setChapters(this.progress, (id) => this.selectBoss(id));
     void fetchGlobal().then((g) => {
       if (this.mem.fights) {
-        const learned = learnedSummary(this.bossDef, DIFFICULTY_PRESETS[this.difficulty], levelOf(this.mem, this.progress.streak), LEARN_CEILING[this.difficulty]);
+        const learned = learnedSummary(this.bossDef, DIFFICULTY_PRESETS[this.difficulty], this.brainOf(this.bossDef.id).level, LEARN_CEILING[this.difficulty]);
         this.council.banner(`The General remembers ${this.mem.fights} ${this.mem.fights === 1 ? "duel" : "duels"} against you · he parries ${learned.parryPct}% of long strings`);
       } else if (g) this.council.banner(g.totalFights ? `The General has fought ${g.totalFights} ${g.totalFights === 1 ? "duel" : "duels"} · he is waiting for you` : "The General is waiting for his first duel");
     });
@@ -1055,6 +1095,7 @@ export class Game {
           if (h.perilous === "thrust" && p.state === "dodge" && p.mikiriArmed) this.mikiri(h);
           else if (p.invulnerable) {
             this.stats.dodged++;
+        this.onDodged();
             this.nearMiss(!!h.perilous);
           }
           else {
@@ -1126,7 +1167,10 @@ export class Game {
       if (this.sweepSeen !== b.serial) {
         this.sweepSeen = b.serial;
         if (p.airborne) this.stats.sweepsJumped++;
-        else this.stats.dodged++;
+        else {
+          this.stats.dodged++;
+          this.onDodged();
+        }
         this.nearMiss(true);
         this.audio.whoosh(true, "boss"); // [audio hook] the sweep passing under / past her
       }
@@ -1448,10 +1492,19 @@ export class Game {
     const at = this.contact.clone();
     const out = _a.subVectors(p.pos, b.pos).setY(0.5).normalize().clone();
     b.postureIdle = 0;
+    // The condition he has learned to hide behind: outside it a cut barely scratches him.
+    const shielded = this.cond !== "none" && !this.isVulnerable();
+    const sh = shielded ? 0.12 : 1;
+    if (shielded && this.gameTime - this.shieldRung > 0.4) {
+      this.shieldRung = this.gameTime;
+      this.subs.condBlocked();
+      this.audio.clang(0.45);
+      this.fx.armour(at, out, 14);
+    }
     if (b.state === "attack") {
       // Committed to a swing: armoured through it, he takes it without flinching (and keeps coming).
-      b.health -= sw.dmg * 0.45;
-      b.posture += sw.posture * DIFFICULTY.cutPostureArmoured;
+      b.health -= sw.dmg * 0.45 * sh;
+      b.posture += sw.posture * DIFFICULTY.cutPostureArmoured * sh;
       this.audio.hitAccent();
       this.stats.playerHits++;
       this.fx.armour(at, out, 30);
@@ -1460,8 +1513,8 @@ export class Game {
       this.cam.shake(0.12);
     } else if (OPEN.has(b.state) || b.state === "stagger" || ((b.state === "idle" || b.state === "wait") && !sw.charged && b.slips())) {
       // In an opening (or his idle guard slipped): the cut lands in full.
-      b.health -= sw.dmg;
-      b.posture += sw.posture * DIFFICULTY.cutPostureOpen;
+      b.health -= sw.dmg * sh;
+      b.posture += sw.posture * DIFFICULTY.cutPostureOpen * sh;
       this.audio.hitAccent();
       this.stats.playerHits++;
       this.fx.armour(at, out, 50);
@@ -1477,8 +1530,8 @@ export class Game {
         b.enter("block");
         b.setClip("block", 0.05);
         b.step(0, this.wind, this.gameTime);
-        b.health -= sw.dmg * 0.35;
-        b.posture += sw.posture;
+        b.health -= sw.dmg * 0.35 * sh;
+        b.posture += sw.posture * sh;
         this.stats.bossBlocks++;
         p.ch.bounce();
         this.fx.armour(at, out, 36);
@@ -1509,6 +1562,7 @@ export class Game {
           this.cam.shake(0.28);
           p.ch.bounce();
           p.deflected();
+          this.sinceDeflectAt = this.gameTime;
           b.counter();
           const sneer = this.spoken("parry");
           if (sneer && this.gameTime - this.lastSneer > 6) {
@@ -2016,6 +2070,7 @@ export class Game {
     this.fx.glyph.update(dt, _a.copy(p.ch.rig.headW).add(this.interp.p).setY(p.ch.rig.headW.y + 0.55), this.camera);
     this.fx.parryCue.update(dt, _a.copy(b.ch.rig.headW).add(this.interp.b).setY(b.ch.rig.headW.y + 0.75), this.camera);
     // Parry stance: his steel glows cold blue as his guard readies, and flares when he turns a cut aside.
+    if (this.state === "fight" && this.cond !== "none") this.subs.condOpen(this.isVulnerable());
     const steel = this.bossBody.active.weaponSteel ?? this.armouredSteel();
     if (steel) {
       this.parryFlash = Math.max(0, this.parryFlash - dt * 2.5);

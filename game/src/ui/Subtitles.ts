@@ -20,6 +20,11 @@ const CSS = `
 #subs.prologue .text { font: italic 3.4vmin/1.55 ${LATIN_FONT}; color: #e9e0d2; }
 #subs.prologue .text { animation: subIn 0.9s ease both; }
 @keyframes subIn { from { opacity: 0; transform: translateY(0.8vh); } to { opacity: 1; transform: none; } }
+#cond { position: fixed; left: 50%; top: 12.5vh; transform: translateX(-50%); z-index: 42; pointer-events: none; opacity: 0; transition: opacity 0.3s ease, color 0.2s ease, border-color 0.2s ease; padding: 0.5vh 1.4vw; border: 1px solid rgba(143,132,114,0.5); background: rgba(10,8,12,0.55);
+  font: 600 1.9vmin/1.3 ${LATIN_FONT}; letter-spacing: 0.08em; color: #b6aa95; text-align: center; }
+#cond.on { opacity: 1; }
+#cond.open { color: #ffdca0; border-color: rgba(255,200,120,0.9); box-shadow: 0 0 2vmin rgba(255,180,90,0.35); }
+#cond.hit { color: #ff8a70; border-color: rgba(220,80,60,0.95); }
 #say { position: fixed; left: 50%; top: 21vh; transform: translateX(-50%); z-index: 43; pointer-events: none; opacity: 0; transition: opacity 0.25s ease; max-width: 60ch; text-align: center;
   font: italic 600 3.2vmin/1.2 ${LATIN_FONT}; text-shadow: 0 2px 8px #000, 0 0 2px #000; }
 #say.on { opacity: 1; }
@@ -121,6 +126,31 @@ export class Subtitles {
 
   private clearLine(): void {
     clearTimeout(this.timer);
+  }
+
+  private readonly condEl = (() => {
+    const e = document.createElement("div");
+    e.id = "cond";
+    document.body.appendChild(e);
+    return e;
+  })();
+  private condHit = 0;
+
+  /** The condition he can be hurt under, as a banner during the fight ("" hides it). */
+  cond(text: string): void {
+    this.condEl.textContent = text;
+    this.condEl.classList.toggle("on", !!text);
+    if (!text) this.condEl.classList.remove("open", "hit");
+  }
+  /** Lit when his shield is down (a cut will hurt). */
+  condOpen(open: boolean): void {
+    this.condEl.classList.toggle("open", open);
+  }
+  /** A cut bounced off his shield. */
+  condBlocked(): void {
+    this.condEl.classList.add("hit");
+    clearTimeout(this.condHit);
+    this.condHit = window.setTimeout(() => this.condEl.classList.remove("hit"), 350);
   }
 
   private sayTimer = 0;

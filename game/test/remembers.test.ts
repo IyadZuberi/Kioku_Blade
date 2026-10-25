@@ -45,27 +45,31 @@ describe("what he has learned", () => {
   it("level 0 changes nothing for the first general", () => {
     expect(bossKnobs(BOSSES[1], structuredClone(base), 0)).toEqual(bossKnobs(BOSSES[1], structuredClone(base)));
   });
-  it("every general parries more, answers faster, recovers less and moves faster at each level, never past HARD", () => {
-    const hard = DIFFICULTY_PRESETS.hard;
+  it("every general parries more, answers faster, recovers less and moves faster at each level, with no ceiling, and the player's tools never change", () => {
     for (const id of [1, 2, 3] as const) {
       let prev = bossKnobs(BOSSES[id], structuredClone(base), 0);
-      for (const level of [4, 6, 8, 10]) {
+      for (const level of [4, 6, 8, 10, 14, 20, 40]) {
         const k = bossKnobs(BOSSES[id], structuredClone(base), level);
         expect(k.bossDeflect[3]).toBeGreaterThanOrEqual(prev.bossDeflect[3]);
         expect(k.counterDelay).toBeLessThanOrEqual(prev.counterDelay);
         expect(k.recoverAfterAttack[0]).toBeLessThanOrEqual(prev.recoverAfterAttack[0]);
         expect(k.tempo[1]).toBeGreaterThanOrEqual(prev.tempo[1]);
         expect(k.gap.p2[0]).toBeLessThanOrEqual(prev.gap.p2[0]);
-        // bounds: HARD is the fair ceiling; the player's windows and damage never move
-        expect(k.bossDeflect[3]).toBeLessThanOrEqual(hard.bossDeflect[3]);
-        expect(k.tempo[1]).toBeLessThanOrEqual(1.12);
-        expect(k.gap.p2[0]).toBeGreaterThanOrEqual(hard.gap.p2[0]);
+        // floors that keep him answerable, and the player's windows and damage never move
+        expect(k.bossDeflect[3]).toBeLessThanOrEqual(1);
+        expect(k.counterDelay).toBeGreaterThanOrEqual(0.03);
+        expect(k.gap.p2[0]).toBeGreaterThanOrEqual(0.08);
         expect(k.deflectEarly).toBe(base.deflectEarly);
         expect(k.deflectSteps).toEqual(base.deflectSteps);
         expect(k.playerDamage).toBe(base.playerDamage);
         prev = k;
       }
     }
+  });
+  it("past level 10 he still gets faster (no plateau): level 40 is quicker than level 10", () => {
+    const at = (l: number) => bossKnobs(BOSSES[3], structuredClone(base), l);
+    expect(at(40).tempo[1]).toBeGreaterThan(at(10).tempo[1] + 0.05);
+    expect(at(40).gap.p1[0]).toBeLessThan(at(10).gap.p1[0]);
   });
   it("by level 10 the first general parries and moves like the HARD preset's, and it is visible in numbers", () => {
     const a = learnedSummary(BOSSES[1], base, 0);

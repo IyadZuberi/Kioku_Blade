@@ -138,27 +138,36 @@ const harder = (base: Range, to: Range): Range => [Math.min(base[0], to[0]), Mat
 
 /**
  * Pure: the boss's own tuning on top of the chosen difficulty preset, plus what he has LEARNED of this
- * player: `level` (0 = never fought, up to 10; see learn/remembers.ts) pulls more of his guard-and-answer
- * knobs toward the HARD preset after every duel, won or lost, and raises his tempo and shortens his gaps.
- * Only ever harder, and never past HARD (the tested, fair ceiling); deflect windows and the player's
- * damage are never touched.
+ * player: `level` (0 = never fought; it grows after every duel, won or lost, with NO ceiling: see
+ * learn/brain.ts) pulls his guard-and-answer knobs toward the HARD preset and then beyond it, and raises his
+ * tempo and shortens his gaps. `scale` is how fast that happens on this difficulty (Easy slower, Hard faster).
+ * `weights` multiply his move picks (what lands on this player goes up). The player's deflect windows and
+ * damage are never touched: he gets faster and smarter, the player's tools do not get worse.
  */
-export function bossKnobs(def: BossDef, base: DifficultyValues, level = 0, ceiling = 1): DifficultyValues {
+export function bossKnobs(def: BossDef, base: DifficultyValues, level = 0, scale = 1, weights?: Record<string, number>): DifficultyValues {
   const k = structuredClone(base);
   if (def.picks) {
     k.picks.p1 = normalise(def.picks.p1);
     k.picks.p2 = normalise(def.picks.p2);
   }
-  const L = Math.max(0, Math.min(10, level));
-  const tempoP2 = Math.max(def.tempoP2 ?? 0, L > 0 ? 1.02 + 0.01 * L : 0);
-  if (tempoP2) k.tempo = [base.tempo[0], Math.min(1.12, Math.max(base.tempo[1], tempoP2))];
+  if (weights) for (const ph of ["p1", "p2"] as const) k.picks[ph] = normalise(Object.fromEntries(Object.entries(k.picks[ph]).map(([m, v]) => [m, m === "idle" ? v : v * (weights[m] ?? 1)])));
+  const L = Math.max(0, level);
+  const over = Math.max(0, L - 10);
+  // tempo keeps climbing after level 10, slowly (a log), so there is always a harder one
+  const tempoP2 = Math.max(def.tempoP2 ?? 0, L > 0 ? 1.02 + 0.012 * Math.min(L, 10) + 0.12 * Math.log2(1 + over / 5) : 0);
+  if (tempoP2) k.tempo = [base.tempo[0], Math.max(base.tempo[1], tempoP2)];
   const gapStep = Math.max(def.gapStep ?? 0, Math.floor(L / 3.4)) as 0 | 1 | 2 | 3;
   if (gapStep) {
     const g = GAP_BY_STEP[Math.min(3, gapStep)];
     k.gap = { p1: harder(base.gap.p1, g.p1), p2: harder(base.gap.p2, g.p2) };
   }
-  // By level 10 he is at the ceiling: HARD on Hard, most of the way on Medium, about half on Easy
-  const amount = Math.min(ceiling, (def.lean?.amount ?? 0) + (L / 10) * ceiling);
+  if (over > 0) {
+    const f = 1 / (1 + 0.04 * over);
+    k.gap.p1 = [Math.max(0.2, k.gap.p1[0] * f), Math.max(0.3, k.gap.p1[1] * f)];
+    k.gap.p2 = [Math.max(0.08, k.gap.p2[0] * f), Math.max(0.2, k.gap.p2[1] * f)];
+  }
+  // No cap: at level 10 he is at the HARD preset (on Hard), beyond it after that
+  const amount = (def.lean?.amount ?? 0) + (L / 10) * scale;
   if (amount > 0) {
     const knobs = new Set<LeanKnob>([...(def.lean?.knobs ?? []), ...(L > 0 ? READS_YOU : []), ...(L >= 7 ? IRON : [])]);
     const hard = DIFFICULTY_PRESETS.hard as Record<string, unknown>;
@@ -168,12 +177,24 @@ export function bossKnobs(def: BossDef, base: DifficultyValues, level = 0, ceili
       const a = out[knob], b = hard[knob];
       out[knob] = Array.isArray(a) ? a.map((v: number, i: number) => mix(v, (b as number[])[i])) : mix(a as number, b as number);
     }
+    // past HARD the numbers keep moving, but stay playable: floors and ceilings that can still be answered
+    const H = DIFFICULTY_PRESETS.hard;
+    k.bossDeflect = k.bossDeflect.map((v, i) => (i < 2 ? 0 : Math.min(v, Math.max(H.bossDeflect[i], 0.97))));
+    k.counterDelay = Math.max(0.03, k.counterDelay);
+    k.counterFlurry = Math.min(1, k.counterFlurry);
+    k.recoverAfterAttack = [Math.max(0.1, k.recoverAfterAttack[0]), Math.max(0.08, k.recoverAfterAttack[1])];
+    k.guardSlip = [Math.max(0, k.guardSlip[0]), Math.max(0, k.guardSlip[1])];
+    k.healReact = Math.max(0.1, k.healReact);
+    k.bossRegen = Math.min(26, k.bossRegen);
+    k.blockPosture = Math.min(1.3, k.blockPosture);
+    k.cutPostureArmoured = Math.max(0.1, k.cutPostureArmoured);
+    k.cutPostureOpen = Math.max(0.3, k.cutPostureOpen);
   }
   return k;
 }
 
-/** How far learning may take him on each difficulty (1 = all the way to the HARD preset). */
-export const LEARN_CEILING = { easy: 0.45, medium: 0.85, hard: 1 } as const;
+/** How fast learning climbs on each difficulty (1 = he reaches the HARD preset at level 10; there is no ceiling). */
+export const LEARN_CEILING = { easy: 0.6, medium: 0.85, hard: 1 } as const;
 
 /** What the General has learned, in words the player can feel (council screen, title). */
 export function learnedSummary(def: BossDef, base: DifficultyValues, level: number, ceiling = 1): { parryPct: number; speedPct: number } {

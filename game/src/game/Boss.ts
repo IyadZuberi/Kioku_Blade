@@ -16,6 +16,8 @@ import { ARENA_HALF, RIDGE_Z } from "../world/Arena";
 import { vitalityRegen } from "./Player";
 import { DIFFICULTY } from "./difficulty";
 
+import type { Behaviour } from "../learn/brain";
+
 export type Peril = "thrust" | "sweep" | "grab";
 
 /** Gameplay data of one blow; its timing comes from the animation events. */
@@ -318,6 +320,15 @@ export class Boss {
   /** Kurogane throws a fan of three shuriken instead of one wind cut. */
   windFan = false;
   private fxDone = false;
+  /** What the general has learned about this player (set by the game each fight): combos, feints, uneven swings. */
+  brain: Behaviour | null = null;
+  /** How often each of his moves was started this fight (the game hands it to the brain after the duel). */
+  usedMoves: Record<string, number> = {};
+  /** When the current swing turns out to be a feint (seconds into it), or -1. */
+  private feintAt = -1;
+  private feintedNext = false;
+  /** This swing runs at 1 +- brain.jitter of its speed. */
+  private jitterMul = 1;
 
   constructor(readonly ch: Fighter) {
     ch.rig.onStep = () => this.events.push("step");
@@ -350,6 +361,9 @@ export class Boss {
     this.vanished = false;
     this.moveName = "";
     this.fxDone = false;
+    this.feintAt = -1;
+    this.feintedNext = false;
+    this.jitterMul = 1;
     this.R = rng(9);
     this.events.length = 0;
     this.clipNow = "";
@@ -414,6 +428,7 @@ export class Boss {
     this.variant = name === "windSlash" || name === "shockwave" || name === "lunge" || name === "backflip" || name === "vanish" ? name : null;
     this.vanished = false;
     this.moveName = name;
+    this.usedMoves[name] = (this.usedMoves[name] ?? 0) + 1;
     this.fxDone = false;
     const a = buildAttack({ ...ATTACKS[real], ...SPEC_OVERRIDE[name] }, this.ch.timeline(real));
     this.serial++;
@@ -421,6 +436,11 @@ export class Boss {
     this.hitDone = a.hits.map(() => false);
     this.moveAllow = a.moves.map(() => -1);
     this.guarded = false;
+    // learned skills: an uneven swing speed, and sometimes the wind-up is a feint (the real blow comes a beat later)
+    const br = this.brain;
+    this.jitterMul = br && br.jitter > 0 ? clamp(1 + (this.R() * 2 - 1) * br.jitter, 0.65, 1.4) : 1;
+    this.feintAt = br && br.feintP > 0 && !a.perilous && !a.leap && a.hits.length && !this.feintedNext && this.R() < br.feintP ? a.hits[0].t0 * 0.55 : -1;
+    this.feintedNext = false;
     this.follow = name === "waterfowl" ? "flurry" : name === "backflip" ? "lunge" : name === "lunge" || name === "vanish" ? null : this.pickFollow(real);
     // a hit-less move (the backflip) hands over just after it lands
     this.followAt = this.follow ? (a.hits.length ? a.hits[a.hits.length - 1].t1 + 0.4 : a.slam + 0.2) : Infinity;
@@ -448,7 +468,16 @@ export class Boss {
     return null;
   }
 
+  /** The player stepped through a blow: a general who has learned that answers at once. */
+  onPlayerDodge(): void {
+    if (!this.brain?.counterStep || this.state !== "idle" || this.cooldown < 0.1 || this.R() > 0.55) return;
+    this.queue.unshift(this.R() < 0.5 ? "thrust" : "combo");
+    this.cooldown = 0.1;
+  }
+
   private choose(dist: number): string | null {
+    const br = this.brain;
+    if (!this.queue.length && br && br.chains.length && this.R() < br.chainP) this.queue = [...br.chains[Math.floor(this.R() * br.chains.length)]];
     const q = this.queue.shift();
     if (q) {
       const leapish = q === "leap" || q === "shockwave" || q === "waterfowl";
@@ -483,7 +512,7 @@ export class Boss {
   }
 
   update(dt: number, player: THREE.Vector3, playerDown: boolean): void {
-    this.tempo = this.state === "attack" ? DIFFICULTY.tempo[this.phase - 1] : 1;
+    this.tempo = this.state === "attack" ? DIFFICULTY.tempo[this.phase - 1] * this.jitterMul : 1;
     dt *= this.tempo;
     this.time += dt;
     this.stateT += dt;
@@ -556,6 +585,19 @@ export class Boss {
         const a = this.attack!;
         const t = this.stateT;
         const prevT = t - dt;
+        if (this.feintAt > 0 && t >= this.feintAt) {
+          // the feint: the wind-up stops, he settles, and the same blow comes after an uneven pause
+          this.feintAt = -1;
+          this.feintedNext = true;
+          this.attack = null;
+          this.follow = null;
+          this.queue.unshift(this.moveName);
+          this.enter("idle");
+          this.setClip("idle", 0.1);
+          this.cooldown = 0.2 + this.R() * 0.35;
+          this.events.push("feint");
+          break;
+        }
         const tracking = a.track.some(([s, e]) => t >= s && t <= e);
         if (tracking) this.yaw = approachAngle(this.yaw, face, dt * 6);
         for (const g of a.glints) if (prevT < g && t >= g) this.events.push("glint");
