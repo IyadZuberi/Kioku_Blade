@@ -5,6 +5,8 @@ import OpenAI from "openai";
 export interface TaskDef<I, O> {
   name: string;
   model: string; // FROZEN once seeding starts
+  /** Which Mubit route this task goes through (default: MUBIT_BASE_URL, the Groq compat route). */
+  baseURL?: string;
   system: string; // FROZEN
   schema: object; // FROZEN
   /** "json_schema" (strict) is the default; "json_object" only if the starter credit refuses it (decide once, before seeding). */
@@ -39,14 +41,16 @@ export interface OpenAILike {
   };
 }
 
-let shared: OpenAILike | null = null;
-function defaultClient(): OpenAILike {
+const shared = new Map<string, OpenAILike>();
+function defaultClient(baseURL?: string): OpenAILike {
   // Credits are limited: every path that builds the real client needs MUBIT_LIVE=1, whatever the caller checked.
   if (process.env.MUBIT_LIVE !== "1") throw new Error("MUBIT_LIVE is not 1: no Mubit call made");
   const apiKey = process.env.MUBIT_API_KEY;
   if (!apiKey) throw new Error("MUBIT_API_KEY not set (no Mubit call made)");
-  shared ??= new OpenAI({ baseURL: process.env.MUBIT_BASE_URL ?? "https://api.mubit.ai/compat/groq/v1", apiKey }) as unknown as OpenAILike;
-  return shared;
+  const url = baseURL ?? process.env.MUBIT_BASE_URL ?? "https://api.mubit.ai/compat/groq/v1";
+  let c = shared.get(url);
+  if (!c) shared.set(url, (c = new OpenAI({ baseURL: url, apiKey }) as unknown as OpenAILike));
+  return c;
 }
 
 export function taskHash(t: TaskDef<any, any>): string {
@@ -69,7 +73,7 @@ export async function callTask<I, O>(
   });
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
-    const client = opts.client ?? defaultClient();
+    const client = opts.client ?? defaultClient(t.baseURL);
     const response_format =
       t.format === "json_object"
         ? { type: "json_object" }
@@ -83,7 +87,8 @@ export async function callTask<I, O>(
             { role: "user", content: JSON.stringify(input) }, // EVERYTHING variable goes here
           ],
           response_format,
-          ...(t.reasoning ? { reasoning_effort: t.reasoning } : {}),
+          // only the gpt-oss reasoning models take it
+          ...(t.reasoning && /gpt-oss/.test(t.model) ? { reasoning_effort: t.reasoning } : {}),
           // No `metadata`: on this route the provider refuses it ("only allowed when 'store' is enabled",
           // even with store: true). Mubit then gives each call the session of its conversation start
           // (instructions + first user message), and every fight report is a different user message,

@@ -83,6 +83,10 @@ export function globalMemory(db: DatabaseSync) {
   return { totalFights: total, habitPrevalence: prevalence, moveHits: getG<Record<string, number>>(db, "moveHits", {}) };
 }
 
+/** The general's private notes on a player (rewritten by the speech task after every duel). */
+export const getDossier = (db: DatabaseSync, nickname: string): string => getG<string>(db, `dossier:${nickname}`, "");
+export const setDossier = (db: DatabaseSync, nickname: string, text: string): void => setG(db, `dossier:${nickname}`, text);
+
 export function designerRules(db: DatabaseSync, max = 15): string[] {
   return (db.prepare("SELECT text FROM rules ORDER BY id DESC LIMIT ?").all(max) as { text: string }[]).map((r) => r.text).reverse();
 }

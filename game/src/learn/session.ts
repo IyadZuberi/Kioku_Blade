@@ -118,7 +118,7 @@ export async function requestPlan(req: PlanRequest, o: { fetchFn?: typeof fetch;
   const t0 = performance.now();
   const f = o.fetchFn ?? globalThis.fetch.bind(globalThis);
   const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), o.timeoutMs ?? 6000);
+  const timer = setTimeout(() => ctrl.abort(), o.timeoutMs ?? 11000);
   try {
     if (o.replay ?? replayFromUrl()) {
       const r = await nextReplay(f, ctrl.signal);

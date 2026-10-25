@@ -10,3 +10,12 @@ describe("the Mubit task is frozen", () => {
     expect(taskHash(generalPlanTask)).toBe("1983d052a53a");
   });
 });
+
+import { generalSpeechTask } from "../src/prompts/general_speech";
+
+describe("the speech task is its own task", () => {
+  it("has its own hash, different from the plan's", () => {
+    expect(taskHash(generalSpeechTask)).toBe("3d1812e9ba5d");
+    expect(taskHash(generalSpeechTask)).not.toBe(taskHash(generalPlanTask));
+  });
+});

@@ -3,8 +3,9 @@ import type { DatabaseSync } from "node:sqlite";
 import { bossOf, computeHabits, limitsForLevel, movesFor, rulesPlan, validatePlan, type BossId, type HabitScore, type Plan, type StatsSummary } from "@gr/shared";
 import { bossLevel, playerLevel } from "./bossLevel";
 import { createHash, randomUUID, timingSafeEqual } from "node:crypto";
-import { addRule, blendHabits, designerRules, getPlayer, getTotalFights, globalMemory, recordGlobal, updatePlayer } from "./memory";
+import { addRule, blendHabits, designerRules, getDossier, getPlayer, setDossier, getTotalFights, globalMemory, recordGlobal, updatePlayer } from "./memory";
 import type { PlanInput } from "./prompts/general_plan";
+import { cleanSpeech, fallbackSpeech, speakerOf, type Speech, type SpeechInput } from "./prompts/general_speech";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -18,11 +19,15 @@ export interface PlanCall {
   latencyMs: number;
   requestId?: string;
   error?: string;
+  /** Which model answered (the backup model when the main provider was out of tokens). */
+  model?: string;
 }
 export interface Deps {
   db: DatabaseSync;
   /** The only path to an LLM. Must never throw for the caller's sake, but we guard anyway. */
   callPlan: (input: PlanInput, sessionId: string) => Promise<PlanCall>;
+  /** The general's lines and notes (task general_speech). Optional: without it the canned lines are used. */
+  callSpeech?: (input: SpeechInput, sessionId: string) => Promise<PlanCall>;
   /** Where data/calls.csv and data/eval/summary.csv live (default ../data). */
   dataDir?: string;
   /** Secret for the host-only /api/override (default env HOST_TOKEN). Unset = the endpoint is disabled. */
@@ -40,6 +45,12 @@ export interface FightEndResponse {
   grudge: number;
   intelLines: string[];
   habits: HabitScore[];
+  /** Which model wrote the plan. */
+  model?: string;
+  /** What he will say next duel, written by the model about this player ("" fields: use the canned line). */
+  lines?: Speech & { source: "mubit" | "local" };
+  /** What he now knows of this player (the model's own notes; shown on the council screen). */
+  dossier?: string;
 }
 
 const FIGHT_ID = /^[\w-]{1,64}$/;
@@ -82,7 +93,7 @@ export function createApp(deps: Deps) {
       bossLevel: level,
       stats,
       habits,
-      playerMemory: { fights: player.fights, wins: player.wins, losses: player.losses, consecutive_losses: player.consecutive_losses, habit_avgs: player.habit_avgs },
+      playerMemory: { fights: player.fights, wins: player.wins, losses: player.losses, consecutive_losses: player.consecutive_losses, habit_avgs: player.habit_avgs, dossier: getDossier(db, nickname) },
       globalMemory: { totalFights: gm.totalFights, habitPrevalence: gm.habitPrevalence, moveHits: gm.moveHits },
       unlocked: allowed,
       designerRules: designerRules(db),
@@ -90,12 +101,27 @@ export function createApp(deps: Deps) {
     };
     const sessionId = `gr-live-${sessionSlug(nickname)}-${fightId}`;
 
-    let call: PlanCall;
-    try {
-      call = await deps.callPlan(input, sessionId);
-    } catch (e) {
-      call = { out: undefined, ok: false, latencyMs: 0, error: e instanceof Error ? e.message : String(e) };
-    }
+    const speechIn: SpeechInput = {
+      boss,
+      speaker: speakerOf(boss),
+      fight: player.fights,
+      result: stats.victory ? "player won" : "player lost",
+      bossLevel: level,
+      habits: habits.map((h) => ({ habit: h.habit, evidence: h.evidence })),
+      dossier: getDossier(db, nickname),
+      councilIntel: "",
+    };
+    const safe = (p: Promise<PlanCall>): Promise<PlanCall> => p.catch((e) => ({ out: undefined, ok: false, latencyMs: 0, error: e instanceof Error ? e.message : String(e) }));
+    // The plan and the general's words are two separate model calls, made together.
+    const [call, speechCall] = await Promise.all([
+      safe(Promise.resolve().then(() => deps.callPlan(input, sessionId))),
+      deps.callSpeech ? safe(Promise.resolve().then(() => deps.callSpeech!(speechIn, `gr-speech-${sessionSlug(nickname)}-${fightId}`))) : Promise.resolve(null),
+    ]);
+    // Notes: the model's rewrite when it answered, otherwise one built from the habit evidence.
+    const spoken = speechCall?.ok ? cleanSpeech(speechCall.out) : null;
+    const lines = spoken ?? fallbackSpeech(speechIn);
+    const dossier = lines.dossier || speechIn.dossier;
+    if (dossier) setDossier(db, nickname, dossier);
 
     let plan: Plan, valid: boolean, failures: string[], source: "mubit" | "rules";
     if (call.ok) {
@@ -127,6 +153,9 @@ export function createApp(deps: Deps) {
       grudge: player.grudge,
       intelLines: intelLines(habits),
       habits,
+      model: call.ok ? call.model : undefined,
+      lines: { ...lines, source: spoken ? "mubit" : "local" },
+      dossier: dossier || undefined,
     };
     db.prepare("INSERT INTO fights(fight_id, nickname, ts, stats, source, valid, latency_ms, request_id, boss_level, response, input) VALUES(?,?,?,?,?,?,?,?,?,?,?)").run(
       fightId, nickname, new Date().toISOString(), JSON.stringify(stats), source, valid ? 1 : 0, res.latencyMs, res.requestId ?? null, level, JSON.stringify(res), JSON.stringify(input),
