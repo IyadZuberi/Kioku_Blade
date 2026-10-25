@@ -17,6 +17,10 @@ Three generals, three arenas, and three jobs for a language model, all through M
   <a href="#run-it">Run it</a>
 </p>
 
+**At a glance:** 3 Mubit tasks, about 2,400 stored calls, 3 trained adapters (Qwen3-4B v1; the plan adapter matches the
+provider model on 75% of test cases, target 85%), a model that never sits in the frame loop, 305 passing tests, about
+58 fps in fights. Details and the console screenshot: [How Kioku uses Mubit](#how-kioku-uses-mubit).
+
 Built at the Night Shift hackathon (Mubit), London, 23 to 25 October 2026.
 
 ---
@@ -148,16 +152,34 @@ either way.
 
 ### Adapters, and what we have trained on
 
-Stored through Mubit so far (`data/calls.csv`, request ids on every row): **about 1,400 successful calls across the three tasks**
-(an 80-call seed, then batches of fresh plan, speech and forge examples from different random seeds, so the tasks are
-not trained on repeats). Plan inputs are generated from simulated players of every habit (deflector, turtle, dodger,
-aggressive, passive, healer, mixed), forge inputs from generals at levels 1 to 31 against every style at every distance,
-so each task sees the whole space of cases, not one player.
+Stored through Mubit so far (`data/calls.csv`, request id on every row): **about 2,400 successful calls across the three tasks**,
+0 failures in the last 900-call batch (400 plan, 200 speech, 300 forge). Batches use different random seeds so the tasks
+are not trained on repeats. Plan inputs come from simulated players of every habit (deflector, turtle, dodger,
+aggressive, passive, healer, mixed), forge inputs from generals at levels 1 to 31 against every style at every distance.
 
-- **Status.** Per Mubit's documentation, training has to be switched on for the workspace before an Adapters page
-  exists, and the adapter quality is read in the console (Tasks, Adapters, Try models). The game does not depend on it.
-- **Evidence to add here:** screenshots of the Kioku project's Tasks and Adapters pages
-  (`docs/images/mubit-console-tasks.png`, `mubit-console-adapters.png`) once the first adapter version has been tested.
+**Mubit has trained a first adapter for each of the three tasks** (Qwen3-4B-Instruct-2507, a 4B model, v1). Screenshot of
+our Mubit console, Adapters page, 25 Oct 2026:
+
+<p align="center">
+  <img src="docs/img/mubit-adapters.png" width="100%" alt="Mubit console, Adapters page: three v1 adapters with quality 75%, 33.3% and 7.1%">
+</p>
+
+| Mubit task (title in the console) | Adapter | Quality: matched the provider model's answers | Test cases | Target | Status |
+|---|---|---|---|---|---|
+| Plan samurai general's next (`general_plan`) | Qwen3-4B v1 | **75%** | 12 | 85% | Silent test |
+| WAR COUNCIL of samurai | Qwen3-4B v1 | 33.3% | 12 | 95% | Not ready yet |
+| Write for samurai general | Qwen3-4B v1 | 7.1% | 14 | 95% | Silent test |
+
+What this says, plainly:
+
+- **The plan task is closest.** Its answer is enums and small integers, so a 4B model already matches the big model on 3 of 4
+  held-back cases. It is 10 points under Mubit's 85% bar; more varied examples are the lever, and we keep sending them.
+- **The two free-text tasks are far off**, as predicted: exact agreement with a big model on written lines and designed combos
+  is the hardest thing to measure, and the test sets are small (12 and 14 cases), so these numbers are noisy.
+- **No adapter has passed its bar yet**, so none serves live traffic. The game never depends on it: the provider model
+  answers, the validator checks every answer, and a rules fallback sits under that.
+- Mubit lists "Requests served" and "Training examples" as *Not reported* for these versions, so we do not quote them.
+- Which console title belongs to which of our two free-text tasks is read from the titles Mubit generated; the plan one is unambiguous.
 
 ### What Mubit saves, measured
 
@@ -323,9 +345,7 @@ node game/tools/flowperf.mjs       # frame pacing through the whole flow (about 
 
 ## Honest notes
 
-- **We could not read the Kioku project's adapters from this session.** The Mubit console available here is attached to a
-  different project's gateway, so Tasks and Requests for our workspace did not load. The call log and request ids are ours; the
-  adapter quality has to be read in our own console view, and the README says "to add" rather than invent a number.
+- **Adapter numbers are read by hand from our Mubit console** (screenshot above); the API did not let us read them. All three are v1 and below target.
 - **Costs are projections** from measured token counts and list prices, not quotes. We have not measured an adapter's own cost.
 - **Hand poses are tested end to end on a fake camera**, not yet with a real webcam.
 - **How fun and fair a level-20 general is** needs human players; our bot is far too precise to judge it.

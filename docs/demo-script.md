@@ -12,7 +12,7 @@ general starts at level 0, or `?boss=2` to jump to the second general.
 | 0:50 to 1:10 | War council screen | "This is what he learned about me: how I fight, where I stand, his level, and the combos the language model designed for him. That call went through Mubit." |
 | 1:10 to 1:30 | Rematch: his new line, different distance, new combo, different condition | "Same general, different fight. He keeps away because I fight close. The condition changed because I beat the last one." |
 | 1:30 to 1:45 | Pause menu (Esc), hand poses window | "Pause, switch to hands, train a pose per action, or leave and forfeit." |
-| 1:45 to 2:00 | Mubit: call log with request ids, the three tasks, the cost table | "Three Mubit tasks, about 1,400 stored calls, a duel costs under a tenth of a cent on the small model, and the adapters learn from this traffic." |
+| 1:45 to 2:00 | Mubit: call log with request ids, the three tasks, the cost table | "Three Mubit tasks, about 2,400 stored calls, a duel costs under a tenth of a cent on the small model, and Mubit has trained a first adapter per task: the plan one matches the big model 75% of the time." |
 
 Backup if the network is down: the game works without the server; the council screen then says the plan was local and the
 general still levels up, gets new combos and conditions from the brain in the game.
