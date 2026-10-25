@@ -10,3 +10,6 @@
 
 ## Sound effects (game/public/assets/audio)
 Recorded effects are from Kenney's "Impact Sounds" and "RPG Audio" packs (kenney.nl), released under CC0 (licence files alongside). They are layered under the game's synthesised sound.
+
+## Voices
+Spoken lines are generated with Kokoro (https://github.com/hexgrad/kokoro), an open-source neural text-to-speech model released under Apache-2.0, run locally through kokoro-onnx. The pre-rendered lines ship in `game/public/assets/voice/`.
