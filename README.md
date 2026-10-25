@@ -239,6 +239,10 @@ on you in a **remembered form**. Your deflect windows and damage are never touch
 - **Settings (F1):** every control, the moves list, sound.
 
 <p align="center">
+  <img src="docs/img/hands-fight.png" width="100%" alt="Fighting Masatora with hand poses: the webcam view with the hands status sits bottom right">
+</p>
+
+<p align="center">
   <img src="docs/img/demo-pause.jpg" width="32%" alt="The pause menu">
   <img src="docs/img/demo-poses.jpg" width="32%" alt="Training your own hand poses">
   <img src="docs/img/demo-settings-moves.jpg" width="32%" alt="Settings: the moves list">
