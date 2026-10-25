@@ -5,7 +5,7 @@
  */
 import { LATIN_FONT } from "./brush";
 import type { GestureFrame, GestureHandle } from "../input/gestures";
-import { classify, poseFeatures, savePoses, withPose, type Pose, type PoseAction } from "../input/poses";
+import { lookAlike, poseFeatures, savePoses, withPose, type Pose, type PoseAction } from "../input/poses";
 
 const W = 420;
 const H = 315;
@@ -54,6 +54,11 @@ export class PoseTrainer {
   private handle: GestureHandle | null = null;
   private off: (() => void) | null = null;
   private rec: { start: number; action: PoseAction; samples: number[][] } | null = null;
+  private notice = "";
+  private noticeUntil = 0;
+  private labelOf(a: PoseAction): string {
+    return ACTIONS.find((x) => x.id === a)?.label.split(" (")[0].split(":")[0] ?? "Unknown";
+  }
   private onKey = (e: KeyboardEvent): void => {
     if (e.code === "Escape") this.close();
     e.preventDefault();
@@ -71,7 +76,7 @@ export class PoseTrainer {
     this.root.setAttribute("aria-label", "Train my poses");
     this.root.innerHTML = `<div class="win">
       <h2>Train my poses</h2>
-      <p>Choose an action, press Capture, then hold the hand shape you want for it. Use your fighting hand (right side of the picture). Teach it a Rest pose too, so your relaxed hand never triggers anything. Poses stay in this browser.</p>
+      <p>Choose an action, press Capture, then hold the hand shape you want for it. Train as many actions as you like: each keeps its own pose, and capturing an action again replaces only that one. Poses work with either hand, and with both hands at once. Teach it a Rest pose too, so a relaxed hand never triggers anything. Poses stay in this browser.</p>
       <div class="body">
         <div><canvas width="${W}" height="${H}"></canvas><div class="now"></div></div>
         <div>
@@ -163,8 +168,9 @@ export class PoseTrainer {
     if (!h) return;
     const t = performance.now() / 1000;
     const hands = f.hands.filter((x) => x.length >= 21).sort((a, b) => 1 - a[9].x - (1 - b[9].x));
+    // train with the right hand (or the only hand): a left hand is flipped so the pose is stored as a right-hand shape
     const hand = hands[hands.length - 1];
-    const feat = hand && poseFeatures(hand);
+    const feat = hand && poseFeatures(hand, hands.length === 1 && 1 - hand[9].x < 0.5);
 
     let banner = "";
     if (this.rec) {
@@ -179,14 +185,20 @@ export class PoseTrainer {
         if (r.samples.length >= 8) {
           const step = Math.max(1, Math.floor(r.samples.length / 24));
           const pose: Pose = { id: `p${Date.now()}`, name: r.action, action: r.action, samples: r.samples.filter((_, i) => i % step === 0) };
-          // a new capture replaces the old pose of that action and any pose that looks the same as it
+          // a new capture replaces only the old pose of that same action; every other pose stays
+          const alike = lookAlike(h.poses.set.poses, pose);
           this.set(withPose(h.poses.set.poses, pose));
+          this.notice = alike.length ? `Saved. It looks a lot like your ${this.labelOf(alike[0].action)} pose: they may be mixed up. Try a more different shape.` : "Saved.";
+          this.noticeUntil = t + 5;
         } else banner = "No hand seen. Try again.";
       }
     }
 
-    const m = feat ? classify(feat, h.poses.set) : null;
-    this.now.textContent = banner || (m ? `Recognised: ${m.pose.action === "none" ? "rest" : m.pose.action}` : feat ? "No pose matched" : "No hand seen");
+    // both hands are read on their own: show what each one is doing
+    const rec = (m: { pose: Pose } | null) => (m ? (m.pose.action === "none" ? "rest" : this.labelOf(m.pose.action)) : "-");
+    const cur = h.poses.currents;
+    const m = h.poses.current;
+    this.now.textContent = banner || (t < this.noticeUntil ? this.notice : hands.length ? `Left hand: ${rec(cur.L)}   Right hand: ${rec(cur.R)}` : "No hand seen");
     this.renderList(m?.pose.id ?? null);
     this.draw(h.video, hands, banner);
   }

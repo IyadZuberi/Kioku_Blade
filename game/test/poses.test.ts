@@ -12,6 +12,8 @@ function hand(curl: number, at = 0.7, spread = 0): Hand {
   }
   return h;
 }
+/** In the mirrored camera view a hand with raw x 0.3 shows on the right of the picture (the fighting side). */
+const sh = (h: Hand): Hand => h.map((p) => ({ ...p, x: p.x - 0.4 }));
 const pose = (id: string, action: Pose["action"], h: Hand): Pose => ({ id, name: id, action, samples: [poseFeatures(h)!] });
 
 describe("poses", () => {
@@ -34,7 +36,7 @@ describe("poses", () => {
     const t = new PoseTracker();
     t.set = set;
     const ev: string[] = [];
-    const feed = (h: Hand, at: number) => t.update([h], at).forEach((e) => ev.push(`${e.action}:${e.type}`));
+    const feed = (h: Hand, at: number) => t.update([sh(h)], at).forEach((e) => ev.push(`${e.action}:${e.type}`));
     feed(fist, 0);
     expect(ev).toEqual([]);
     feed(fist, 0.033);
@@ -50,23 +52,57 @@ describe("poses", () => {
     const t = new PoseTracker();
     t.set = set;
     const ev: string[] = [];
-    for (let i = 0; i < 12; i++) t.update([point], i * 0.033).forEach((e) => ev.push(`${e.action}:${e.type}`));
+    for (let i = 0; i < 12; i++) t.update([sh(point)], i * 0.033).forEach((e) => ev.push(`${e.action}:${e.type}`));
     expect(ev).toEqual(["attack:press", "attack:release"]);
     ev.length = 0;
-    for (let i = 0; i < 6; i++) t.update([open], 1 + i * 0.033).forEach((e) => ev.push(`${e.action}:${e.type}`));
+    for (let i = 0; i < 6; i++) t.update([sh(open)], 1 + i * 0.033).forEach((e) => ev.push(`${e.action}:${e.type}`));
     expect(ev).toEqual([]);
   });
 });
 
-import { withPose } from "../src/input/poses";
-describe("withPose", () => {
-  it("replaces the old pose of the same action and any pose it is now ambiguous with", () => {
-    const a = hand(1), b = hand(0), c = hand(0.5, 0.7, 4);
+import { lookAlike, withPose } from "../src/input/poses";
+describe("keeping every pose", () => {
+  const a = hand(1), b = hand(0), c = hand(0.5, 0.7, 4);
+  it("a new capture replaces only the old pose of the same action; all the others stay", () => {
+    const old = [pose("a", "block", a), pose("b", "attack", b), pose("c", "jump", c)];
+    expect(withPose(old, pose("n", "block", a)).map((p) => p.id)).toEqual(["b", "c", "n"]);
+    expect(withPose(old, pose("d", "dodge", hand(0.2, 0.7, 2))).length).toBe(4);
+    expect(withPose(old, pose("e", "attack", b)).map((p) => p.id)).toEqual(["a", "c", "e"]);
+  });
+  it("a pose that looks like another is reported, never silently dropped", () => {
     const old = [pose("a", "block", a), pose("b", "attack", b)];
-    const next = withPose(old, pose("n", "block", a));
-    expect(next.map((p) => p.id)).toEqual(["b", "n"]); // old block gone
-    const dup = withPose(old, pose("d", "jump", b)); // same shape as attack: attack is dropped
-    expect(dup.map((p) => p.id)).toEqual(["a", "d"]);
-    expect(withPose(old, pose("e", "dodge", c)).length).toBe(3);
+    const twin = pose("t", "jump", b);
+    expect(lookAlike(old, twin).map((p) => p.id)).toEqual(["b"]);
+    expect(withPose(old, twin).length).toBe(3);
+  });
+});
+
+describe("one hand or two", () => {
+  const set = { poses: [pose("fist", "block", hand(1)), pose("point", "attack", hand(0.5, 0.7, 4)), pose("open", "none", hand(0))] };
+  const run = (frames: Hand[][]) => {
+    const t = new PoseTracker();
+    t.set = set;
+    const ev: string[] = [];
+    frames.forEach((hs, i) => t.update(hs, i * 0.033).forEach((e) => ev.push(`${e.action}:${e.type}`)));
+    return ev;
+  };
+  const at = (h: Hand, x: number): Hand => h.map((p) => ({ ...p, x: p.x - 0.7 + x }));
+  it("a single right hand works, and so does a single left hand (a pose is the same on either hand)", () => {
+    const point = hand(0.5, 0.7, 4);
+    // the camera view is mirrored: a hand with raw x 0.3 shows on the right of the picture
+    expect(run(Array.from({ length: 6 }, () => [at(point, 0.3)]))).toContain("attack:press");
+    // a left hand makes the mirror-image shape
+    const mirrored = point.map((p) => ({ ...p, x: 2 * point[0].x - p.x }));
+    expect(run(Array.from({ length: 6 }, () => [at(mirrored, 0.8)]))).toContain("attack:press");
+  });
+  it("both hands at once: one guards while the other strikes; the guard stays held until both let go", () => {
+    const fist = hand(1), point = hand(0.5, 0.7, 4), open = hand(0);
+    const L = (h: Hand) => at(h.map((p) => ({ ...p, x: 2 * h[0].x - p.x })), 0.8);
+    const R = (h: Hand) => at(h, 0.3);
+    const ev = run([[L(fist), R(open)], [L(fist), R(open)], [L(fist), R(point)], [L(fist), R(point)], [L(fist), R(open)], [L(fist), R(open)], [L(open), R(open)], [L(open), R(open)], [L(open), R(open)]]);
+    expect(ev.filter((e) => e === "block:press")).toHaveLength(1);
+    expect(ev).toContain("attack:press");
+    expect(ev.filter((e) => e === "block:release")).toHaveLength(1);
+    expect(ev.indexOf("attack:press")).toBeLessThan(ev.indexOf("block:release"));
   });
 });
