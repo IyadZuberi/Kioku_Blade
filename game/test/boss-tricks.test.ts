@@ -109,3 +109,31 @@ describe("Kazemaru's backflip and lunge", () => {
     expect(b.attack?.moves[0].d).toBe(4.8);
   });
 });
+
+describe("the remembered form (rage)", () => {
+  const beh = (level: number) => ({ level, moves: [], extras: [], tactic: "mixed" as const, named: [], forgeNote: "", weights: {}, chains: [["combo", "thrust", "overhead"], ["leap", "flurry", "sweep"]], chainP: 0.5, feintP: 0, jitter: 0, counterStep: false, cond: "none" as const, window: 2, skills: [] });
+  const hurt = (level: number) => {
+    const b = mk();
+    b.brain = beh(level);
+    b.phase = 2;
+    b.health = 20;
+    return b;
+  };
+  it("a general who has learned enough turns on a nearly beaten player, once, with a fresh string of attacks", () => {
+    const b = hurt(8);
+    const evs = run(b, 0.5);
+    expect(evs.filter((e) => e === "rage")).toHaveLength(1);
+    expect(b.rage).toBe(true);
+    expect(run(b, 3).filter((e) => e === "rage")).toHaveLength(0);
+  });
+  it("not in phase 1, not at full health, not for a general who has learned little", () => {
+    const low = hurt(3);
+    expect(run(low, 1)).not.toContain("rage");
+    const healthy = hurt(9);
+    healthy.health = 80;
+    expect(run(healthy, 1)).not.toContain("rage");
+    const p1 = hurt(9);
+    p1.phase = 1;
+    expect(run(p1, 1)).not.toContain("rage");
+  });
+});

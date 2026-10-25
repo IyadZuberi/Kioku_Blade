@@ -19,9 +19,10 @@ Built for the Night Shift hackathon (London, 23-25 Oct 2026). Repository name: `
 |---|---|---|
 | **Memory in the game** | Every duel is counted. Each one pulls his guard, parry rate, answer speed, openings and tempo toward the HARD preset, never past it. Your deflect windows are never touched. | No |
 | **The war council** (Mubit task `general_plan`) | Your duel numbers go to a model that answers with an enum-only plan: what to favour, how to open, tempo and gap steps, a line of intel and a taunt. A validator clamps it to the level's limits. | Yes |
+| **His arsenal** (Mubit task `general_forge`) | The model designs his next combos, tactic, condition and a move to teach him from a numeric digest of how you fight. Checked on both sides; the game has its own deterministic arsenal when the call fails. | Yes |
 | **His voice** (Mubit task `general_speech`) | A second model call writes what he says to you next duel (greeting, parry shout, last words, gloat) and rewrites his private notes on you, which feed the next plan. | Yes |
 
-If a call fails, the same rules code runs locally and canned lines are used. The screen says which. A network call never blocks a frame.
+The general never stops growing: his level has no ceiling and he gets new combos, moves, feints, uneven swing speed, a condition he can only be hurt under, and a remembered form at low health. If a call fails, the same rules code runs locally and canned lines are used. The screen says which. A network call never blocks a frame.
 
 **The generals**
 

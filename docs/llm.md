@@ -12,6 +12,22 @@ Two Mubit tasks, each a real model call per duel, plus code that does the maths.
 | If it fails | Rules table, same code runs locally; backup model when the main provider is out of tokens (not stored) | Canned lines; dossier built from habit evidence |
 | Frozen? | Yes: 80 seeded examples; `server/test/frozen.test.ts` pins the hash | Same rule once examples are kept |
 
+## The third task: the general designs his own arsenal (`general_forge`)
+
+After every duel the game sends a small numeric digest (his level, how the player fights, where they stand, which of his moves land and which never do, his move list) and the model **designs his next arsenal**: up to three new combos from his moves (each named, inspired by the hardest fights: Isshin, the Owl, Malenia, Artorias, Lord Shimura...), a tactic (keep away from a close fighter, press in on a kiter), the condition he can be hurt under, and one new move to teach him. The server and the game both check the answer (only moves he can play, bounded length, no spam, no three perils in a row); a bad answer is dropped and the game's own deterministic arsenal is used.
+
+What the game does with it, with or without the model:
+
+| | Deterministic brain (`learn/brain.ts`, `learn/arsenal.ts`) | Model design (`general_forge`) |
+|---|---|---|
+| Level | Grows every duel, no ceiling | Reads it |
+| Style | Deflect / guard / dodge / aggression shares | Reads it, aims combos at it |
+| Moves | Learns windSlash, lunge, backflip, waterfowl, shockwave, vanish, stance at set levels | Can teach one more per duel |
+| Combos | 12 named combos from famous bosses, plus ones generated from what lands on this player | Invents new named ones |
+| Range | Times where the player stands and which distance hurt them more; tries the other one first | Chooses kite or crowd |
+| Condition | He is only hurt after a deflect / a dodge / while open / once his posture is broken, aimed at their favourite style | Can change it |
+| Skills | Feints, uneven swing speed, delayed strikes, answering a dodge, a remembered form below 30 health | |
+
 ## Is it a classifier?
 
 The **habit classification** (blocks too much, dodges too much, ...) is plain code: thresholds in `shared/src/habits.ts`. It is not a model call. The model is then used for what code cannot do well: choosing a combination of counters from several habits and the player's history, writing the intel and taunt in the general's voice, and, in the second task, summarising the player across duels into a short note the next call reads. The plan task is constrained to enums so a small model can copy it, which is also what lets Mubit train a small adapter for it.

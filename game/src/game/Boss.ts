@@ -329,6 +329,8 @@ export class Boss {
   private feintedNext = false;
   /** This swing runs at 1 +- brain.jitter of its speed. */
   private jitterMul = 1;
+  /** The remembered form: a general who has learned enough turns on a nearly beaten player (health under 30 in phase 2). */
+  rage = false;
 
   constructor(readonly ch: Fighter) {
     ch.rig.onStep = () => this.events.push("step");
@@ -364,6 +366,7 @@ export class Boss {
     this.feintAt = -1;
     this.feintedNext = false;
     this.jitterMul = 1;
+    this.rage = false;
     this.R = rng(9);
     this.events.length = 0;
     this.clipNow = "";
@@ -477,7 +480,8 @@ export class Boss {
 
   private choose(dist: number): string | null {
     const br = this.brain;
-    if (!this.queue.length && br && br.chains.length && this.R() < br.chainP) this.queue = [...br.chains[Math.floor(this.R() * br.chains.length)]];
+    const chainP = br ? (this.rage ? Math.min(0.95, br.chainP + 0.3) : br.chainP) : 0;
+    if (!this.queue.length && br && br.chains.length && this.R() < chainP) this.queue = [...br.chains[Math.floor(this.R() * br.chains.length)]];
     const q = this.queue.shift();
     if (q) {
       const leapish = q === "leap" || q === "shockwave" || q === "waterfowl";
@@ -512,7 +516,18 @@ export class Boss {
   }
 
   update(dt: number, player: THREE.Vector3, playerDown: boolean): void {
-    this.tempo = this.state === "attack" ? DIFFICULTY.tempo[this.phase - 1] * this.jitterMul : 1;
+    this.tempo = this.state === "attack" ? DIFFICULTY.tempo[this.phase - 1] * this.jitterMul * (this.rage ? 1.1 : 1) : 1;
+    // the remembered form: only for a general that has learned a lot, and only once, when he is nearly beaten
+    if (!this.rage && this.phase === 2 && this.brain && this.brain.level >= 6 && this.health <= 30 && (this.state === "idle" || this.state === "attack" || this.state === "recover")) {
+      this.rage = true;
+      this.attack = null;
+      this.follow = null;
+      this.enter("idle");
+      this.setClip("idle", 0.1);
+      this.cooldown = 0.5;
+      this.queue = [...(this.brain.chains[0] ?? []), ...(this.brain.chains[1] ?? [])];
+      this.events.push("rage");
+    }
     dt *= this.tempo;
     this.time += dt;
     this.stateT += dt;
@@ -806,7 +821,7 @@ export class Boss {
     this.attack = null;
     this.enter("idle");
     this.setClip("idle", 0.2);
-    this.cooldown = this.phase === 2 ? cooldown * 0.6 : cooldown;
+    this.cooldown = this.rage ? cooldown * 0.4 : this.phase === 2 ? cooldown * 0.6 : cooldown;
   }
 
   /**

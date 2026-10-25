@@ -104,6 +104,8 @@ function setStoryFlag(k: string): void {
 
 type GState = "title" | "parley" | "fight" | "deathblow" | "finisher" | "victory" | "dying" | "defeat" | "gate";
 
+/** What he says when he turns on you in his remembered form (the model's own greeting line replaces it when there is one). */
+const RAGE_LINE: Record<number, string> = { 1: "Now I fight as I remember you.", 2: "The wind has kept every step you took!", 3: "Every fall you took. I kept them all." };
 const _a = new THREE.Vector3();
 const _b = new THREE.Vector3();
 const _c1 = new THREE.Vector3();
@@ -1435,7 +1437,9 @@ export class Game {
     this.cam.shake(heavy ? 0.3 : 0.22);
     this.post.kickAberration(heavy ? 0.9 : 0.6);
     this.post.hitFlash(heavy ? 0.16 : 0.12);
-    b.posture += deflectPosture(h, this.deflectChain);
+    // Only a deflect opens the "afterDeflect" window; under any other condition a deflect builds his posture at a third of the rate
+    this.sinceDeflectAt = this.gameTime;
+    b.posture += deflectPosture(h, this.deflectChain) * (this.cond !== "none" && !this.isVulnerable() ? 0.35 : 1);
     b.postureIdle = 0;
     b.guarded = true;
     // A deflect costs a little posture but never breaks it.
@@ -1585,7 +1589,6 @@ export class Game {
           this.cam.shake(0.28);
           p.ch.bounce();
           p.deflected();
-          this.sinceDeflectAt = this.gameTime;
           b.counter();
           const sneer = this.spoken("parry");
           if (sneer && this.gameTime - this.lastSneer > 6) {
@@ -1950,7 +1953,18 @@ export class Game {
         this.cam.shake(clamp(0.5 - d * 0.05, 0.1, 0.45));
       } else if (e === "recover") this.fx.dot.active = false;
       else if (e === "punish") this.stats.punishes++;
-      else if (e === "rise") {
+      else if (e === "rage") {
+        // the remembered form: time slows, the screen flares, and he says what he has kept of you
+        this.slowT = 0;
+        this.slowDur = 1.3;
+        this.slowScale = 0.3;
+        this.cam.shake(0.7);
+        this.post.hitFlash(0.35, 0xc02410);
+        this.fx.breakBurst(this.boss.ch.rig.chestW);
+        au.bossRise();
+        this.subs.caption("HE REMEMBERS YOU", 2400);
+        this.subs.say(this.spoken("greeting") || RAGE_LINE[this.bossDef.id], speakerOf(this.bossDef.id), 3200);
+      } else if (e === "rise") {
         au.bossRise();
         this.fx.breakBurst(this.boss.ch.rig.chestW);
         this.cam.shake(0.35);
