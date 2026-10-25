@@ -6,11 +6,13 @@
   <img src="docs/img/demo-title.jpg" width="100%" alt="Kioku: Blades That Remember, the title screen">
 </p>
 
+<p align="center"><b><a href="DEMO_LINK_HERE">Watch the demo</a></b></p>
+
 <p align="center"><b>A samurai duel where the generals study you, and come back different every time.</b><br/>
 Three generals, three arenas, and three jobs for a language model, all through Mubit.</p>
 
 <p align="center">
-  <a href="#what-the-demo-shows">What the demo shows</a> ·
+  <a href="#how-a-duel-flows">How a duel flows</a> ·
   <a href="#how-kioku-uses-mubit">How Kioku uses Mubit</a> ·
   <a href="docs/architecture.md">Architecture</a> ·
   <a href="docs/features.md">Features</a> ·
@@ -61,27 +63,37 @@ fighting itself is plain game code, so a slow or wrong model answer can never br
 - **Anyone building AI game directors.** The pattern (a small numeric digest in, a validated plan out, a small model that
   takes over) is reusable well beyond duels.
 
-## What the demo shows
-
-The two-minute demo walks through this, in this order (screenshots below are from the real build):
-
-1. **Title and Settings.** The title names the three generals and the difficulty; Settings lists every control and move.
-2. **Narrated prologue and chapter card.** Human-sounding voice, subtitles on screen.
-3. **The parley and the duel.** Keyboard or your own hand poses. The banner on screen says what condition he is hiding behind.
-4. **A guard that works.** Deflect his blows, break his posture, finish him with his own finisher.
-5. **The war council.** After the duel the screen shows what he read about *you*, his level, what he learned, and what the
-   language model designed: its own named combos, the tactic (keep away from a close fighter, crowd a kiter) and a move to teach him.
-6. **The rematch.** He is visibly different: new combos, a changed distance, a different condition. He speaks a line written for you.
-7. **The gate to the next chapter, then the second general** on a different arena with a different style.
-8. **Pause menu.** Resume, switch keyboard or hands, volumes, controls, and the way out (which forfeits).
-9. **Mubit.** The call log with request ids, the three tasks, the measured cost and speed, and the adapter status (below).
-
 <p align="center">
   <img src="docs/img/demo-fight-shield.jpg" width="49%" alt="A duel with the shield condition shown on screen">
   <img src="docs/img/demo-council.jpg" width="49%" alt="The council screen: what he learned, and what the language model designed">
 </p>
 
 ---
+
+## How a duel flows
+
+```mermaid
+sequenceDiagram
+  actor P as Player
+  participant G as Game (browser)
+  participant S as Server
+  participant M as Mubit
+  participant V as Validator
+  P->>G: duel the general
+  G->>G: brain reads habits, plays his level, combos, condition
+  G->>S: duel digest (counts and shares only)
+  par three tasks
+    S->>M: general_plan
+    S->>M: general_speech
+    S->>M: general_forge
+  end
+  M-->>S: answers (provider model, adapter once it passes)
+  S->>V: validatePlan, cleanSpeech, cleanForge
+  V-->>S: checked or dropped
+  S-->>G: plan, lines, arsenal
+  G->>P: council screen, new greeting, rematch
+  Note over G: no answer in time? the game's own brain plays on
+```
 
 ## How Kioku uses Mubit
 
@@ -124,31 +136,12 @@ Three tasks, each with a fixed system prompt and a strict JSON answer. Measured 
 The plan task is designed to be copied by a small model: its answer is a handful of enums and small integers, never a free number,
 and its input is compact (about 700 tokens). That is why an adapter can take the job over.
 
-### What the game keeps
-
-Mubit does not hold the game's memory. The game does: the **brain** per general per player (style, which of his moves
-land on you, his level, where you stand) lives in the browser and decides how he fights, even with no server at all.
-Mubit and the model supply the judgement and the words *between* duels; the game supplies the facts.
-
-| Owner | Decides | Never does |
-|---|---|---|
-| Game code | Frames, hit windows, deflect timing, habits, difficulty, his level, conditions, combos he can play | Write his words |
-| Model (through Mubit) | What he favours next, his arsenal design, what he says, his notes on you | Change a fact or break a rule: every answer is checked |
-| Server | Validation, per-player memory, rate caps, fallbacks | Trust a model answer as it came |
-
 ### The validator
 
 Every answer is checked on the server and again in the game: plans are clamped to the player's level (`validatePlan`),
 speech is capped in words and filtered (`cleanSpeech`), and the arsenal design may only use moves he can play, within a
 bounded length, with no move repeated back to back and never three perils in a row (`cleanForge`). Anything invalid is
 dropped and the game uses its own deterministic plan, lines or arsenal. The model is never in the frame loop.
-
-### How this helps
-
-The instructions never change; only the numbers change. So the same three jobs repeat for every duel of every player,
-which is exactly the shape of work Mubit's adapters are for. Today the big model answers; once an adapter passes its
-tests, the same task can run on a small, cheap model. The game does not depend on the adapter, so it keeps working
-either way.
 
 ### Adapters, and what we have trained on
 
@@ -181,25 +174,10 @@ What this says, plainly:
 - Mubit lists "Requests served" and "Training examples" as *Not reported* for these versions, so we do not quote them.
 - Which console title belongs to which of our two free-text tasks is read from the titles Mubit generated; the plan one is unambiguous.
 
-### What Mubit saves, measured
+### Cost and held-out evaluation of the plan task
 
-From the token counts above and Mubit's own price table for the models (list prices per million tokens, input and output;
-the small model is `gpt-6-luna`, the frontier tier `claude-haiku-4-5` and `gpt-6-sol`). A duel makes three calls.
-
-| One duel (three calls) | Small model (`gpt-6-luna`, what we run) | Frontier (`claude-haiku-4-5`) | Frontier (`gpt-6-sol`) |
-|---|---|---|---|
-| Cost per 1,000 duels | **$0.75** | $7.54 | $15.09 |
-| 10,000 players, 3 duels a day, a month | about **$680** | about $6,800 | about $13,600 |
-| 100,000 players, 3 duels a day, a month | about **$6,800** | about $68,000 | about $136,000 |
-
-These are projections from measured token counts and list prices, not quotes. The point is the shape: the three jobs are
-small and repeated, so a small model that matches the big one is worth an order of magnitude. Mubit is how Kioku gets
-there without rewriting the game.
-
-**Privacy.** The model only ever sees a small numeric digest (shares and counts, never what the player typed, never a
-name). The per-player memory stays in the browser.
-
-### Held-out evaluation of the plan task
+One duel (three calls) costs about **$0.00075** on the small model (`gpt-6-luna`), roughly a tenth of a frontier model
+(list prices times measured tokens, a projection, not a quote). The model only sees a numeric digest, never a name or typed text.
 
 60 simulated players that were never sent to Mubit for training (`data/heldout.json`, sent with storage off), scored by
 code against the counters the game accepts for each player's strongest habit (`server/scripts/eval.ts`).
@@ -342,14 +320,6 @@ node game/tools/flowperf.mjs       # frame pacing through the whole flow (about 
 | `server/voice/` | The local Kokoro text-to-speech sidecar |
 | `data/` | `seed.json`, `heldout.json`; `calls.csv` and `eval/` are git-ignored |
 | `docs/` | `architecture.md`, `llm.md`, `story.md`, `features.md`, `walkthrough.md`, `demo-script.md`, `img/` |
-
-## Honest notes
-
-- **Adapter numbers are read by hand from our Mubit console** (screenshot above); the API did not let us read them. All three are v1 and below target.
-- **Costs are projections** from measured token counts and list prices, not quotes. We have not measured an adapter's own cost.
-- **Hand poses are tested end to end on a fake camera**, not yet with a real webcam.
-- **How fun and fair a level-20 general is** needs human players; our bot is far too precise to judge it.
-- **Voices and music** were checked by file and by timing, not by ear.
 
 ## Team
 
