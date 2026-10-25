@@ -49,7 +49,9 @@ const S = pose(null, {
   gait: 1,
 });
 const S2 = pose(S, { chestPitch: 0.11, hipY: -0.08, grip: [0.2, 1.34, 0.23] });
-const GUARD = pose(S, { grip: [0.24, 1.26, 0.38], dir: [-0.95, 0.5, 0.2], two: 0.6, hipY: -0.1, chestYaw: 0.1 });
+// A planted, open guard: low and wide, blade held across the body at chest height with both hands apart on the hilt
+// (the old one tucked the elbows in and stood the blade up in front of the face: it read as shy).
+const GUARD = pose(S, { grip: [0.34, 1.18, 0.5], dir: [-0.92, 0.3, 0.3], two: 1, lhand: [-0.04, 1.14, 0.36], hipY: -0.16, chestYaw: 0.1, chestPitch: 0.12, head: -0.03, footL: [-0.25, 0, 0.3], footR: [0.28, 0, -0.28] });
 
 // Combo.
 const C_W1 = pose(S, { grip: [0.36, 1.66, -0.05], dir: [0.4, 0.75, -0.55], chestYaw: -0.62, hipYaw: 0.05, chestPitch: -0.05 });
@@ -267,6 +269,7 @@ export class General extends Character {
       deathblown: new Clip("deathblown", [k(0, KNEEL), k(0.16, ARCH), k(0.8, pose(ARCH, { chestPitch: -0.42 })), k(1.2, KNEEL2), k(1.5, KNEEL2)]),
     };
     super(GENERAL_DIMS, clips.idle, 0xff6a3a, 1.0);
+    this.reboundScale = 0.4;
     this.clips = clips;
     this.build();
   }

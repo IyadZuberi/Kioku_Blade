@@ -61,6 +61,8 @@ export abstract class Character implements Fighter {
   private guardT = -1;
   private bounceT = -1;
   private bounceHold = BOUNCE_HOLD;
+  /** How far a rebound throws the grip up and back (1 = the standard; the armoured general uses less so he does not curl up). */
+  protected reboundScale = 1;
   private avoid = false;
   private avoidW = 0;
 
@@ -146,9 +148,9 @@ export abstract class Character implements Fighter {
     // Grip thrown up and back toward the shoulder, chest rocked back (the blade lift is in compose).
     const r = this.rebound;
     r.set(this.base);
-    r[I.gy] += 0.2;
-    r[I.gz] -= 0.3;
-    r[I.cPitch] -= 0.12;
+    r[I.gy] += 0.2 * this.reboundScale;
+    r[I.gz] -= 0.3 * this.reboundScale;
+    r[I.cPitch] -= 0.12 * this.reboundScale;
   }
 
   listClips(): { name: string; dur: number; loop: boolean }[] {
