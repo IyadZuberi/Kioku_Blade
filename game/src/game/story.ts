@@ -78,3 +78,16 @@ export const TRIUMPH: Record<BossId, Line> = {
   2: L("t2", "kazemaru", "Too slow. The wind remembers."),
   3: L("t3", "kurogane", "Rise again, girl. I will learn you again."),
 };
+
+/** Spoken over each chapter card (the cut between the gate and the duel). */
+export const CARD: Record<BossId, Line> = {
+  1: L("card-1", "narrator", "Chapter one. The shrine garden. Masatora, the garden duelist, waits among the maples."),
+  2: L("card-2", "narrator", "Chapter two. The rooftops at dusk. Kazemaru, the spear of the wind, watched you climb."),
+  3: L("card-3", "narrator", "Chapter three. The sakura garden. Kurogane, the hollow shogun, has remembered you since the first gate."),
+};
+
+/** Spoken as she walks through the gate to the next general. */
+export const GATE: Record<1 | 2, Line> = {
+  1: L("gate-1", "narrator", "The first gate falls. Two generals remain, and they have heard how you fought."),
+  2: L("gate-2", "narrator", "The second gate falls. One remains. He has been listening since the beginning."),
+};

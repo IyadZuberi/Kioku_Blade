@@ -102,5 +102,25 @@
  "t3": {
   "file": "t3.wav",
   "text": "Rise again, girl. I will learn you again."
+ },
+ "card-1": {
+  "file": "card-1.wav",
+  "text": "Chapter one. The shrine garden. Masatora, the garden duelist, waits among the maples."
+ },
+ "card-2": {
+  "file": "card-2.wav",
+  "text": "Chapter two. The rooftops at dusk. Kazemaru, the spear of the wind, watched you climb."
+ },
+ "card-3": {
+  "file": "card-3.wav",
+  "text": "Chapter three. The sakura garden. Kurogane, the hollow shogun, has remembered you since the first gate."
+ },
+ "gate-1": {
+  "file": "gate-1.wav",
+  "text": "The first gate falls. Two generals remain, and they have heard how you fought."
+ },
+ "gate-2": {
+  "file": "gate-2.wav",
+  "text": "The second gate falls. One remains. He has been listening since the beginning."
  }
 }

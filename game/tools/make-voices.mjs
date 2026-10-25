@@ -2,7 +2,7 @@
 // public/assets/voice/<line id>.wav + manifest.json. Run once; the files are committed.
 //   pnpm exec vite --root tools/voice-render --port 5420 &   then   node tools/make-voices.mjs
 import { chromium } from "playwright";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { execSync } from "node:child_process";
 
 /** Kokoro's WAV is 32-bit float; 16-bit PCM is half the size and plays everywhere. */
@@ -36,8 +36,9 @@ page.on("console", (m) => m.type() === "error" && console.log("console:", m.text
 await page.goto(process.env.RENDER_URL ?? "http://localhost:5420/");
 await page.waitForFunction(() => window.ready, null, { timeout: 60000 });
 console.log("voices:", await page.evaluate(() => window.load()));
-const manifest = {};
+const manifest = existsSync(`${out}manifest.json`) && !process.argv.includes("--all") ? JSON.parse(readFileSync(`${out}manifest.json`, "utf8")) : {};
 for (const l of uniq) {
+  if (manifest[l.id] && manifest[l.id].text === l.text && existsSync(`${out}${l.id}.wav`)) continue; // already rendered (pass --all to redo every line)
   const [v, speed] = VOICES[l.who];
   const b64 = await page.evaluate(([t, vo, sp]) => window.say(t, vo, sp), [l.text, v, speed]);
   const buf = toInt16Wav(Buffer.from(b64, "base64"));

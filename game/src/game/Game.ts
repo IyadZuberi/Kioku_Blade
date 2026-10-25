@@ -66,7 +66,7 @@ import { CameraRig } from "./CameraRig";
 import { KICK_REACH, PLAYER_MAX, Player, vitalityRegen } from "./Player";
 import { wavedash } from "../wavedash";
 import { Subtitles } from "../ui/Subtitles";
-import { AGAIN, FALL, MEET, PROLOGUE, TRIUMPH, speakerOf, type Line } from "./story";
+import { AGAIN, CARD, FALL, GATE, MEET, PROLOGUE, TRIUMPH, speakerOf, type Line } from "./story";
 
 export const HITSTOP_DEFLECT = 0.07;
 export const HITSTOP_BLOCK = 0.04;
@@ -737,6 +737,8 @@ export class Game {
     this.gateT = 0;
     this.gateFlash = false;
     this.gateDone = false;
+    const gl = GATE[this.bossDef.id as 1 | 2];
+    if (gl) this.subs.say(gl.text, gl.who, 6500, gl.id); // the cut through the gate is narrated
     p.enter("move");
     p.unbounded = true;
     p.yaw = Math.PI;
@@ -844,6 +846,7 @@ export class Game {
       this.cardFor = this.progress.boss;
       const def = BOSSES[this.progress.boss];
       this.input.disarmPrompt();
+      this.subs.say(CARD[def.id].text, "narrator", 6000, CARD[def.id].id); // and so is the card
       this.chapterCard.show(def, () => this.setBoss(def.id), () => this.beginIntro());
       return;
     }

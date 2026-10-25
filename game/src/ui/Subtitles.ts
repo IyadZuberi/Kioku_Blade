@@ -162,13 +162,13 @@ export class Subtitles {
   })();
 
   /** One line in the General's voice during the fight (never captures a key; fades by itself). */
-  say(text: string, who: Speaker, ms = 2600): void {
+  say(text: string, who: Speaker, ms = 2600, id = ""): void {
     clearTimeout(this.sayTimer);
     this.sayEl.textContent = text;
     this.sayEl.style.color = COLOR[who];
     this.sayEl.classList.add("on");
     this.sayTimer = window.setTimeout(() => this.sayEl.classList.remove("on"), ms);
-    if (!this.playing) this.voice.speak(text, who);
+    if (!this.playing) this.voice.speak(text, who, undefined, id);
   }
 
   /** The finisher's name, large over the slow motion. */
